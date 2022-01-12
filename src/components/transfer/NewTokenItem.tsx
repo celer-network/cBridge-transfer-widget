@@ -4,7 +4,6 @@ import { useNativeETHToken } from "../../hooks";
 import { useWeb3Context } from "../../providers/Web3ContextProvider";
 import { useAppSelector } from "../../redux/store";
 import { Theme } from "../../theme";
-import { alpha2Hex } from "../../helpers/alpha2Hex";
 import { getTokenListSymbol } from "../../redux/assetSlice";
 
 /* eslint-disable*/
@@ -48,10 +47,15 @@ const useStyles = createUseStyles((theme: Theme) => ({
   item: {
     cursor: "pointer",
     overflow: "hidden",
-    color: theme.secondBrand,
     margin: "10px 20px",
     borderRadius: 16,
-    background: theme.surfacePrimary + alpha2Hex(10),
+    background: theme.chainBg,
+    color: theme.surfacePrimary,
+    border: `1px solid ${theme.primaryBorder} !important`,
+    "&:hover": {
+      background: theme.primaryBorder,
+      transition: "ease 0.2s",
+    },
   },
   activeItem: {
     composes: ["item"],
@@ -59,8 +63,11 @@ const useStyles = createUseStyles((theme: Theme) => ({
     margin: "10px 20px",
     transition: "ease 0.2s",
     borderRadius: 16,
-    background: theme.surfacePrimary + alpha2Hex(10),
-    border: `1px solid ${theme.primaryBrand}`,
+    background: theme.chainBg,
+    border: `1px solid ${theme.primaryBrand} !important`,
+    "& div": {
+      color: theme.surfacePrimary,
+    },
   },
   litem: {
     width: "100%",

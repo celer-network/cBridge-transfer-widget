@@ -152,10 +152,11 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
   },
   moreOptionNote: {
     margin: 16,
-    height: 56,
+    minHeight: 56,
     borderRadius: 16,
     padding: "8px, 12px, 8px, 12px",
-    background: "#8F9BB33D",
+    background: theme.chainBg,
+    boxShadow: "0px 6px 12px -6px rgba(24, 39, 75, 0.12), 0px 8px 24px -4px rgba(24, 39, 75, 0.08)",
     display: "flex",
     alignItems: "center",
   },
@@ -338,7 +339,7 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
         </div>
         <div className={classes.moreOptionNote} hidden={chainSource !== "to"}>
           <img src={ringBell} className={classes.moreOptionIcon} />
-          <span style={{ color: "#8F9BB3", fontSize: isMobile ? 12 : 14 }}>
+          <span style={{ color: "#8F9BB3", fontSize: 14, paddingLeft: 4, paddingRight: 4 }}>
             Below shows the destination chains that enables at least one token transfer from {fromChain?.name}. More
             chains can be found if you select other source chains.{" "}
           </span>

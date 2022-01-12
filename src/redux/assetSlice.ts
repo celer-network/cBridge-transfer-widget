@@ -423,6 +423,9 @@ export const getTokenListSymbol = (symbol, chId) => {
     if (symbol === "FTM") {
       name = "cfFTM";
     }
+    if (symbol === "DAI") {
+      name = "ceDAI";
+    }
   }
 
   return name;

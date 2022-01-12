@@ -142,10 +142,11 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
   },
   moreOptionNote: {
     margin: 16,
-    height: 56,
+    minHeight: 56,
     borderRadius: 16,
     padding: "8px, 12px, 8px, 12px",
-    background: "#8F9BB33D",
+    background: theme.chainBg,
+    boxShadow: "0px 6px 12px -6px rgba(24, 39, 75, 0.12), 0px 8px 24px -4px rgba(24, 39, 75, 0.08)",
     display: "flex",
     alignItems: "center",
   },
@@ -375,9 +376,10 @@ const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
           </div>
           <div className={classes.moreOptionNote}>
             <img src={ringBell} className={classes.moreOptionIcon} />
-            <span style={{ color: "#8F9BB3", fontSize: 14 }}>
-              Below is the supported token list from {fromChain?.name} to {toChain?.name}. More tokens can be found if
-              you select other chains.
+            <span style={{ color: "#8F9BB3", fontSize: 14, paddingLeft: 4, paddingRight: 4 }}>
+              Below is the supported token list from {fromChain?.name} to {toChain?.name}.{" "}
+              <span style={{ color: "#8F9BB3", fontSize: 14, fontWeight: 700 }}>More tokens</span> can be found if you
+              select other chains.
             </span>
           </div>
           <div className={classes.itemList}>
