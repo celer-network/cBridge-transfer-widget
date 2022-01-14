@@ -84,7 +84,6 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-unused-imports": "^1.1.1",
     "gh-pages": "^3.1.0",
-    "husky": ">=6",
     "ipfs-http-client": "^49.0.4",
     "lint-staged": ">=10",
     "openapi-typescript": "^3.2.0",
@@ -113,8 +112,7 @@
     "s3": "node ./scripts/s3.js",
     "flexible": "node ./scripts/flexible.js",
     "ship": "yarn surge",
-    "generate:api": "openapi-typescript -o src/api/api.ts $WEBAPI_PATH",
-    "prepare": "husky install"
+    "generate:api": "openapi-typescript -o src/api/api.ts $WEBAPI_PATH"
   },
   "lint-staged": {
     "*.{js,css,md,ts,tsx,less}": "prettier --write"
