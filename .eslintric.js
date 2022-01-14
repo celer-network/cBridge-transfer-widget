@@ -1,0 +1,60 @@
+module.exports = {
+    env: {
+      browser: true,
+    },
+    root: true,
+    extends: [
+      "airbnb",
+      "prettier",
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:react-hooks/recommended",
+    ],
+    plugins: ["babel", "@typescript-eslint"],
+    rules: {
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "arrow-body-style": "off",
+      camelcase: ["error", { allow: ["^.*__factory$"] }],
+      "import/extensions": [
+        "error",
+        "ignorePackages",
+        {
+          js: "never",
+          jsx: "never",
+          ts: "never",
+          tsx: "never",
+        },
+      ],
+      "import/no-extraneous-dependencies": "off",
+      "import/no-useless-path-segments": "off",
+      "import/prefer-default-export": "off",
+      "jsx-a11y/accessible-emoji": "off",
+      "jsx-a11y/click-events-have-key-events": "off",
+      "jsx-a11y/no-static-element-interactions": "off",
+      "no-console": "off",
+      "no-empty-function": "off",
+      "no-param-reassign": "off",
+      "no-plusplus": ["error", { allowForLoopAfterthoughts: true }],
+      "no-underscore-dangle": "warn",
+      "no-unused-vars": "off",
+      "no-shadow": "warn",
+      "no-use-before-define": "off",
+      "prefer-destructuring": "off",
+      "prefer-template": "off",
+      "react/destructuring-assignment": "off",
+      "react/jsx-filename-extension": ["error", { extensions: ["js", ".jsx", ".ts", ".tsx"] }],
+      "react/jsx-uses-react": "off",
+      "react/prop-types": "off",
+      "react/react-in-jsx-scope": "off",
+    },
+    settings: {
+      "import/resolver": {
+        node: {
+          extensions: [".d.ts", ".js", ".jsx", ".ts", ".tsx"],
+        },
+      },
+    },
+  };
+  

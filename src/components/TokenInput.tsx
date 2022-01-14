@@ -52,7 +52,7 @@ const TokenInput: FC<IProps> = props => {
       onChange={handleChange}
       placeholder="0.0"
       disabled={props?.disabled}
-      style={{ paddingLeft: 0 }}
+      style={{ paddingLeft: 0, float: "left" }}
     />
   );
 };

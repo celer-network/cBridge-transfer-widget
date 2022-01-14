@@ -1387,9 +1387,9 @@ const Transfer: FC = () => {
                 <div className={classes.transndes}>
                   <div className={classes.transdestext}>
                     {receiveAmount === 0 ? (
-                      <span>0.0</span>
+                      <span style={{float: "left"}}>0.0</span>
                     ) : (
-                      <span>
+                      <span style={{float: "left"}}>
                         {receiveAmount < 0
                           ? "--"
                           : `${receiveAmount} ${getTokenDisplaySymbol(

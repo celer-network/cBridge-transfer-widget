@@ -104,7 +104,6 @@
   },
   "scripts": {
     "build": "dotenv -e .env.test craco build",
-    "build:mainnet": "dotenv -e .env.mainnet craco build",
     "eject": "craco eject",
     "start": "craco start",
     "test": "craco test",

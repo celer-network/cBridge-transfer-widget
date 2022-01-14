@@ -529,6 +529,7 @@ export default function Header(): JSX.Element {
 
       <div className={classes.headerRight}>
         <div>
+        {signer && (
           <div
             className={totalActionNum || totalPaddingNum ? classes.activeChainLocale : classes.chainLocale}
             onClick={() => {
@@ -537,6 +538,7 @@ export default function Header(): JSX.Element {
           >
             <div className={classes.historyText}>{getstatusText()}</div>
           </div>
+        )}
         </div>
         {signer && (
           <div

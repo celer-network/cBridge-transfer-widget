@@ -1,0 +1,5 @@
+# folders
+build/
+node_modules/
+src/proto/
+src/proto-grpc/

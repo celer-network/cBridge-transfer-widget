@@ -40,6 +40,7 @@ const RateModal = ({ onCancle }) => {
       fontWeight: 600,
       color: theme.surfacePrimary,
       marginBottom: 24,
+      float: "left",
     },
     unableBtn: {
       display: "flex",
