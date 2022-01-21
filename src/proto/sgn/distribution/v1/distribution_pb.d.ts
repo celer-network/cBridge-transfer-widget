@@ -307,21 +307,21 @@ export namespace StakingRewardClaimInfo {
   }
 }
 
-export class CBridgeFeeShareInfo extends jspb.Message {
+export class ClaimableFeesInfo extends jspb.Message {
   getClaimableFeeAmountsList(): Array<cosmos_base_v1beta1_coin_pb.DecCoin>;
-  setClaimableFeeAmountsList(value: Array<cosmos_base_v1beta1_coin_pb.DecCoin>): CBridgeFeeShareInfo;
-  clearClaimableFeeAmountsList(): CBridgeFeeShareInfo;
+  setClaimableFeeAmountsList(value: Array<cosmos_base_v1beta1_coin_pb.DecCoin>): ClaimableFeesInfo;
+  clearClaimableFeeAmountsList(): ClaimableFeesInfo;
   addClaimableFeeAmounts(value?: cosmos_base_v1beta1_coin_pb.DecCoin, index?: number): cosmos_base_v1beta1_coin_pb.DecCoin;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): CBridgeFeeShareInfo.AsObject;
-  static toObject(includeInstance: boolean, msg: CBridgeFeeShareInfo): CBridgeFeeShareInfo.AsObject;
-  static serializeBinaryToWriter(message: CBridgeFeeShareInfo, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): CBridgeFeeShareInfo;
-  static deserializeBinaryFromReader(message: CBridgeFeeShareInfo, reader: jspb.BinaryReader): CBridgeFeeShareInfo;
+  toObject(includeInstance?: boolean): ClaimableFeesInfo.AsObject;
+  static toObject(includeInstance: boolean, msg: ClaimableFeesInfo): ClaimableFeesInfo.AsObject;
+  static serializeBinaryToWriter(message: ClaimableFeesInfo, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ClaimableFeesInfo;
+  static deserializeBinaryFromReader(message: ClaimableFeesInfo, reader: jspb.BinaryReader): ClaimableFeesInfo;
 }
 
-export namespace CBridgeFeeShareInfo {
+export namespace ClaimableFeesInfo {
   export type AsObject = {
     claimableFeeAmountsList: Array<cosmos_base_v1beta1_coin_pb.DecCoin.AsObject>,
   }

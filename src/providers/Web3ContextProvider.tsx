@@ -6,7 +6,6 @@ import Web3Modal from "@celer-network/web3modal";
 import { JsonRpcProvider, JsonRpcSigner, Web3Provider } from "@ethersproject/providers"; // InfuraProvider,
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { getNetworkById, CHAIN_LIST } from "../constants/network"; // INFURA_ID
-import { setRpcUrl as setLsRpcUrl } from "../helpers/env";
 
 const targetNetworkId = Number(process.env.REACT_APP_NETWORK_ID) || 3;
 
@@ -57,7 +56,7 @@ interface Web3ContextProps {
   chainId: number;
   web3Modal: Web3Modal;
   connecting: boolean;
-  loadWeb3Modal: (providerName: string) => Promise<void>;
+  loadWeb3Modal: (providerName: string, catchMethod?: () => void) => Promise<void>;
   logoutOfWeb3Modal: () => Promise<void>;
 }
 
@@ -109,15 +108,15 @@ export const Web3ContextProvider = ({ children }: Web3ContextProviderProps): JSX
     });
   }, [web3Connection]);
 
-  useAsync(async () => {
-    if (web3Modal.cachedProvider && localStorage.getItem("loginReload") === "false") {
-      localStorage.setItem("loginReload", "true");
-      window.location.reload();
-    }
-    if (!web3Modal.cachedProvider) {
-      localStorage.setItem("loginReload", "false");
-    }
-  }, [web3Modal.cachedProvider]);
+  // useAsync(async () => {
+  //   if (web3Modal.cachedProvider && localStorage.getItem("loginReload") === "false") {
+  //     localStorage.setItem("loginReload", "true");
+  //     window.location.reload();
+  //   }
+  //   if (!web3Modal.cachedProvider) {
+  //     localStorage.setItem("loginReload", "false");
+  //   }
+  // }, [web3Modal.cachedProvider]);
 
   useAsync(async () => {
     if (!provider) {
@@ -130,15 +129,18 @@ export const Web3ContextProvider = ({ children }: Web3ContextProviderProps): JSX
     setNetwork(networkData.name);
     const url = getNetworkById(networkData.chainId).rpcUrl;
     setRpcUrl(url);
-    setLsRpcUrl(url);
   }, [provider]);
 
-  const loadWeb3Modal = useCallback(async (providerName: string) => {
+  const loadWeb3Modal = useCallback(async (providerName: string, catchMethod?: () => void) => {
     setConnecting(true);
     setConnectName(providerName);
     const connection = await web3Modal.connectTo(providerName).catch(() => setConnecting(false));
     if (!connection) {
-      message.error("connection failed!");
+      if (catchMethod) {
+        catchMethod();
+      } else {
+        message.error("connection failed!");
+      }
       return;
     }
     setConnecting(false);

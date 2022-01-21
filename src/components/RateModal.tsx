@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { Tooltip, Input, Row, Col } from "antd";
 import { InfoCircleOutlined, WarningFilled } from "@ant-design/icons";
 import { createUseStyles } from "react-jss";
@@ -157,22 +156,22 @@ const RateModal = ({ onCancle }) => {
       dispatch(setRate(rate));
     }
   };
-  const getMinnum = async () => {
-    try {
-      if (bridge) {
-        const minimalMaxSlippage = await bridge.minimalMaxSlippage();
-        if (minimalMaxSlippage) {
-          setMinnum(Number(minimalMaxSlippage) / 10000);
-        }
-      }
-    } catch (error) {
-      console.log("error:", error);
-    }
-  };
+
   useEffect(() => {
+    const getMinnum = async () => {
+      try {
+        if (bridge) {
+          const minimalMaxSlippage = await bridge.minimalMaxSlippage();
+          if (minimalMaxSlippage) {
+            setMinnum(Number(minimalMaxSlippage) / 10000);
+          }
+        }
+      } catch (error) {
+        console.log("error:", error);
+      }
+    };
     getMinnum();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [bridge]);
 
   const onTypeChange = val => {
     setType(val);
@@ -273,7 +272,7 @@ const RateModal = ({ onCancle }) => {
           <div className={classes.descError}>The slippage tolerance should be greater than 0.05%.</div>
         )}
         {Number(num) > 10 && <div className={classes.descError}>The slippage tolerance should be lower than 10%.</div>}
-        {minnum < Number(num) && Number(num) < 0.1 && (
+        {minnum <= Number(num) && Number(num) < 0.1 && (
           <div className={classes.desc}>
             WARNING: The slippage tolerance is set very low. This transaction will have a high probability of failing.
           </div>

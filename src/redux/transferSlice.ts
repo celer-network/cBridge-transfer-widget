@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getNetworkById, NETWORKS } from "../constants/network";
+import { getNetworkById } from "../constants/network";
 import { Chain, TokenInfo, GetTransferConfigsResponse } from "../constants/type";
-import { EstimateAmtResponse } from "../proto/sgn/gateway/v1/gateway_pb";
+import { EstimateAmtResponse } from "../proto/gateway/gateway_pb";
 
 /* eslint-disable camelcase */
 /* eslint-disable no-debugger */
@@ -25,9 +25,6 @@ interface TransferIState {
   getConfigsFinish: boolean;
   refreshHistory: boolean;
   refreshTransferAndLiquidity: boolean;
-  singleChainList: Array<any>;
-  singleChainSelectIndex: number;
-  singleChainRate: string;
   bigAmountDelayInfos: Array<BigAmountDelayInfo>;
 }
 
@@ -55,9 +52,6 @@ const initialState: TransferIState = {
   refreshTransferAndLiquidity: false,
   fromChain: undefined,
   toChain: undefined,
-  singleChainList: [],
-  singleChainSelectIndex: 0,
-  singleChainRate: "3",
   bigAmountDelayInfos: [],
 };
 
@@ -69,11 +63,11 @@ const transferSlice = createSlice({
       const configsWithETH = payload;
 
       const chainIds = [
-        NETWORKS.mainnet.chainId,
-        NETWORKS.arbitrum.chainId,
-        NETWORKS.Optimism.chainId,
-        NETWORKS.goerli.chainId,
-        NETWORKS.BoBa.chainId,
+        1, // NETWORKS.mainnet.chainId,
+        42161, // NETWORKS.arbitrum.chainId,
+        10, // NETWORKS.Optimism.chainId,
+        5, // NETWORKS.goerli.chainId,
+        288, // NETWORKS.BoBa.chainId,
       ];
 
       chainIds.forEach(chainId => {
@@ -166,15 +160,6 @@ const transferSlice = createSlice({
     setRefreshTransferAndLiquidity: (state, { payload }: PayloadAction<boolean>) => {
       state.refreshTransferAndLiquidity = payload;
     },
-    setSingleChainList: (state, { payload }: PayloadAction<any>) => {
-      state.singleChainList = payload;
-    },
-    setSingleChainSelectIndex: (state, { payload }: PayloadAction<number>) => {
-      state.singleChainSelectIndex = payload;
-    },
-    setSingleChainRate: (state, { payload }: PayloadAction<string>) => {
-      state.singleChainRate = payload;
-    },
     setBigAmountDelayInfos: (state, { payload }: PayloadAction<Array<BigAmountDelayInfo>>) => {
       state.bigAmountDelayInfos = payload;
     },
@@ -199,9 +184,6 @@ export const {
   setRate,
   setGetConfigsFinish,
   setRefreshHistory,
-  setSingleChainList,
-  setSingleChainSelectIndex,
-  setSingleChainRate,
   setRefreshTransferAndLiquidity,
   setBigAmountDelayInfos,
 } = transferSlice.actions;

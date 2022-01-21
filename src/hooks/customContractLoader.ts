@@ -18,19 +18,19 @@ import { ensureSigner } from "./contractLoader";
 export default function useCustomContractLoader(
   signerOrProvider: Signer | Provider | undefined,
   address: string | undefined,
-  factory: { new (signer: Signer): ContractFactory },
+  Factory: { new (signer: Signer): ContractFactory },
 ): Contract | undefined {
   const [contract, setContract] = useState<Contract>();
   useEffect(() => {
     async function loadContract() {
-      if (typeof signerOrProvider !== "undefined" && factory && address) {
+      if (typeof signerOrProvider !== "undefined" && Factory && address) {
         try {
           const signer = await ensureSigner(signerOrProvider);
           if (!signer) {
             return;
           }
-          /* eslint-disable-next-line new-cap */
-          const customContract = new factory(signer).attach(address);
+
+          const customContract = new Factory(signer).attach(address);
           setContract(customContract);
         } catch (e) {
           console.log("Error loading custom contract", e);
@@ -38,6 +38,6 @@ export default function useCustomContractLoader(
       }
     }
     loadContract();
-  }, [signerOrProvider, address, factory]);
+  }, [signerOrProvider, address, Factory]);
   return contract;
 }

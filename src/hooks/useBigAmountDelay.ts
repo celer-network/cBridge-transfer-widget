@@ -1,18 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { BigNumber } from "@ethersproject/bignumber";
 import { parseUnits } from "@ethersproject/units";
 
 import { useReadOnlyCustomContractLoader } from ".";
-import { Bridge, Bridge__factory } from "../typechain";
+import { Bridge, Bridge__factory } from "../typechain/typechain";
 import { useAppSelector, useAppDispatch } from "../redux/store";
 import { formatDecimal } from "../helpers/format";
 import { CHAIN_LIST } from "../constants/network";
 import { setBigAmountDelayInfos, BigAmountDelayInfo } from "../redux/transferSlice";
 import { Token, Chain } from "../constants/type";
 import { PeggedChainMode, usePeggedPairConfig } from "./usePeggedPairConfig";
-import { OriginalTokenVault__factory } from "../typechain/factories/OriginalTokenVault__factory";
-import { PeggedTokenBridge__factory } from "../typechain/factories/PeggedTokenBridge__factory";
+import { OriginalTokenVault__factory } from "../typechain/typechain/factories/OriginalTokenVault__factory";
+import { PeggedTokenBridge__factory } from "../typechain/typechain/factories/PeggedTokenBridge__factory";
 
 export const useBigAmountDelay = (
   chain: Chain | undefined,
@@ -32,7 +32,9 @@ export const useBigAmountDelay = (
     return it.chainId === chain?.id ?? "";
   });
   const rpcUrl = toChainValue?.rpcUrl ?? "";
-  const provider = rpcUrl.length > 0 ? new JsonRpcProvider(rpcUrl) : undefined;
+  const provider = useMemo(() => {
+    return rpcUrl.length > 0 ? new JsonRpcProvider(rpcUrl) : undefined;
+  }, [rpcUrl]);
   const pegConfig = usePeggedPairConfig();
   const contractAddress = (() => {
     switch (pegConfig.mode) {
@@ -123,19 +125,8 @@ export const useBigAmountDelay = (
         dispatch(setBigAmountDelayInfos(newBigAmountDelayInfos));
       }
     })();
-  }, [
-    chain,
-    token?.address,
-    bigAmountDelayInfos,
-    contractAddress,
-    dispatch,
-    bridge,
-    getToken,
-    rpcUrl,
-    setValues,
-    hasEpochVolumeCaps,
-    epochVolumeCaps,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chain, token?.address, hasEpochVolumeCaps, epochVolumeCaps]);
 
   return { isBigAmountDelayed, delayMinutes, delayThresholds };
 };

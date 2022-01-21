@@ -27,49 +27,19 @@ export namespace Params {
   }
 }
 
-export class ERC20Token extends jspb.Message {
-  getChainId(): number;
-  setChainId(value: number): ERC20Token;
-
-  getSymbol(): string;
-  setSymbol(value: string): ERC20Token;
-
-  getAddress(): string;
-  setAddress(value: string): ERC20Token;
-
-  getDecimals(): number;
-  setDecimals(value: number): ERC20Token;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ERC20Token.AsObject;
-  static toObject(includeInstance: boolean, msg: ERC20Token): ERC20Token.AsObject;
-  static serializeBinaryToWriter(message: ERC20Token, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ERC20Token;
-  static deserializeBinaryFromReader(message: ERC20Token, reader: jspb.BinaryReader): ERC20Token;
-}
-
-export namespace ERC20Token {
-  export type AsObject = {
-    chainId: number,
-    symbol: string,
-    address: string,
-    decimals: number,
-  }
-}
-
 export class FarmingPool extends jspb.Message {
   getName(): string;
   setName(value: string): FarmingPool;
 
-  getStakeToken(): ERC20Token | undefined;
-  setStakeToken(value?: ERC20Token): FarmingPool;
+  getStakeToken(): sgn_common_v1_common_pb.ERC20Token | undefined;
+  setStakeToken(value?: sgn_common_v1_common_pb.ERC20Token): FarmingPool;
   hasStakeToken(): boolean;
   clearStakeToken(): FarmingPool;
 
-  getRewardTokensList(): Array<ERC20Token>;
-  setRewardTokensList(value: Array<ERC20Token>): FarmingPool;
+  getRewardTokensList(): Array<sgn_common_v1_common_pb.ERC20Token>;
+  setRewardTokensList(value: Array<sgn_common_v1_common_pb.ERC20Token>): FarmingPool;
   clearRewardTokensList(): FarmingPool;
-  addRewardTokens(value?: ERC20Token, index?: number): ERC20Token;
+  addRewardTokens(value?: sgn_common_v1_common_pb.ERC20Token, index?: number): sgn_common_v1_common_pb.ERC20Token;
 
   getTotalStakedAmount(): cosmos_base_v1beta1_coin_pb.DecCoin | undefined;
   setTotalStakedAmount(value?: cosmos_base_v1beta1_coin_pb.DecCoin): FarmingPool;
@@ -97,8 +67,8 @@ export class FarmingPool extends jspb.Message {
 export namespace FarmingPool {
   export type AsObject = {
     name: string,
-    stakeToken?: ERC20Token.AsObject,
-    rewardTokensList: Array<ERC20Token.AsObject>,
+    stakeToken?: sgn_common_v1_common_pb.ERC20Token.AsObject,
+    rewardTokensList: Array<sgn_common_v1_common_pb.ERC20Token.AsObject>,
     totalStakedAmount?: cosmos_base_v1beta1_coin_pb.DecCoin.AsObject,
     rewardTokenInfosList: Array<RewardTokenInfo.AsObject>,
     totalAccumulatedRewardsList: Array<cosmos_base_v1beta1_coin_pb.DecCoin.AsObject>,
@@ -437,15 +407,15 @@ export class AddPoolProposal extends jspb.Message {
   getPoolName(): string;
   setPoolName(value: string): AddPoolProposal;
 
-  getStakeToken(): ERC20Token | undefined;
-  setStakeToken(value?: ERC20Token): AddPoolProposal;
+  getStakeToken(): sgn_common_v1_common_pb.ERC20Token | undefined;
+  setStakeToken(value?: sgn_common_v1_common_pb.ERC20Token): AddPoolProposal;
   hasStakeToken(): boolean;
   clearStakeToken(): AddPoolProposal;
 
-  getRewardTokensList(): Array<ERC20Token>;
-  setRewardTokensList(value: Array<ERC20Token>): AddPoolProposal;
+  getRewardTokensList(): Array<sgn_common_v1_common_pb.ERC20Token>;
+  setRewardTokensList(value: Array<sgn_common_v1_common_pb.ERC20Token>): AddPoolProposal;
   clearRewardTokensList(): AddPoolProposal;
-  addRewardTokens(value?: ERC20Token, index?: number): ERC20Token;
+  addRewardTokens(value?: sgn_common_v1_common_pb.ERC20Token, index?: number): sgn_common_v1_common_pb.ERC20Token;
 
   getInitialRewardInputsList(): Array<RewardAdjustmentInput>;
   setInitialRewardInputsList(value: Array<RewardAdjustmentInput>): AddPoolProposal;
@@ -465,8 +435,8 @@ export namespace AddPoolProposal {
     title: string,
     description: string,
     poolName: string,
-    stakeToken?: ERC20Token.AsObject,
-    rewardTokensList: Array<ERC20Token.AsObject>,
+    stakeToken?: sgn_common_v1_common_pb.ERC20Token.AsObject,
+    rewardTokensList: Array<sgn_common_v1_common_pb.ERC20Token.AsObject>,
     initialRewardInputsList: Array<RewardAdjustmentInput.AsObject>,
   }
 }
@@ -481,15 +451,15 @@ export class AddPoolProposalWithDeposit extends jspb.Message {
   getPoolName(): string;
   setPoolName(value: string): AddPoolProposalWithDeposit;
 
-  getStakeToken(): ERC20Token | undefined;
-  setStakeToken(value?: ERC20Token): AddPoolProposalWithDeposit;
+  getStakeToken(): sgn_common_v1_common_pb.ERC20Token | undefined;
+  setStakeToken(value?: sgn_common_v1_common_pb.ERC20Token): AddPoolProposalWithDeposit;
   hasStakeToken(): boolean;
   clearStakeToken(): AddPoolProposalWithDeposit;
 
-  getRewardTokensList(): Array<ERC20Token>;
-  setRewardTokensList(value: Array<ERC20Token>): AddPoolProposalWithDeposit;
+  getRewardTokensList(): Array<sgn_common_v1_common_pb.ERC20Token>;
+  setRewardTokensList(value: Array<sgn_common_v1_common_pb.ERC20Token>): AddPoolProposalWithDeposit;
   clearRewardTokensList(): AddPoolProposalWithDeposit;
-  addRewardTokens(value?: ERC20Token, index?: number): ERC20Token;
+  addRewardTokens(value?: sgn_common_v1_common_pb.ERC20Token, index?: number): sgn_common_v1_common_pb.ERC20Token;
 
   getInitialRewardInputsList(): Array<RewardAdjustmentInput>;
   setInitialRewardInputsList(value: Array<RewardAdjustmentInput>): AddPoolProposalWithDeposit;
@@ -512,8 +482,8 @@ export namespace AddPoolProposalWithDeposit {
     title: string,
     description: string,
     poolName: string,
-    stakeToken?: ERC20Token.AsObject,
-    rewardTokensList: Array<ERC20Token.AsObject>,
+    stakeToken?: sgn_common_v1_common_pb.ERC20Token.AsObject,
+    rewardTokensList: Array<sgn_common_v1_common_pb.ERC20Token.AsObject>,
     initialRewardInputsList: Array<RewardAdjustmentInput.AsObject>,
     deposit: string,
   }
@@ -650,10 +620,10 @@ export class AddTokensProposal extends jspb.Message {
   getDescription(): string;
   setDescription(value: string): AddTokensProposal;
 
-  getTokensList(): Array<ERC20Token>;
-  setTokensList(value: Array<ERC20Token>): AddTokensProposal;
+  getTokensList(): Array<sgn_common_v1_common_pb.ERC20Token>;
+  setTokensList(value: Array<sgn_common_v1_common_pb.ERC20Token>): AddTokensProposal;
   clearTokensList(): AddTokensProposal;
-  addTokens(value?: ERC20Token, index?: number): ERC20Token;
+  addTokens(value?: sgn_common_v1_common_pb.ERC20Token, index?: number): sgn_common_v1_common_pb.ERC20Token;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AddTokensProposal.AsObject;
@@ -667,7 +637,7 @@ export namespace AddTokensProposal {
   export type AsObject = {
     title: string,
     description: string,
-    tokensList: Array<ERC20Token.AsObject>,
+    tokensList: Array<sgn_common_v1_common_pb.ERC20Token.AsObject>,
   }
 }
 
@@ -678,10 +648,10 @@ export class AddTokensProposalWithDeposit extends jspb.Message {
   getDescription(): string;
   setDescription(value: string): AddTokensProposalWithDeposit;
 
-  getTokensList(): Array<ERC20Token>;
-  setTokensList(value: Array<ERC20Token>): AddTokensProposalWithDeposit;
+  getTokensList(): Array<sgn_common_v1_common_pb.ERC20Token>;
+  setTokensList(value: Array<sgn_common_v1_common_pb.ERC20Token>): AddTokensProposalWithDeposit;
   clearTokensList(): AddTokensProposalWithDeposit;
-  addTokens(value?: ERC20Token, index?: number): ERC20Token;
+  addTokens(value?: sgn_common_v1_common_pb.ERC20Token, index?: number): sgn_common_v1_common_pb.ERC20Token;
 
   getDeposit(): string;
   setDeposit(value: string): AddTokensProposalWithDeposit;
@@ -698,7 +668,7 @@ export namespace AddTokensProposalWithDeposit {
   export type AsObject = {
     title: string,
     description: string,
-    tokensList: Array<ERC20Token.AsObject>,
+    tokensList: Array<sgn_common_v1_common_pb.ERC20Token.AsObject>,
     deposit: string,
   }
 }

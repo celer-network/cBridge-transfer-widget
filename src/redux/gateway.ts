@@ -12,8 +12,8 @@ import {
   EstimateWithdrawAmtResponse,
   WithdrawLiquidityRequest,
   WithdrawLiquidityResponse,
-} from "../proto/sgn/gateway/v1/gateway_pb";
-import { WebClient } from "../proto/sgn/gateway/v1/GatewayServiceClientPb";
+} from "../proto/gateway/gateway_pb";
+import { WebClient } from "../proto/gateway/GatewayServiceClientPb";
 
 /* eslint-disable camelcase */
 const preFix = { pathPrefix: process.env.REACT_APP_SERVER_URL }; // 域名
@@ -28,6 +28,10 @@ export const getTransferConfigs = (): Promise<GetTransferConfigsResponse> =>
     .catch(e => {
       console.log("error=>", e);
     });
+
+// export const estimateAmt = (reqParams: EstimateAmtRequest): Promise<EstimateAmtResponse> => {
+//   return Web.EstimateAmt(reqParams, preFix);
+// };
 
 export const estimateWithdrawAmt = (reqParams: EstimateWithdrawAmtRequest): Promise<EstimateWithdrawAmtResponse> => {
   return client.estimateWithdrawAmt(reqParams, null);
@@ -77,4 +81,3 @@ export const checkTransferHistory = (reqParams: TransferHistoryRequest): Promise
     .catch(e => {
       console.log("error=>", e);
     });
-

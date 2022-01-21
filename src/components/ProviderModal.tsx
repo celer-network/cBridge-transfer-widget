@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Avatar, Button, Modal, Space, Spin, Typography } from "antd";
 import classNames from "classnames";
 import { createUseStyles } from "react-jss";
@@ -91,6 +92,28 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     paddingTop: 0,
     paddingBottom: props => (props.isMobile ? 0 : 16),
   },
+  errorInfo: {
+    width: "100%",
+    paddingTop: 72,
+  },
+  errorText: {
+    fontWeight: 600,
+    fontSize: 14,
+    color: theme.surfacePrimary,
+    textAlign: "center",
+  },
+  errorBtn: {
+    marginTop: 16,
+    width: "100%",
+    height: 56,
+    lineHeight: "56px",
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 16,
+    background: theme.primaryBrand,
+    color: theme.unityWhite,
+    borderRadius: 16,
+  },
 }));
 
 interface ProviderModalProps {
@@ -144,63 +167,93 @@ function Footer() {
   );
 }
 
-export default function ProviderModal({ visible, onCancel }: ProviderModalProps): JSX.Element {
-  const { loadWeb3Modal, connecting } = useWeb3Context();
-  // const [connectWalletState, setconnectWalletState] = useState(false);
-  const handleSelectProvider = async () => {
-    await loadWeb3Modal("injected");
-    onCancel();
-  };
-
-  const handleSelectWalletConnectProvider = async () => {
-    await loadWeb3Modal("walletconnect");
-    onCancel();
-  };
-
+function ConnectErrorModal({ visible, onCancel }: ProviderModalProps): JSX.Element {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const classes = useStyles({ isMobile });
   return (
     <Modal
-      closable
       visible={visible}
-      className={classes.connectModal}
-      title={<ActionTitle title="Connect Your Wallet" token={undefined} />}
       onCancel={onCancel}
-      footer={<Footer />}
-      maskClosable={false}
+      className={classes.connectModal}
       bodyStyle={{ padding: isMobile ? "0 16px 0 16px" : 24 }}
+      title={null}
+      maskClosable={false}
+      closable
+      footer={null}
     >
-      <div style={{ width: "100%" }}>
-        <Spin spinning={connecting}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", rowGap: 8 }}>
-            <Provider provider={injected.METAMASK} onClick={handleSelectProvider} />
-            <Provider provider="WalletConnect" onClick={handleSelectWalletConnectProvider} />
-            {isMobile ? (
-              <>
-                <Provider provider={injected.IMTOKEN} onClick={handleSelectProvider} />
-                <Provider provider={injected.COINBASE} onClick={handleSelectProvider} />
-                <Provider provider={injected.MATHWALLET} onClick={handleSelectProvider} />
-                <Provider provider={injected.TOKENPOCKET} onClick={handleSelectProvider} />
-                <Provider provider={injected.ONTOWALLET} onClick={handleSelectProvider} />
-                <Provider provider={injected.COIN98WALLET} onClick={handleSelectProvider} />
-                <Provider provider={injected.GOPOCKET} onClick={handleSelectProvider} />
-              </>
-            ) : null}
-          </div>
-        </Spin>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            margin: "16px 0 0",
-            color: "#FFAA00",
-          }}
-        >
-          <div>*Beta software. Use at your own risk!</div>
+      <div className={classes.errorInfo}>
+        <div className={classes.errorText}>
+          Wallet not detected. Please use cBridge in a desktop browser with Metamask installed or a mobile wallet dApp
+          browser.
         </div>
-        {isMobile ? null : <div style={{ height: 30 }} />}
+        <div className={classes.errorBtn} onClick={onCancel}>
+          OK
+        </div>
       </div>
     </Modal>
+  );
+}
+
+export default function ProviderModal({ visible, onCancel }: ProviderModalProps): JSX.Element {
+  const { isMobile } = useAppSelector(state => state.windowWidth);
+  const classes = useStyles({ isMobile });
+  const [connectErrorVisible, setConnectErroeVisible] = useState(false);
+  const { loadWeb3Modal, connecting } = useWeb3Context();
+  const handleSelectProvider = async () => {
+    await loadWeb3Modal("injected", isMobile ? () => setConnectErroeVisible(true) : undefined);
+    onCancel();
+  };
+
+  const handleSelectWalletConnectProvider = async () => {
+    await loadWeb3Modal("walletconnect", isMobile ? () => setConnectErroeVisible(true) : undefined);
+    onCancel();
+  };
+  return (
+    <>
+      <Modal
+        closable
+        visible={visible}
+        className={classes.connectModal}
+        title={<ActionTitle title="Connect Your Wallet" />}
+        onCancel={onCancel}
+        footer={<Footer />}
+        maskClosable={false}
+        bodyStyle={{ padding: isMobile ? "0 16px 0 16px" : 24 }}
+      >
+        <div style={{ width: "100%" }}>
+          <Spin spinning={connecting}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", rowGap: 8 }}>
+              <Provider provider={injected.METAMASK} onClick={handleSelectProvider} />
+              <Provider provider={injected.COINBASE} onClick={handleSelectProvider} />
+              <Provider provider="WalletConnect" onClick={handleSelectWalletConnectProvider} />
+              {isMobile ? (
+                <>
+                  <Provider provider={injected.IMTOKEN} onClick={handleSelectProvider} />
+                  <Provider provider={injected.COINBASE} onClick={handleSelectProvider} />
+                  <Provider provider={injected.MATHWALLET} onClick={handleSelectProvider} />
+                  <Provider provider={injected.TOKENPOCKET} onClick={handleSelectProvider} />
+                  <Provider provider={injected.ONTOWALLET} onClick={handleSelectProvider} />
+                  <Provider provider={injected.COIN98WALLET} onClick={handleSelectProvider} />
+                  <Provider provider={injected.GOPOCKET} onClick={handleSelectProvider} />
+                </>
+              ) : null}
+            </div>
+          </Spin>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              margin: "16px 0 0",
+              color: "#FFAA00",
+            }}
+          >
+            <div>*Beta software. Use at your own risk!</div>
+          </div>
+          {isMobile ? null : <div style={{ height: 30 }} />}
+        </div>
+      </Modal>
+      <ConnectErrorModal visible={connectErrorVisible} onCancel={() => setConnectErroeVisible(!connectErrorVisible)} />
+    </>
   );
 }

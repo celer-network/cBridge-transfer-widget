@@ -2,7 +2,6 @@ import * as jspb from 'google-protobuf'
 
 import * as cosmos_proto_cosmos_pb from '../../../cosmos_proto/cosmos_pb';
 import * as gogoproto_gogo_pb from '../../../gogoproto/gogo_pb';
-import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 import * as google_protobuf_duration_pb from 'google-protobuf/google/protobuf/duration_pb';
 import * as sgn_common_v1_common_pb from '../../../sgn/common/v1/common_pb';
 
@@ -60,6 +59,14 @@ export class CbrConfig extends jspb.Message {
   clearCbrContractsList(): CbrConfig;
   addCbrContracts(value?: sgn_common_v1_common_pb.ContractInfo, index?: number): sgn_common_v1_common_pb.ContractInfo;
 
+  getOverrideList(): Array<PerChainPairAssetOverride>;
+  setOverrideList(value: Array<PerChainPairAssetOverride>): CbrConfig;
+  clearOverrideList(): CbrConfig;
+  addOverride(value?: PerChainPairAssetOverride, index?: number): PerChainPairAssetOverride;
+
+  getMaxGainPerc(): number;
+  setMaxGainPerc(value: number): CbrConfig;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CbrConfig.AsObject;
   static toObject(includeInstance: boolean, msg: CbrConfig): CbrConfig.AsObject;
@@ -76,6 +83,8 @@ export namespace CbrConfig {
     assetsList: Array<ChainAsset.AsObject>,
     chainPairsList: Array<ChainPair.AsObject>,
     cbrContractsList: Array<sgn_common_v1_common_pb.ContractInfo.AsObject>,
+    overrideList: Array<PerChainPairAssetOverride.AsObject>,
+    maxGainPerc: number,
   }
 }
 
@@ -250,6 +259,9 @@ export class ChainPair extends jspb.Message {
   getConstA(): number;
   setConstA(value: number): ChainPair;
 
+  getNoCurve(): boolean;
+  setNoCurve(value: boolean): ChainPair;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ChainPair.AsObject;
   static toObject(includeInstance: boolean, msg: ChainPair): ChainPair.AsObject;
@@ -266,6 +278,31 @@ export namespace ChainPair {
     fee1to2: number,
     fee2to1: number,
     constA: number,
+    noCurve: boolean,
+  }
+}
+
+export class PerChainPairAssetOverride extends jspb.Message {
+  getSymbol(): string;
+  setSymbol(value: string): PerChainPairAssetOverride;
+
+  getChpair(): ChainPair | undefined;
+  setChpair(value?: ChainPair): PerChainPairAssetOverride;
+  hasChpair(): boolean;
+  clearChpair(): PerChainPairAssetOverride;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PerChainPairAssetOverride.AsObject;
+  static toObject(includeInstance: boolean, msg: PerChainPairAssetOverride): PerChainPairAssetOverride.AsObject;
+  static serializeBinaryToWriter(message: PerChainPairAssetOverride, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PerChainPairAssetOverride;
+  static deserializeBinaryFromReader(message: PerChainPairAssetOverride, reader: jspb.BinaryReader): PerChainPairAssetOverride;
+}
+
+export namespace PerChainPairAssetOverride {
+  export type AsObject = {
+    symbol: string,
+    chpair?: ChainPair.AsObject,
   }
 }
 

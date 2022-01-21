@@ -406,8 +406,8 @@ export namespace QueryCBridgeFeeShareInfoRequest {
 }
 
 export class QueryCBridgeFeeShareInfoResponse extends jspb.Message {
-  getFeeShareInfo(): sgn_distribution_v1_distribution_pb.CBridgeFeeShareInfo | undefined;
-  setFeeShareInfo(value?: sgn_distribution_v1_distribution_pb.CBridgeFeeShareInfo): QueryCBridgeFeeShareInfoResponse;
+  getFeeShareInfo(): sgn_distribution_v1_distribution_pb.ClaimableFeesInfo | undefined;
+  setFeeShareInfo(value?: sgn_distribution_v1_distribution_pb.ClaimableFeesInfo): QueryCBridgeFeeShareInfoResponse;
   hasFeeShareInfo(): boolean;
   clearFeeShareInfo(): QueryCBridgeFeeShareInfoResponse;
 
@@ -421,7 +421,45 @@ export class QueryCBridgeFeeShareInfoResponse extends jspb.Message {
 
 export namespace QueryCBridgeFeeShareInfoResponse {
   export type AsObject = {
-    feeShareInfo?: sgn_distribution_v1_distribution_pb.CBridgeFeeShareInfo.AsObject,
+    feeShareInfo?: sgn_distribution_v1_distribution_pb.ClaimableFeesInfo.AsObject,
+  }
+}
+
+export class QueryPegBridgeFeesInfoRequest extends jspb.Message {
+  getDelegatorAddress(): string;
+  setDelegatorAddress(value: string): QueryPegBridgeFeesInfoRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryPegBridgeFeesInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryPegBridgeFeesInfoRequest): QueryPegBridgeFeesInfoRequest.AsObject;
+  static serializeBinaryToWriter(message: QueryPegBridgeFeesInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryPegBridgeFeesInfoRequest;
+  static deserializeBinaryFromReader(message: QueryPegBridgeFeesInfoRequest, reader: jspb.BinaryReader): QueryPegBridgeFeesInfoRequest;
+}
+
+export namespace QueryPegBridgeFeesInfoRequest {
+  export type AsObject = {
+    delegatorAddress: string,
+  }
+}
+
+export class QueryPegBridgeFeesInfoResponse extends jspb.Message {
+  getFeesInfo(): sgn_distribution_v1_distribution_pb.ClaimableFeesInfo | undefined;
+  setFeesInfo(value?: sgn_distribution_v1_distribution_pb.ClaimableFeesInfo): QueryPegBridgeFeesInfoResponse;
+  hasFeesInfo(): boolean;
+  clearFeesInfo(): QueryPegBridgeFeesInfoResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryPegBridgeFeesInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryPegBridgeFeesInfoResponse): QueryPegBridgeFeesInfoResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryPegBridgeFeesInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryPegBridgeFeesInfoResponse;
+  static deserializeBinaryFromReader(message: QueryPegBridgeFeesInfoResponse, reader: jspb.BinaryReader): QueryPegBridgeFeesInfoResponse;
+}
+
+export namespace QueryPegBridgeFeesInfoResponse {
+  export type AsObject = {
+    feesInfo?: sgn_distribution_v1_distribution_pb.ClaimableFeesInfo.AsObject,
   }
 }
 

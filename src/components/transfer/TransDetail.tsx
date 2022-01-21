@@ -14,7 +14,6 @@ import { NETWORKS } from "../../constants/network";
 import { useBigAmountDelay } from "../../hooks";
 import { PeggedChainMode, usePeggedPairConfig } from "../../hooks/usePeggedPairConfig";
 
-/* eslint-disable*/
 /* eslint-disable camelcase */
 
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
@@ -146,7 +145,6 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
     return transferConfig?.chain_token[chainId]?.token?.find(tokenInfo => tokenInfo?.token?.symbol === tokenSymbol);
   };
 
-  const value = parseUnits(Number(amount).toString() || "0", selectedToken?.token?.decimal);
   let estimatedReceiveAmount;
   if (receiveAmount === 0) {
     estimatedReceiveAmount = "0.0";

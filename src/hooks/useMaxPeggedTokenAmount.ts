@@ -3,7 +3,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { PeggedChainMode, usePeggedPairConfig } from "./usePeggedPairConfig";
 import { useCustomContractLoader } from ".";
 import { useWeb3Context } from "../providers/Web3ContextProvider";
-import { ERC20, ERC20__factory } from "../typechain";
+import { ERC20, ERC20__factory } from "../typechain/typechain";
 
 export const useMaxPeggedTokenAmount = (receiveAmount: number) => {
   const { provider } = useWeb3Context();

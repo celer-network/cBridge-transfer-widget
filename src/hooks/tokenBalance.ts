@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { useEffect, useState } from "react";
 import { useToggle } from "react-use";
-import { ERC20 } from "../typechain/ERC20";
+import { ERC20 } from "../typechain/typechain/ERC20";
 
 export type UseBalanceReturn = [BigNumber, boolean, string, () => void];
 

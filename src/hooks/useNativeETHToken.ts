@@ -3,7 +3,6 @@ import { Chain, TokenInfo } from "../constants/type";
 import { useContractsContext } from "../providers/ContractsContextProvider";
 import { useWeb3Context } from "../providers/Web3ContextProvider";
 import { useEthBalance } from ".";
-import { NETWORKS } from "../constants/network";
 
 export const useNativeETHToken = (srcChain: Chain | undefined, tokenInfo: TokenInfo | undefined) => {
   const [isNativeToken, setIsNativeToken] = useState(false);
@@ -20,11 +19,11 @@ export const useNativeETHToken = (srcChain: Chain | undefined, tokenInfo: TokenI
       return;
     }
     const chainIds = [
-      NETWORKS.mainnet.chainId,
-      NETWORKS.arbitrum.chainId,
-      NETWORKS.Optimism.chainId,
-      NETWORKS.goerli.chainId,
-      NETWORKS.BoBa.chainId,
+      1, // NETWORKS.mainnet.chainId,
+      42161, // NETWORKS.arbitrum.chainId,
+      10, // NETWORKS.Optimism.chainId,
+      5, // NETWORKS.goerli.chainId,
+      288, // NETWORKS.BoBa.chainId,
     ];
     let nativeETHToken = false;
     if (chainIds.includes(srcChain.id) && tokenInfo.token.display_symbol === "ETH") {

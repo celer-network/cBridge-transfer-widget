@@ -1,3 +1,4 @@
+import React from "react";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Tooltip } from "antd";
@@ -8,8 +9,6 @@ import { Chain, Token, TokenInfo, GetTransferConfigsResponse, PeggedPairConfig }
 import { useAppSelector } from "../../redux/store";
 import { Theme } from "../../theme";
 import { getTokenSymbolWithPeggedMode, getTokenListSymbol } from "../../redux/assetSlice";
-import { NETWORKS } from "../../constants/network";
-import { useBigAmountDelay } from "../../hooks";
 import { PeggedChainMode, usePeggedPairConfig } from "../../hooks/usePeggedPairConfig";
 
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
@@ -69,7 +68,8 @@ type IProps = {
   baseFee: string | undefined;
   percFee: string | undefined;
   transferConfig: GetTransferConfigsResponse;
-  receiveAmount: number;
+  isBigAmountDelayed: boolean;
+  delayMinutes: string;
 };
 
 function TransferOverview({
@@ -81,12 +81,12 @@ function TransferOverview({
   baseFee,
   percFee,
   transferConfig,
-  receiveAmount,
+  isBigAmountDelayed,
+  delayMinutes,
 }: IProps) {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const pegConfig = usePeggedPairConfig();
   const styles = useStyles({ isMobile });
-  const { isBigAmountDelayed, delayMinutes } = useBigAmountDelay(toChain, selectedToken?.token, receiveAmount);
   const getTokenByChainAndTokenSymbol = (chainId, tokenSymbol) => {
     return transferConfig?.chain_token[chainId]?.token.find(tokenInfo => tokenInfo?.token?.symbol === tokenSymbol);
   };
@@ -238,11 +238,11 @@ export const needToChangeTokenDisplaySymbol = (selectedToken: Token | undefined,
     return false;
   }
   const dstChainIds = [
-    NETWORKS.mainnet.chainId,
-    NETWORKS.arbitrum.chainId,
-    NETWORKS.Optimism.chainId,
-    NETWORKS.goerli.chainId,
-    NETWORKS.BoBa.chainId,
+    1, // NETWORKS.mainnet.chainId,
+    42161, // NETWORKS.arbitrum.chainId,
+    10, // NETWORKS.Optimism.chainId,
+    5, // NETWORKS.goerli.chainId,
+    288, // NETWORKS.BoBa.chainId,
   ];
   if (!dstChainIds.find(id => id === toChain?.id ?? "")) {
     return false;
@@ -259,4 +259,4 @@ export const getTokenDisplaySymbol = (
   return getTokenSymbolWithPeggedMode(fromChain?.id, toChain?.id, selectedToken?.symbol ?? "", peggedPairConfigs);
 };
 
-export default TransferOverview;
+export default React.memo(TransferOverview);

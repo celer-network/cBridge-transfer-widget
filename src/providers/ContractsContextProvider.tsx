@@ -28,7 +28,6 @@ export const ContractsContextProvider = ({ children }: ContractsContextProviderP
 
   const {
     cBridgeAddresses,
-    lpCBridgeAddresses,
     cBridgeDesAddresses,
     farmingRewardAddresses,
     faucetAddresses,
@@ -40,10 +39,10 @@ export const ContractsContextProvider = ({ children }: ContractsContextProviderP
     if (cBridgeAddresses) {
       setAddresses({
         bridge: cBridgeAddresses,
-        lpbridge: lpCBridgeAddresses,
         dstbridge: cBridgeDesAddresses,
         pool: cBridgeAddresses,
         farmingRewards: farmingRewardAddresses,
+        incentiveEventsReward: `${process.env.REACT_APP_INCENTIVE_REWARDS_ADDRESS}`,
         faucet: faucetAddresses[chainId],
         originalTokenVault: oTContractAddr,
         peggedTokenBridge: pTContractAddr,
@@ -51,7 +50,6 @@ export const ContractsContextProvider = ({ children }: ContractsContextProviderP
     }
   }, [
     cBridgeAddresses,
-    lpCBridgeAddresses,
     cBridgeDesAddresses,
     farmingRewardAddresses,
     chainId,

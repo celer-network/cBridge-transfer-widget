@@ -9,7 +9,6 @@ export enum PeggedChainMode {
   Off,
   Deposit,
   Burn,
-  DepositThenSwap,
   BurnThenSwap,
 }
 
@@ -91,7 +90,6 @@ export class PeggedPair {
   getSpenderAddress() {
     switch (this.mode) {
       case PeggedChainMode.Deposit:
-      case PeggedChainMode.DepositThenSwap:
         return this.config.pegged_deposit_contract_addr;
       case PeggedChainMode.Burn:
         return this.config.pegged_burn_contract_addr;
@@ -114,31 +112,8 @@ export const usePeggedPairConfig = (): PeggedPair => {
     if (!pegged_pair_configs || pegged_pair_configs === undefined) {
       return;
     }
-    const depositConfigs = pegged_pair_configs.filter(
-      e =>
-        e.org_chain_id === fromChain?.id &&
-        e.pegged_chain_id === toChain?.id &&
-        e.org_token.token.symbol === selectedToken?.token.symbol,
-    );
-    const burnConfigs = pegged_pair_configs.filter(
-      e =>
-        e.org_chain_id === toChain?.id &&
-        e.pegged_chain_id === fromChain?.id &&
-        e.org_token.token.symbol === selectedToken?.token.symbol,
-    );
-    if (depositConfigs.length > 0) {
-      dispatch(setOTContractAddr(depositConfigs[0].pegged_deposit_contract_addr));
-      setPeggedPair(new PeggedPair(PeggedChainMode.Deposit, depositConfigs[0]));
-    } else if (burnConfigs.length > 0) {
-      if (burnConfigs[0].canonical_token_contract_addr.length > 0) {
-        setPeggedPair(new PeggedPair(PeggedChainMode.BurnThenSwap, burnConfigs[0]));
-      } else {
-        setPeggedPair(new PeggedPair(PeggedChainMode.Burn, burnConfigs[0]));
-      }
-      dispatch(setPTContractAddr(burnConfigs[0].pegged_burn_contract_addr));
-    } else {
-      setPeggedPair(new PeggedPair(PeggedChainMode.Off, {} as PeggedPairConfig));
-    }
+    const pair = getPeggedPairConfigs(pegged_pair_configs, fromChain, toChain, selectedToken, dispatch);
+    setPeggedPair(pair);
   }, [fromChain, toChain, selectedToken, pegged_pair_configs, dispatch]);
 
   return peggedPair;
@@ -169,4 +144,31 @@ export const GetPeggedMode = (
   }
 
   return PeggedChainMode.Off;
+};
+
+export const getPeggedPairConfigs = (pegged_pair_configs, fromChain, toChain, selectedToken, dispatch) => {
+  const depositConfigs = pegged_pair_configs.filter(
+    e =>
+      e.org_chain_id === fromChain?.id &&
+      e.pegged_chain_id === toChain?.id &&
+      e.org_token.token.symbol === selectedToken?.token.symbol,
+  );
+  const burnConfigs = pegged_pair_configs.filter(
+    e =>
+      e.org_chain_id === toChain?.id &&
+      e.pegged_chain_id === fromChain?.id &&
+      e.org_token.token.symbol === selectedToken?.token.symbol,
+  );
+  if (depositConfigs.length > 0) {
+    dispatch(setOTContractAddr(depositConfigs[0].pegged_deposit_contract_addr));
+    return new PeggedPair(PeggedChainMode.Deposit, depositConfigs[0]);
+  }
+  if (burnConfigs.length > 0) {
+    dispatch(setPTContractAddr(burnConfigs[0].pegged_burn_contract_addr));
+    if (burnConfigs[0].canonical_token_contract_addr.length > 0) {
+      return new PeggedPair(PeggedChainMode.BurnThenSwap, burnConfigs[0]);
+    }
+    return new PeggedPair(PeggedChainMode.Burn, burnConfigs[0]);
+  }
+  return new PeggedPair(PeggedChainMode.Off, {} as PeggedPairConfig);
 };

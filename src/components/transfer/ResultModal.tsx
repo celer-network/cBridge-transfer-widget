@@ -3,10 +3,8 @@ import { Button, Modal } from "antd";
 interface ResultModalProps {
   resultText: JSX.Element | string;
   buttonText: string;
-  // eslint-disable-next-line react/require-default-props
   titleText?: string;
   onCancel: () => void;
-  // eslint-disable-next-line react/require-default-props
   onAction?: () => void;
 }
 

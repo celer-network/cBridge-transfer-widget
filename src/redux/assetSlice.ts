@@ -1,8 +1,5 @@
-import axios from "axios";
-
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { components } from "../api/api";
 import { GetPeggedMode, PeggedChainMode } from "../hooks/usePeggedPairConfig";
 import { PeggedPairConfig } from "../constants/type";
 
@@ -20,7 +17,6 @@ type TransferConfig = {
   chain_token: any;
 };
 interface ISliceState {
-  assets: components["schemas"]["Asset"][];
   // eslint-disable-next-line @typescript-eslint/ban-types
   allToken: {};
   selectedIndex: number;
@@ -50,15 +46,6 @@ if (localeFromChainId) {
   defaultFromChainId = process.env.REACT_APP_ENV === "TEST" ? 3 : 1;
 }
 const initialState: ISliceState = {
-  assets: [
-    // {
-    //   address: "0xcc4c6bc9540b8c82252c35cfe8d601e93162bc50",
-    //   decimal: 18,
-    //   id: 10,
-    //   name: "ETH",
-    //   symbol: "ETH",
-    // },
-  ],
   allToken: {},
   selectedIndex: Number(localStorage.getItem("selectedIndex")) || 0,
   fromChainId: defaultFromChainId,
@@ -87,42 +74,6 @@ const assetSlice = createSlice({
   name: "asset",
   initialState,
   reducers: {
-    save: (state, { payload }) => {
-      state.allToken = payload;
-      const assets = payload[state.fromChainId]?.token.map(asset => {
-        // if (asset.symbol === "WETH") {
-        //   asset.symbol = "ETH";
-        //   asset.name = "ETH";
-        // }
-        asset.checked = true;
-        return asset;
-      });
-      state.assets = assets;
-    },
-    setSelectedToken: (state, { payload }: PayloadAction<string | undefined>) => {
-      const index = state.assets.findIndex(token => {
-        return token.id.toString() === payload;
-      });
-      if (index !== -1) {
-        state.selectedIndex = index;
-        localStorage.setItem("selectedIndex", index.toString());
-      }
-    },
-    setSearchToken: (state, { payload }: PayloadAction<string>) => {
-      const searchText = payload?.toLowerCase();
-
-      state.assets.map(token => {
-        token.checked = false;
-        const nameFeatCh = token.name.toLowerCase().indexOf(searchText) > -1;
-        const symbolFeatCh = token.symbol.toLowerCase().indexOf(searchText) > -1;
-        const titleFeatCh = token.title.toLowerCase().indexOf(searchText) > -1;
-        const addressFeatCh = token.address.toLowerCase().indexOf(searchText) > -1;
-        if (nameFeatCh || symbolFeatCh || titleFeatCh || addressFeatCh) {
-          token.checked = true;
-        }
-        return token;
-      });
-    },
     setSelectedTokenIndex: (state, { payload }: PayloadAction<number>) => {
       state.selectedIndex = payload;
       localStorage.setItem("selectedIndex", payload.toString());
@@ -175,8 +126,6 @@ const assetSlice = createSlice({
 });
 
 export const {
-  save,
-  setSelectedToken,
   setLoading,
   setSelectedTokenIndex,
   setFromChainId,
@@ -187,156 +136,8 @@ export const {
   setIsChainShow,
   setChainSource,
   setChainList,
-  setSearchToken,
   setSlippageTolerance,
 } = assetSlice.actions;
-
-export const getRelayNode = (fromChainId, toChainId, token, amount) =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/findQualifiedRelayNodeToTransfer`, {
-      fromChainId,
-      toChainId,
-      token,
-      amount,
-    })
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-export const getTransferDetail = transferId =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/getTransferDetail`, {
-      transferId,
-    })
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-export const checkDoConfirm = transferId =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/checkTransferConfirmable`, {
-      transferId,
-    })
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-
-export const getStartDate = () =>
-  axios
-    .get(`https://cbridge-stat.s3.us-west-2.amazonaws.com/mainnet/cbridge-stat.json`)
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-export const paginateTransfer = (senderAddr, pageSize, nextPageToken) =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/paginateTransfer`, {
-      senderAddr,
-      pageSize,
-      nextPageToken,
-    })
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-export const getAllRelayNode = () =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/getAllRelayNode`)
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-export const getNodeSuccessRate = nodeAddr =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/getNodeSuccessRate`, {
-      nodeAddr,
-    })
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-export const getAnalyticsData = req =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/getAnalyticsData`, {
-      type: "1",
-      beginTime: req.begin,
-      endTime: req.end,
-    })
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-export const getAnalyticsDataCount = () =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/getAnalyticsData`, {
-      type: "2",
-    })
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-export const getTokenList = () =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/getTokenList`)
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
-
-export const setTransferInfo = (
-  amount,
-  token,
-  senderAddr,
-  transferOutId,
-  transferInId,
-  fromChainId,
-  toChainId,
-  relayNodeAddr,
-  fee,
-  jwt,
-  hashlockTime,
-) =>
-  axios
-    .post(`${process.env.REACT_APP_SERVER_URL}/v1/markTransferOut`, {
-      amount,
-      token,
-      senderAddr,
-      transferOutId,
-      transferInId,
-      fromChainId,
-      toChainId,
-      relayNodeAddr,
-      fee,
-      jwt,
-      hashlockTime,
-    })
-    .then(res => {
-      return res.data;
-    })
-    .catch(e => {
-      console.log("error=>", e);
-    });
 
 export const getTokenSymbol = (symbol, chId) => {
   let name = getTokenListSymbol(symbol, chId);
@@ -425,6 +226,15 @@ export const getTokenListSymbol = (symbol, chId) => {
     }
     if (symbol === "DAI") {
       name = "ceDAI";
+    }
+  }
+
+  if (chainId === 1284) {
+    if (symbol === "USDC") {
+      name = "ceUSDC";
+    }
+    if (symbol === "USDT") {
+      name = "ceUSDT";
     }
   }
 

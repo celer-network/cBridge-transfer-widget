@@ -16,16 +16,6 @@ enum ErrCode {
   ERROR_NO_TOKEN_ON_DST_CHAIN = 1001,
 }
 
-export enum LPHistoryStatus {
-  LP_UNKNOWN,
-  LP_WAITING_FOR_SGN,
-  LP_WAITING_FOR_LP,
-  LP_SUBMITTING,
-  LP_COMPLETED,
-  LP_FAILED,
-  LP_DELAYED,
-}
-
 interface Chain {
   id: number;
   name: string;
@@ -54,20 +44,6 @@ interface Token {
   decimal: number;
   xfer_disabled: boolean;
   display_symbol?: string; /// FOR ETH <=====> WETH
-}
-
-interface GetAdvancedInfoRequest {
-  addr: string;
-}
-
-interface GetAdvancedInfoResponse {
-  slippage_tolerance: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  err: any;
-}
-interface SetAdvancedInfoRequest {
-  addr: string;
-  slippage_tolerance: number;
 }
 
 interface ChainTokenInfo {
@@ -110,12 +86,6 @@ interface GetTransferStatusResponse {
   powers: Array<string>;
   src_block_tx_link?: string;
   dst_block_tx_link?: string;
-}
-
-export enum MarkTransferTypeRequest {
-  TRANSFER_TYPE_UNKNOWN = 0,
-  TRANSFER_TYPE_SEND = 1,
-  TRANSFER_TYPE_REFUND = 2,
 }
 
 interface WithdrawLiquidityRequest {
@@ -204,12 +174,8 @@ interface Signature {
 }
 
 export type {
-  //   LPHistoryStatus,
   Chain,
   Token,
-  GetAdvancedInfoRequest,
-  GetAdvancedInfoResponse,
-  SetAdvancedInfoRequest,
   GetTransferConfigsResponse,
   EstimateAmtRequest,
   EstimateAmtResponse,

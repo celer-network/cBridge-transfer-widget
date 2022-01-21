@@ -3,44 +3,278 @@ import * as jspb from 'google-protobuf'
 import * as sgn_cbridge_v1_cbridge_pb from '../../../sgn/cbridge/v1/cbridge_pb';
 
 
-export class CheckLiqSumReq extends jspb.Message {
-  getChainId(): number;
-  setChainId(value: number): CheckLiqSumReq;
-
-  getTokenAddr(): string;
-  setTokenAddr(value: string): CheckLiqSumReq;
-
+export class EmptyRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): CheckLiqSumReq.AsObject;
-  static toObject(includeInstance: boolean, msg: CheckLiqSumReq): CheckLiqSumReq.AsObject;
-  static serializeBinaryToWriter(message: CheckLiqSumReq, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): CheckLiqSumReq;
-  static deserializeBinaryFromReader(message: CheckLiqSumReq, reader: jspb.BinaryReader): CheckLiqSumReq;
+  toObject(includeInstance?: boolean): EmptyRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: EmptyRequest): EmptyRequest.AsObject;
+  static serializeBinaryToWriter(message: EmptyRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EmptyRequest;
+  static deserializeBinaryFromReader(message: EmptyRequest, reader: jspb.BinaryReader): EmptyRequest;
 }
 
-export namespace CheckLiqSumReq {
+export namespace EmptyRequest {
+  export type AsObject = {
+  }
+}
+
+export class QueryParamsResponse extends jspb.Message {
+  getParams(): sgn_cbridge_v1_cbridge_pb.Params | undefined;
+  setParams(value?: sgn_cbridge_v1_cbridge_pb.Params): QueryParamsResponse;
+  hasParams(): boolean;
+  clearParams(): QueryParamsResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryParamsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryParamsResponse): QueryParamsResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryParamsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryParamsResponse;
+  static deserializeBinaryFromReader(message: QueryParamsResponse, reader: jspb.BinaryReader): QueryParamsResponse;
+}
+
+export namespace QueryParamsResponse {
+  export type AsObject = {
+    params?: sgn_cbridge_v1_cbridge_pb.Params.AsObject,
+  }
+}
+
+export class QueryConfigResponse extends jspb.Message {
+  getCbrconfig(): sgn_cbridge_v1_cbridge_pb.CbrConfig | undefined;
+  setCbrconfig(value?: sgn_cbridge_v1_cbridge_pb.CbrConfig): QueryConfigResponse;
+  hasCbrconfig(): boolean;
+  clearCbrconfig(): QueryConfigResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryConfigResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryConfigResponse): QueryConfigResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryConfigResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryConfigResponse;
+  static deserializeBinaryFromReader(message: QueryConfigResponse, reader: jspb.BinaryReader): QueryConfigResponse;
+}
+
+export namespace QueryConfigResponse {
+  export type AsObject = {
+    cbrconfig?: sgn_cbridge_v1_cbridge_pb.CbrConfig.AsObject,
+  }
+}
+
+export class QueryRelayRequest extends jspb.Message {
+  getXrefId(): Uint8Array | string;
+  getXrefId_asU8(): Uint8Array;
+  getXrefId_asB64(): string;
+  setXrefId(value: Uint8Array | string): QueryRelayRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryRelayRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryRelayRequest): QueryRelayRequest.AsObject;
+  static serializeBinaryToWriter(message: QueryRelayRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryRelayRequest;
+  static deserializeBinaryFromReader(message: QueryRelayRequest, reader: jspb.BinaryReader): QueryRelayRequest;
+}
+
+export namespace QueryRelayRequest {
+  export type AsObject = {
+    xrefId: Uint8Array | string,
+  }
+}
+
+export class QueryRelayResponse extends jspb.Message {
+  getXferRelay(): sgn_cbridge_v1_cbridge_pb.XferRelay | undefined;
+  setXferRelay(value?: sgn_cbridge_v1_cbridge_pb.XferRelay): QueryRelayResponse;
+  hasXferRelay(): boolean;
+  clearXferRelay(): QueryRelayResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryRelayResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryRelayResponse): QueryRelayResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryRelayResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryRelayResponse;
+  static deserializeBinaryFromReader(message: QueryRelayResponse, reader: jspb.BinaryReader): QueryRelayResponse;
+}
+
+export namespace QueryRelayResponse {
+  export type AsObject = {
+    xferRelay?: sgn_cbridge_v1_cbridge_pb.XferRelay.AsObject,
+  }
+}
+
+export class QueryChainSignersRequest extends jspb.Message {
+  getChainId(): number;
+  setChainId(value: number): QueryChainSignersRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryChainSignersRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryChainSignersRequest): QueryChainSignersRequest.AsObject;
+  static serializeBinaryToWriter(message: QueryChainSignersRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryChainSignersRequest;
+  static deserializeBinaryFromReader(message: QueryChainSignersRequest, reader: jspb.BinaryReader): QueryChainSignersRequest;
+}
+
+export namespace QueryChainSignersRequest {
+  export type AsObject = {
+    chainId: number,
+  }
+}
+
+export class QueryChainSignersResponse extends jspb.Message {
+  getChainSigners(): sgn_cbridge_v1_cbridge_pb.ChainSigners | undefined;
+  setChainSigners(value?: sgn_cbridge_v1_cbridge_pb.ChainSigners): QueryChainSignersResponse;
+  hasChainSigners(): boolean;
+  clearChainSigners(): QueryChainSignersResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryChainSignersResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryChainSignersResponse): QueryChainSignersResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryChainSignersResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryChainSignersResponse;
+  static deserializeBinaryFromReader(message: QueryChainSignersResponse, reader: jspb.BinaryReader): QueryChainSignersResponse;
+}
+
+export namespace QueryChainSignersResponse {
+  export type AsObject = {
+    chainSigners?: sgn_cbridge_v1_cbridge_pb.ChainSigners.AsObject,
+  }
+}
+
+export class QueryLatestSignersResponse extends jspb.Message {
+  getLatestSigners(): sgn_cbridge_v1_cbridge_pb.LatestSigners | undefined;
+  setLatestSigners(value?: sgn_cbridge_v1_cbridge_pb.LatestSigners): QueryLatestSignersResponse;
+  hasLatestSigners(): boolean;
+  clearLatestSigners(): QueryLatestSignersResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryLatestSignersResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryLatestSignersResponse): QueryLatestSignersResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryLatestSignersResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryLatestSignersResponse;
+  static deserializeBinaryFromReader(message: QueryLatestSignersResponse, reader: jspb.BinaryReader): QueryLatestSignersResponse;
+}
+
+export namespace QueryLatestSignersResponse {
+  export type AsObject = {
+    latestSigners?: sgn_cbridge_v1_cbridge_pb.LatestSigners.AsObject,
+  }
+}
+
+export class QueryDebugAnyRequest extends jspb.Message {
+  getKey(): Uint8Array | string;
+  getKey_asU8(): Uint8Array;
+  getKey_asB64(): string;
+  setKey(value: Uint8Array | string): QueryDebugAnyRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryDebugAnyRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryDebugAnyRequest): QueryDebugAnyRequest.AsObject;
+  static serializeBinaryToWriter(message: QueryDebugAnyRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryDebugAnyRequest;
+  static deserializeBinaryFromReader(message: QueryDebugAnyRequest, reader: jspb.BinaryReader): QueryDebugAnyRequest;
+}
+
+export namespace QueryDebugAnyRequest {
+  export type AsObject = {
+    key: Uint8Array | string,
+  }
+}
+
+export class QueryDebugAnyResponse extends jspb.Message {
+  getData(): Uint8Array | string;
+  getData_asU8(): Uint8Array;
+  getData_asB64(): string;
+  setData(value: Uint8Array | string): QueryDebugAnyResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryDebugAnyResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryDebugAnyResponse): QueryDebugAnyResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryDebugAnyResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryDebugAnyResponse;
+  static deserializeBinaryFromReader(message: QueryDebugAnyResponse, reader: jspb.BinaryReader): QueryDebugAnyResponse;
+}
+
+export namespace QueryDebugAnyResponse {
+  export type AsObject = {
+    data: Uint8Array | string,
+  }
+}
+
+export class QueryLPsRequest extends jspb.Message {
+  getChainId(): number;
+  setChainId(value: number): QueryLPsRequest;
+
+  getTokenAddr(): string;
+  setTokenAddr(value: string): QueryLPsRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryLPsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryLPsRequest): QueryLPsRequest.AsObject;
+  static serializeBinaryToWriter(message: QueryLPsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryLPsRequest;
+  static deserializeBinaryFromReader(message: QueryLPsRequest, reader: jspb.BinaryReader): QueryLPsRequest;
+}
+
+export namespace QueryLPsRequest {
   export type AsObject = {
     chainId: number,
     tokenAddr: string,
   }
 }
 
-export class CheckLiqSumResp extends jspb.Message {
-  getLiqsum(): string;
-  setLiqsum(value: string): CheckLiqSumResp;
-
-  getSumiter(): string;
-  setSumiter(value: string): CheckLiqSumResp;
+export class QueryLPsResponse extends jspb.Message {
+  getLpsList(): Array<string>;
+  setLpsList(value: Array<string>): QueryLPsResponse;
+  clearLpsList(): QueryLPsResponse;
+  addLps(value: string, index?: number): QueryLPsResponse;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): CheckLiqSumResp.AsObject;
-  static toObject(includeInstance: boolean, msg: CheckLiqSumResp): CheckLiqSumResp.AsObject;
-  static serializeBinaryToWriter(message: CheckLiqSumResp, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): CheckLiqSumResp;
-  static deserializeBinaryFromReader(message: CheckLiqSumResp, reader: jspb.BinaryReader): CheckLiqSumResp;
+  toObject(includeInstance?: boolean): QueryLPsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryLPsResponse): QueryLPsResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryLPsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryLPsResponse;
+  static deserializeBinaryFromReader(message: QueryLPsResponse, reader: jspb.BinaryReader): QueryLPsResponse;
 }
 
-export namespace CheckLiqSumResp {
+export namespace QueryLPsResponse {
+  export type AsObject = {
+    lpsList: Array<string>,
+  }
+}
+
+export class CheckLiqSumRequest extends jspb.Message {
+  getChainId(): number;
+  setChainId(value: number): CheckLiqSumRequest;
+
+  getTokenAddr(): string;
+  setTokenAddr(value: string): CheckLiqSumRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CheckLiqSumRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckLiqSumRequest): CheckLiqSumRequest.AsObject;
+  static serializeBinaryToWriter(message: CheckLiqSumRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckLiqSumRequest;
+  static deserializeBinaryFromReader(message: CheckLiqSumRequest, reader: jspb.BinaryReader): CheckLiqSumRequest;
+}
+
+export namespace CheckLiqSumRequest {
+  export type AsObject = {
+    chainId: number,
+    tokenAddr: string,
+  }
+}
+
+export class CheckLiqSumResponse extends jspb.Message {
+  getLiqsum(): string;
+  setLiqsum(value: string): CheckLiqSumResponse;
+
+  getSumiter(): string;
+  setSumiter(value: string): CheckLiqSumResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CheckLiqSumResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CheckLiqSumResponse): CheckLiqSumResponse.AsObject;
+  static serializeBinaryToWriter(message: CheckLiqSumResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CheckLiqSumResponse;
+  static deserializeBinaryFromReader(message: CheckLiqSumResponse, reader: jspb.BinaryReader): CheckLiqSumResponse;
+}
+
+export namespace CheckLiqSumResponse {
   export type AsObject = {
     liqsum: string,
     sumiter: string,
@@ -178,6 +412,9 @@ export class GetFeePercentageRequest extends jspb.Message {
   getDstChainId(): number;
   setDstChainId(value: number): GetFeePercentageRequest;
 
+  getSymbol(): string;
+  setSymbol(value: string): GetFeePercentageRequest;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFeePercentageRequest.AsObject;
   static toObject(includeInstance: boolean, msg: GetFeePercentageRequest): GetFeePercentageRequest.AsObject;
@@ -190,6 +427,7 @@ export namespace GetFeePercentageRequest {
   export type AsObject = {
     srcChainId: number,
     dstChainId: number,
+    symbol: string,
   }
 }
 

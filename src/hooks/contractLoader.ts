@@ -5,20 +5,19 @@ import { Signer } from "@ethersproject/abstract-signer";
 import { Contract, ContractFactory } from "@ethersproject/contracts";
 import { InfuraProvider, JsonRpcProvider } from "@ethersproject/providers";
 
-import { Bridge } from "../typechain";
-import { Bridge__factory } from "../typechain/factories/Bridge__factory";
-import { Faucet__factory } from "../typechain/factories/Faucet__factory";
-import { Faucet } from "../typechain/Faucet";
-import { PeggedTokenBridge } from "../typechain/PeggedTokenBridge";
-import { PeggedTokenBridge__factory } from "../typechain/factories/PeggedTokenBridge__factory";
-import { OriginalTokenVault } from "../typechain/OriginalTokenVault";
-import { OriginalTokenVault__factory } from "../typechain/factories/OriginalTokenVault__factory";
+import { Bridge } from "../typechain/typechain";
+import { Bridge__factory } from "../typechain/typechain/factories/Bridge__factory";
+import { Pool } from "../typechain/typechain/Pool";
+import { Pool__factory } from "../typechain/typechain/factories/Pool__factory";
+import { PeggedTokenBridge } from "../typechain/typechain/PeggedTokenBridge";
+import { PeggedTokenBridge__factory } from "../typechain/typechain/factories/PeggedTokenBridge__factory";
+import { OriginalTokenVault } from "../typechain/typechain/OriginalTokenVault";
+import { OriginalTokenVault__factory } from "../typechain/typechain/factories/OriginalTokenVault__factory";
 
 export type BridgeContracts = {
   bridge: Bridge | undefined;
-  lpbridge: Bridge | undefined;
   dstbridge: Bridge | undefined;
-  faucet: Faucet | undefined;
+  pool: Pool | undefined;
   originalTokenVault: OriginalTokenVault | undefined;
   peggedTokenBridge: PeggedTokenBridge | undefined;
 };
@@ -29,18 +28,16 @@ export type BridgeContractFactoryClasses = {
 
 export const bridgeContractFactories: BridgeContractFactoryClasses = {
   bridge: Bridge__factory,
-  lpbridge: Bridge__factory,
   dstbridge: Bridge__factory,
-  faucet: Faucet__factory,
+  pool: Pool__factory,
   originalTokenVault: OriginalTokenVault__factory,
   peggedTokenBridge: PeggedTokenBridge__factory,
 };
 
 export const bridgeContracts: BridgeContracts = {
   bridge: undefined,
-  lpbridge: undefined,
   dstbridge: undefined,
-  faucet: undefined,
+  pool: undefined,
   originalTokenVault: undefined,
   peggedTokenBridge: undefined,
 };

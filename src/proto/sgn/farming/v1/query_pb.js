@@ -2,15 +2,24 @@
 /**
  * @fileoverview
  * @enhanceable
+ * @suppress {missingRequire} reports error on implicit type usages.
  * @suppress {messageConventions} JS Compiler reports an error if a variable or
  *     field starts with 'MSG_' and isn't a translatable message.
  * @public
  */
 // GENERATED CODE -- DO NOT EDIT!
+/* eslint-disable */
+// @ts-nocheck
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = Function('return this')();
+var global = (function() {
+  if (this) { return this; }
+  if (typeof window !== 'undefined') { return window; }
+  if (typeof global !== 'undefined') { return global; }
+  if (typeof self !== 'undefined') { return self; }
+  return Function('return this')();
+}.call(null));
 
 var gogoproto_gogo_pb = require('../../../gogoproto/gogo_pb.js');
 goog.object.extend(proto, gogoproto_gogo_pb);
@@ -1531,7 +1540,7 @@ proto.sgn.farming.v1.QueryTokensResponse.prototype.toObject = function(opt_inclu
 proto.sgn.farming.v1.QueryTokensResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     tokensList: jspb.Message.toObjectList(msg.getTokensList(),
-    sgn_farming_v1_farming_pb.ERC20Token.toObject, includeInstance)
+    sgn_common_v1_common_pb.ERC20Token.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -1569,8 +1578,8 @@ proto.sgn.farming.v1.QueryTokensResponse.deserializeBinaryFromReader = function(
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new sgn_farming_v1_farming_pb.ERC20Token;
-      reader.readMessage(value,sgn_farming_v1_farming_pb.ERC20Token.deserializeBinaryFromReader);
+      var value = new sgn_common_v1_common_pb.ERC20Token;
+      reader.readMessage(value,sgn_common_v1_common_pb.ERC20Token.deserializeBinaryFromReader);
       msg.addTokens(value);
       break;
     default:
@@ -1607,24 +1616,24 @@ proto.sgn.farming.v1.QueryTokensResponse.serializeBinaryToWriter = function(mess
     writer.writeRepeatedMessage(
       1,
       f,
-      sgn_farming_v1_farming_pb.ERC20Token.serializeBinaryToWriter
+      sgn_common_v1_common_pb.ERC20Token.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * repeated ERC20Token tokens = 1;
- * @return {!Array<!proto.sgn.farming.v1.ERC20Token>}
+ * repeated sgn.common.v1.ERC20Token tokens = 1;
+ * @return {!Array<!proto.sgn.common.v1.ERC20Token>}
  */
 proto.sgn.farming.v1.QueryTokensResponse.prototype.getTokensList = function() {
-  return /** @type{!Array<!proto.sgn.farming.v1.ERC20Token>} */ (
-    jspb.Message.getRepeatedWrapperField(this, sgn_farming_v1_farming_pb.ERC20Token, 1));
+  return /** @type{!Array<!proto.sgn.common.v1.ERC20Token>} */ (
+    jspb.Message.getRepeatedWrapperField(this, sgn_common_v1_common_pb.ERC20Token, 1));
 };
 
 
 /**
- * @param {!Array<!proto.sgn.farming.v1.ERC20Token>} value
+ * @param {!Array<!proto.sgn.common.v1.ERC20Token>} value
  * @return {!proto.sgn.farming.v1.QueryTokensResponse} returns this
 */
 proto.sgn.farming.v1.QueryTokensResponse.prototype.setTokensList = function(value) {
@@ -1633,12 +1642,12 @@ proto.sgn.farming.v1.QueryTokensResponse.prototype.setTokensList = function(valu
 
 
 /**
- * @param {!proto.sgn.farming.v1.ERC20Token=} opt_value
+ * @param {!proto.sgn.common.v1.ERC20Token=} opt_value
  * @param {number=} opt_index
- * @return {!proto.sgn.farming.v1.ERC20Token}
+ * @return {!proto.sgn.common.v1.ERC20Token}
  */
 proto.sgn.farming.v1.QueryTokensResponse.prototype.addTokens = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.sgn.farming.v1.ERC20Token, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.sgn.common.v1.ERC20Token, opt_index);
 };
 
 
@@ -1843,7 +1852,7 @@ proto.sgn.farming.v1.QueryTokenResponse.prototype.toObject = function(opt_includ
  */
 proto.sgn.farming.v1.QueryTokenResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    token: (f = msg.getToken()) && sgn_farming_v1_farming_pb.ERC20Token.toObject(includeInstance, f)
+    token: (f = msg.getToken()) && sgn_common_v1_common_pb.ERC20Token.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1881,8 +1890,8 @@ proto.sgn.farming.v1.QueryTokenResponse.deserializeBinaryFromReader = function(m
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new sgn_farming_v1_farming_pb.ERC20Token;
-      reader.readMessage(value,sgn_farming_v1_farming_pb.ERC20Token.deserializeBinaryFromReader);
+      var value = new sgn_common_v1_common_pb.ERC20Token;
+      reader.readMessage(value,sgn_common_v1_common_pb.ERC20Token.deserializeBinaryFromReader);
       msg.setToken(value);
       break;
     default:
@@ -1919,24 +1928,24 @@ proto.sgn.farming.v1.QueryTokenResponse.serializeBinaryToWriter = function(messa
     writer.writeMessage(
       1,
       f,
-      sgn_farming_v1_farming_pb.ERC20Token.serializeBinaryToWriter
+      sgn_common_v1_common_pb.ERC20Token.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional ERC20Token token = 1;
- * @return {?proto.sgn.farming.v1.ERC20Token}
+ * optional sgn.common.v1.ERC20Token token = 1;
+ * @return {?proto.sgn.common.v1.ERC20Token}
  */
 proto.sgn.farming.v1.QueryTokenResponse.prototype.getToken = function() {
-  return /** @type{?proto.sgn.farming.v1.ERC20Token} */ (
-    jspb.Message.getWrapperField(this, sgn_farming_v1_farming_pb.ERC20Token, 1));
+  return /** @type{?proto.sgn.common.v1.ERC20Token} */ (
+    jspb.Message.getWrapperField(this, sgn_common_v1_common_pb.ERC20Token, 1));
 };
 
 
 /**
- * @param {?proto.sgn.farming.v1.ERC20Token|undefined} value
+ * @param {?proto.sgn.common.v1.ERC20Token|undefined} value
  * @return {!proto.sgn.farming.v1.QueryTokenResponse} returns this
 */
 proto.sgn.farming.v1.QueryTokenResponse.prototype.setToken = function(value) {

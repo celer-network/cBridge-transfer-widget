@@ -14,14 +14,10 @@ import { useWeb3Context } from "../providers/Web3ContextProvider";
 
 import { getTransferStatus, withdrawLiquidity } from "../redux/gateway";
 import { switchChain } from "../redux/transferSlice";
-import { useAppSelector } from "../redux/store";
-import { getNetworkById } from "../constants/network";
+import { useAppSelector, useAppDispatch } from "../redux/store";
+import { GetPeggedMode, PeggedChainMode, getPeggedPairConfigs } from "../hooks/usePeggedPairConfig";
 
-import {
-  WithdrawReq as WithdrawReqProto,
-  // WithdrawLq as WithdrawLqProto,
-  WithdrawType,
-} from "../proto/sgn/cbridge/v1/tx_pb";
+import { WithdrawReq as WithdrawReqProto, WithdrawType } from "../proto/sgn/cbridge/v1/tx_pb";
 import {
   EstimateWithdrawAmtRequest,
   EstimateWithdrawAmtResponse,
@@ -29,13 +25,14 @@ import {
   WithdrawLiquidityRequest,
   WithdrawMethodType,
   EstimateWithdrawAmt,
-} from "../proto/sgn/gateway/v1/gateway_pb";
+} from "../proto/gateway/gateway_pb";
 
-import { WebClient } from "../proto/sgn/gateway/v1/GatewayServiceClientPb";
+import { WebClient } from "../proto/gateway/GatewayServiceClientPb";
+
+import { formatBlockExplorerUrlWithTxHash } from "../utils/formatUrl";
 
 /* eslint-disable */
 /* eslint-disable camelcase */
-/* eslint-disable no-debugger */
 
 const useStyles = createUseStyles((theme: Theme) => ({
   modalTop: {},
@@ -118,16 +115,30 @@ const useStyles = createUseStyles((theme: Theme) => ({
 const HistoryTransferModal = ({ visible, onCancel, record }) => {
   const classes = useStyles();
   const {
-    contracts: { bridge },
+    contracts: { bridge, originalTokenVault },
     transactor,
   } = useContractsContext();
   const { signer, chainId, address } = useWeb3Context();
-  const { windowWidth } = useAppSelector(state => state);
+  const dispatch = useAppDispatch();
+  const { windowWidth, transferInfo } = useAppSelector(state => state);
   const { isMobile } = windowWidth;
   const [loading, setLoading] = useState(false);
   const [transfState, setTransfState] = useState(record?.status);
   const [withdrawDetail, setWithdrawDetail] = useState<WithdrawDetail>();
   const [transferStatusInfo, setTransferStatusInfo] = useState<any>();
+  const peggedMode = GetPeggedMode(
+    record?.src_send_info?.chain?.id,
+    record?.dst_received_info?.chain?.id,
+    record?.dst_received_info?.token?.symbol,
+    transferInfo.transferConfig.pegged_pair_configs,
+  );
+  getPeggedPairConfigs(
+    transferInfo.transferConfig.pegged_pair_configs,
+    record.src_send_info.chain,
+    record.dst_received_info.chain,
+    { token: record.src_send_info.token },
+    dispatch,
+  );
 
   useEffect(() => {
     setTransfState(record?.status);
@@ -152,13 +163,6 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
 
     let estimateResult = "";
     if (!res.getErr() && res.getReqAmtMap()) {
-      // const resList = res.getReqAmtMap();
-      // const data = resList.get(Number(record?.src_send_info.chain.id));
-      // const totleFee = (Number(data?.getBaseFee()) + Number(data?.getPercFee())).toString() || "0";
-      // const eqValueTokenAmtBigNum = BigNumber.from(data?.getEqValueTokenAmt());
-      // const feeBigNum = BigNumber.from(totleFee);
-      // const targetReceiveAmounts = eqValueTokenAmtBigNum.sub(feeBigNum);
-      // return targetReceiveAmounts.toString();
       const resMap = res.getReqAmtMap();
       resMap.forEach((entry: EstimateWithdrawAmt, key: number) => {
         if (key === Number(record?.src_send_info.chain.id)) {
@@ -211,9 +215,6 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
           setTransferStatusInfo(res);
           if (res?.status) {
             const status = res.status;
-            // if (status === TransferHistoryStatus.TRANSFER_REQUESTING_REFUND) {
-            //   setTransfState(status);
-            // } else
             if (status === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED) {
               setTransfState(status);
               const { wd_onchain, sorted_sigs, signers, powers } = res;
@@ -274,25 +275,25 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
       const decodeNum = base64.decode(item);
       return BigNumber.from(decodeNum);
     });
-    // const withdrawRes = await transactor(bridge.withdraw(wdmsg, sigs, signers, powers));
+    const executor = () => {
+      if (peggedMode === PeggedChainMode.Deposit && originalTokenVault) {
+        return transactor(originalTokenVault.withdraw(wdmsg, sigs, signers, powers));
+      }
 
-    const res = await transactor(bridge.withdraw(wdmsg, sigs, signers, powers)).catch(() => {
-      // onHandleCancel();
+      return transactor(bridge.withdraw(wdmsg, sigs, signers, powers));
+    };
+    const res = await executor().catch(_ => {
       setTransfState(TransferHistoryStatus?.TRANSFER_REFUND_TO_BE_CONFIRMED);
       setLoading(false);
     });
-
     if (res) {
-      // await markTransfer({
-      //   transfer_id: record.transfer_id,
-      //   src_tx_hash: res.hash,
-      //   type: MarkTransferTypeRequest.TRANSFER_TYPE_REFUND,
-      // });
-
       const transferJson = {
         dst_block_tx_link: record.dst_block_tx_link,
         src_send_info: record.src_send_info,
-        src_block_tx_link: `${getNetworkById(record.src_send_info.chain.id).blockExplorerUrl}/tx/${res.hash}`,
+        src_block_tx_link: formatBlockExplorerUrlWithTxHash({
+          chainId: record.src_send_info.chain.id,
+          txHash: res.hash,
+        }),
         dst_received_info: record.dst_received_info,
         status: TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND,
         transfer_id: record.transfer_id,
@@ -313,7 +314,10 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
           isHave = true;
           item.updateTime = new Date().getTime();
           item.txIsFailed = false;
-          item.src_block_tx_link = `${getNetworkById(record.src_send_info.chain.id).blockExplorerUrl}/tx/${res.hash}`;
+          item.src_block_tx_link = formatBlockExplorerUrlWithTxHash({
+            chainId: record.src_send_info.chain.id,
+            txHash: res.hash,
+          });
         }
         return item;
       });
@@ -326,25 +330,6 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
       setLoading(false);
       setTransfState(TransferHistoryStatus.TRANSFER_REFUNDED);
     }
-
-    // const params = {
-    //   transfer_id: record.transfer_id,
-    // };
-    // detailInter = setInterval(async () => {
-    //   const res = await getTransferStatus(params);
-    //   setTransferStatusInfo(res);
-    //   if (res?.status) {
-    //     const status = res.status;
-    //     if (status === TransferHistoryStatus.TRANSFER_REFUNDED) {
-    //       clearInterval(detailInter);
-    //       setLoading(false);
-    //       setTransfState(status);
-    //     }
-    //   } else {
-    //     setLoading(false);
-    //     clearInterval(detailInter);
-    //   }
-    // }, 5000);
   };
 
   if (record?.src_send_info?.chain.id !== chainId) {

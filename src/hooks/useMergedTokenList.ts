@@ -22,7 +22,6 @@ export const useMergedTokenList = (): TokenInfo[] => {
       });
 
     if (fromChain && fromChain !== undefined) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const chainId = fromChain?.id;
       const originTokens = chain_token[chainId].token;
       const allTokens = originTokens.concat(mintTokens);

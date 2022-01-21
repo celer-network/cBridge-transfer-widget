@@ -5,7 +5,6 @@ const globalInfoSlice = createSlice({
   name: "globalInfo",
   initialState: {
     cBridgeAddresses: "",
-    lpCBridgeAddresses: "",
     cBridgeDesAddresses: "",
     faucetAddresses: {
       3: "0x584ee85a7bb588a0143ad8d25039b58b05eea5c4",
@@ -19,7 +18,6 @@ const globalInfoSlice = createSlice({
     farmingRewardAddresses: "",
     refreshGlobalTokenBalance: false,
     isHistoryNotEmpty: false,
-    isLPNotEmpty: false,
     oTContractAddr: "",
     pTContractAddr: "",
     fraxContractAddr: "0x90c97f71e18723b0cf0dfa30ee176ab653e89f40",
@@ -27,9 +25,6 @@ const globalInfoSlice = createSlice({
   reducers: {
     setCBridgeAddresses: (state, { payload }: PayloadAction<string>) => {
       state.cBridgeAddresses = payload;
-    },
-    setlpCBridgeAddresses: (state, { payload }: PayloadAction<string>) => {
-      state.lpCBridgeAddresses = payload;
     },
     setCBridgeDesAddresses: (state, { payload }: PayloadAction<string>) => {
       state.cBridgeDesAddresses = payload;
@@ -42,9 +37,6 @@ const globalInfoSlice = createSlice({
     },
     setIsHistoryNotEmpty: state => {
       state.isHistoryNotEmpty = true;
-    },
-    setIsLPNotEmpty: state => {
-      state.isLPNotEmpty = true;
     },
     setOTContractAddr: (state, { payload }: PayloadAction<string>) => {
       state.oTContractAddr = payload;
@@ -60,12 +52,10 @@ const globalInfoSlice = createSlice({
 
 export const {
   setCBridgeAddresses,
-  setlpCBridgeAddresses,
   setFarmingRewardAddresses,
   setRefreshGlobalTokenBalance,
   setCBridgeDesAddresses,
   setIsHistoryNotEmpty,
-  setIsLPNotEmpty,
   setOTContractAddr,
   setPTContractAddr,
   setFraxContractAddr,

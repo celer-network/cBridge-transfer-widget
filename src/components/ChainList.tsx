@@ -181,11 +181,9 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
   const classes = useStyles({ isMobile });
   const { chainId } = useWeb3Context();
   const { transferInfo } = useAppSelector(state => state);
-  const { chainSource, transferConfig, fromChain, toChain, singleChainList, singleChainSelectIndex, selectedToken } =
-    transferInfo;
+  const { chainSource, transferConfig, fromChain, toChain } = transferInfo;
   const { chains } = transferConfig;
 
-  /// SingleChain Not Supported
   const transferSupportedChainList = useTransferSupportedChainList(chainSource === "to");
 
   // split normalChain and other chain
@@ -243,10 +241,6 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
       case "wallet":
         title = "Switch Your Connected Chain";
         break;
-      case "SingleChain":
-        title = "Select Source Chain";
-        break;
-
       default:
         break;
     }
@@ -265,9 +259,6 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
       case "wallet":
         chainModalId = chainId;
         break;
-      case "SingleChain":
-        chainModalId = singleChainList[singleChainSelectIndex].from_chain_id;
-        break;
       default:
         break;
     }
@@ -282,15 +273,18 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
   };
 
   useEffect(() => {
-    const localChains = CHAIN_LIST;
+    const localChainIdWhiteList = CHAIN_LIST.map(networkInfo => {
+      return networkInfo.chainId;
+    });
     const list = transferSupportedChainList.filter(chain => {
       return (
-        chain.name.toLocaleLowerCase().indexOf(searchText) > -1 ||
-        chain.id.toString().toLowerCase().indexOf(searchText) > -1
+        (chain.name.toLocaleLowerCase().indexOf(searchText) > -1 ||
+          chain.id.toString().toLowerCase().indexOf(searchText) > -1) &&
+        localChainIdWhiteList.includes(chain.id)
       );
     });
     setChainAddrWithSort(list);
-  }, [transferSupportedChainList, , searchText, visible]);
+  }, [transferSupportedChainList, searchText, visible]);
 
   const renderTokenItem = (chain: Chain) => {
     return (
@@ -338,7 +332,7 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
           />
         </div>
         <div className={classes.moreOptionNote} hidden={chainSource !== "to"}>
-          <img src={ringBell} className={classes.moreOptionIcon} />
+          <img src={ringBell} className={classes.moreOptionIcon} alt="moreOptionIcon" />
           <span style={{ color: "#8F9BB3", fontSize: 14, paddingLeft: 4, paddingRight: 4 }}>
             Below shows the destination chains that enables at least one token transfer from {fromChain?.name}. More
             chains can be found if you select other source chains.{" "}

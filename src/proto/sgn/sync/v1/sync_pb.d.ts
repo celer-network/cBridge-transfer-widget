@@ -111,6 +111,7 @@ export enum DataType {
   DELEGATORSHARES = 4,
   CBRONCHAINEVENT = 5,
   CBRUPDATECBRPRICE = 6,
+  PEGBRONCHAINEVENT = 7,
 }
 export enum VoteOption { 
   EMPTY = 0,

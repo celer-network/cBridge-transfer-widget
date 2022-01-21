@@ -298,7 +298,7 @@ export const testNetworks = {
     name: "Moonbase Alpha",
     color: "#3099f2",
     chainId: 1287,
-    rpcUrl: "https://rpc.testnet.moonbeam.network",
+    rpcUrl: "https://rpc.api.moonbase.moonbeam.network",
     blockTime: 10000,
     iconUrl: "./moonriver.png",
     blockDelay: 8,

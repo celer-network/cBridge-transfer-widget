@@ -129,10 +129,10 @@ export namespace QueryTokensRequest {
 }
 
 export class QueryTokensResponse extends jspb.Message {
-  getTokensList(): Array<sgn_farming_v1_farming_pb.ERC20Token>;
-  setTokensList(value: Array<sgn_farming_v1_farming_pb.ERC20Token>): QueryTokensResponse;
+  getTokensList(): Array<sgn_common_v1_common_pb.ERC20Token>;
+  setTokensList(value: Array<sgn_common_v1_common_pb.ERC20Token>): QueryTokensResponse;
   clearTokensList(): QueryTokensResponse;
-  addTokens(value?: sgn_farming_v1_farming_pb.ERC20Token, index?: number): sgn_farming_v1_farming_pb.ERC20Token;
+  addTokens(value?: sgn_common_v1_common_pb.ERC20Token, index?: number): sgn_common_v1_common_pb.ERC20Token;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueryTokensResponse.AsObject;
@@ -144,7 +144,7 @@ export class QueryTokensResponse extends jspb.Message {
 
 export namespace QueryTokensResponse {
   export type AsObject = {
-    tokensList: Array<sgn_farming_v1_farming_pb.ERC20Token.AsObject>,
+    tokensList: Array<sgn_common_v1_common_pb.ERC20Token.AsObject>,
   }
 }
 
@@ -171,8 +171,8 @@ export namespace QueryTokenRequest {
 }
 
 export class QueryTokenResponse extends jspb.Message {
-  getToken(): sgn_farming_v1_farming_pb.ERC20Token | undefined;
-  setToken(value?: sgn_farming_v1_farming_pb.ERC20Token): QueryTokenResponse;
+  getToken(): sgn_common_v1_common_pb.ERC20Token | undefined;
+  setToken(value?: sgn_common_v1_common_pb.ERC20Token): QueryTokenResponse;
   hasToken(): boolean;
   clearToken(): QueryTokenResponse;
 
@@ -186,7 +186,7 @@ export class QueryTokenResponse extends jspb.Message {
 
 export namespace QueryTokenResponse {
   export type AsObject = {
-    token?: sgn_farming_v1_farming_pb.ERC20Token.AsObject,
+    token?: sgn_common_v1_common_pb.ERC20Token.AsObject,
   }
 }
 

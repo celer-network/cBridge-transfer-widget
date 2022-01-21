@@ -1,31 +1,22 @@
 import { createUseStyles } from "react-jss";
-import { useContext, useState, useEffect, useMemo, useCallback } from "react";
+import { useContext } from "react";
 import { LoadingOutlined } from "@ant-design/icons";
-import { useToggle } from "react-use";
+import { PageHeader } from "antd";
 import { ColorThemeContext } from "../providers/ThemeProvider";
 import { useAppDispatch, useAppSelector } from "../redux/store";
-import { setRefreshGlobalTokenBalance } from "../redux/globalInfoSlice";
-import { openModal, ModalName, closeModal } from "../redux/modalSlice";
+import { openModal, ModalName } from "../redux/modalSlice";
 import { setIsChainShow, setChainSource } from "../redux/transferSlice";
-// import { getStartDate } from "../redux/gateway";
 import { useWeb3Context } from "../providers/Web3ContextProvider";
-import { useCustomContractLoader, useTokenBalance } from "../hooks";
-import { ERC20 } from "../typechain/ERC20";
-import { ERC20__factory } from "../typechain/factories/ERC20__factory";
 import { Theme } from "../theme/theme";
 import Account from "./Account";
-// import { formatBalance } from "../helpers/format";
-import cBrdige2Logo from "../images/favicon.png";
-import cBrdige2Light from "../images/cBrdigeLight.png";
-import cBrdige2Dark from "../images/cBrdigeDark.png";
-// import cBridgeIcon from "../images/favicon.png";
 import homeHistoryIcon from "../images/homehistory.svg";
 import lightHomeHistory from "../images/lightHomeHistory.svg";
 import unicorn from "../images/unicorn.png";
 import dark from "../images/dark.svg";
 import light from "../images/light.svg";
 import { getNetworkById } from "../constants/network";
-/* eslint-disable*/
+import cBrdige2Light from "../images/cBrdigeLight.png";
+import cBrdige2Dark from "../images/cBrdigeDark.png";
 
 const useStyles = createUseStyles((theme: Theme) => ({
   header: {
@@ -205,6 +196,9 @@ const useStyles = createUseStyles((theme: Theme) => ({
       padding: "16px 12px 16px 0",
     },
   },
+  headerCenter: {
+    height: 45,
+  },
   headerRight: {
     // width: "calc(50vw - 208px)",
     display: "flex",
@@ -379,31 +373,14 @@ function HistoryButton({ totalActionNum, totalPendingNum, onClick }: HistoryButt
 export default function Header(): JSX.Element {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const classes = useStyles();
-  const [startDate, setStartDate] = useState<any>({});
-  const [sGNModalState, setSGNModalState] = useState(false);
   const { themeType, toggleTheme } = useContext(ColorThemeContext);
-  const { provider, network, signer, chainId, address } = useWeb3Context();
+  const { network, signer, chainId } = useWeb3Context();
   const dispatch = useAppDispatch();
-  const { totalActionNum, totalPaddingNum, fromChain, transferConfig, tokenList, selectedToken } = useAppSelector(
-    state => state.transferInfo,
-  );
-  const { chains } = transferConfig;
-  const tokenContract = useCustomContractLoader(provider, selectedToken?.token?.address || "", ERC20__factory) as
-    | ERC20
-    | undefined;
-  const [tokenBalance, , , refreshBlance] = useTokenBalance(tokenContract, address);
+  const { totalActionNum, totalPaddingNum } = useAppSelector(state => state.transferInfo);
 
-  // const logoUrl = isMobile && signer ? cBridgeIcon : themeType === "dark" ? cBrdige2Dark : cBrdige2Light;
-  const logoUrl = cBrdige2Logo;
-  const biglogoUrl = themeType === "dark" ? cBrdige2Dark : cBrdige2Light;
+  const bigLogoUrl = themeType === "dark" ? cBrdige2Dark : cBrdige2Light;
   const toggleIconUrl = themeType === "dark" ? light : dark;
-  const [showFaucet, toggleFaucet] = useToggle(false);
 
-  const tokenInfo = useMemo(() => {
-    return tokenList
-      ?.filter(token => token?.token?.symbol !== "ETH" && token?.token?.symbol !== "WETH")
-      ?.map(token => ({ symbol: token?.token?.symbol || "", address: token?.token?.address || "" }));
-  }, [tokenList]);
   const showChain = type => {
     if (!signer) {
       return;
@@ -411,39 +388,11 @@ export default function Header(): JSX.Element {
     dispatch(setChainSource(type));
     dispatch(setIsChainShow(true));
   };
-  useEffect(() => {
-    // getDate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId]);
-
-  // useEffect(() => {
-  //   const tokenBalanceString = tokenBalance.toString();
-  //   dispatch(setRefreshGlobalTokenBalance(tokenBalanceString));
-  // }, [dispatch, tokenBalance]);
 
   const handleOpenHistoryModal = () => {
     dispatch(openModal(ModalName.history));
   };
-  const closeFaucet = () => {
-    // refreshBlance();
-    dispatch(setRefreshGlobalTokenBalance());
-    toggleFaucet();
-  };
 
-  const openCampagin = () => {
-    window.open("https://cbridge-campaign.netlify.app/", "_blank");
-  };
-  const openAnalytics = () => {
-    window.open("https://cbridge-analytics.celer.network/", "_blank");
-  };
-
-  const openSgnSite = () => {
-    window.open("https://test-sgn.celer.network", "_blank");
-  };
-  const openFeedBAckSite = () => {
-    window.open("https://form.typeform.com/to/UeY0braS", "_blank");
-  };
-  const cBridgeV1Url = "https://cbridge-v1-legacy.celer.network";
   const getstatusText = () => {
     let content;
     if (totalActionNum) {
@@ -486,19 +435,19 @@ export default function Header(): JSX.Element {
     }
     return content;
   };
-  // const { totalTxVolume, last24HourTxVolume } = startDate;
-  const { modal } = useAppSelector(state => state);
-  const { showMenuModal } = modal;
-  const handleShowMenuModal = useCallback(() => {
-    dispatch(openModal(ModalName.menu));
-  }, [dispatch]);
-  const handleCloseMenuModal = () => {
-    dispatch(closeModal(ModalName.menu));
-  };
+
   if (isMobile) {
     return (
       <div className={classes.mobilePageHeaderWrapper}>
         <div className={classes.mobileLogoWrapper}>
+          <PageHeader
+            title={
+              <div>
+                <img src={bigLogoUrl} height="26px" className="biglogoImg" alt="cBridge" />
+              </div>
+            }
+            style={{ paddingRight: 0 }}
+          />
           <div className={classes.mobileHeaderPanel} style={{ flex: "1 0 auto" }}>
             <div style={{ marginRight: 2 }}>
               {signer && (
@@ -524,22 +473,32 @@ export default function Header(): JSX.Element {
   return (
     <div className={classes.header}>
       <div className={classes.hleft}>
-        <div className={classes.headerLeft}></div>
+        <div className={classes.headerLeft}>
+          <PageHeader
+            title={
+              <div>
+                <img src={bigLogoUrl} height="26px" className="biglogoImg" alt="cBridge" />
+              </div>
+            }
+            style={{ paddingRight: 0 }}
+          />
+        </div>
       </div>
 
       <div className={classes.headerRight}>
-        <div>
         {signer && (
-          <div
-            className={totalActionNum || totalPaddingNum ? classes.activeChainLocale : classes.chainLocale}
-            onClick={() => {
-              handleOpenHistoryModal();
-            }}
-          >
-            <div className={classes.historyText}>{getstatusText()}</div>
+          <div>
+            <div
+              className={totalActionNum || totalPaddingNum ? classes.activeChainLocale : classes.chainLocale}
+              onClick={() => {
+                handleOpenHistoryModal();
+              }}
+            >
+              <div className={classes.historyText}>{getstatusText()}</div>
+            </div>
           </div>
         )}
-        </div>
+
         {signer && (
           <div
             className="chainLocale"
@@ -552,21 +511,22 @@ export default function Header(): JSX.Element {
               showChain("wallet");
             }}
           >
-            <img className={classes.historyIcon} style={{ marginRight: 0 }} src={getNetworkById(chainId)?.iconUrl} />
-            <span
-              style={{
-                color: themeType === "dark" ? "white" : "black",
-                fontWeight: 700,
-                fontSize: 14,
-                marginLeft: 4,
-                marginRight: 8,
-              }}
-            >
-              {getNetworkById(chainId)?.name}
-            </span>
+            <img
+              className={classes.historyIcon}
+              style={{ marginRight: 0 }}
+              alt="historyIconImage"
+              src={getNetworkById(chainId)?.iconUrl}
+            />
+            <div className="chinName">
+              <span style={{ maxLines: 1, whiteSpace: "nowrap" }}>
+                {getNetworkById(chainId).name !== "--" ? getNetworkById(chainId).name : network}
+              </span>
+            </div>
           </div>
         )}
+
         <Account />
+
         <div className={classes.themeIcon} onClick={toggleTheme}>
           <div style={{ width: 20, height: 20 }}>
             <img src={toggleIconUrl} style={{ width: "100%", height: "100%" }} alt="protocol icon" />

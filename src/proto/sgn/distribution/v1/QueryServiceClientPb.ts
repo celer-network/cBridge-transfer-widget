@@ -508,5 +508,48 @@ export class QueryClient {
     this.methodInfoCBridgeFeeShareInfo);
   }
 
+  methodInfoPegBridgeFeesInfo = new grpcWeb.MethodDescriptor(
+    '/sgn.distribution.v1.Query/PegBridgeFeesInfo',
+    grpcWeb.MethodType.UNARY,
+    sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoRequest,
+    sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoResponse,
+    (request: sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoRequest) => {
+      return request.serializeBinary();
+    },
+    sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoResponse.deserializeBinary
+  );
+
+  pegBridgeFeesInfo(
+    request: sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoRequest,
+    metadata: grpcWeb.Metadata | null): Promise<sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoResponse>;
+
+  pegBridgeFeesInfo(
+    request: sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError,
+               response: sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoResponse) => void): grpcWeb.ClientReadableStream<sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoResponse>;
+
+  pegBridgeFeesInfo(
+    request: sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError,
+               response: sgn_distribution_v1_query_pb.QueryPegBridgeFeesInfoResponse) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ +
+          '/sgn.distribution.v1.Query/PegBridgeFeesInfo',
+        request,
+        metadata || {},
+        this.methodInfoPegBridgeFeesInfo,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/sgn.distribution.v1.Query/PegBridgeFeesInfo',
+    request,
+    metadata || {},
+    this.methodInfoPegBridgeFeesInfo);
+  }
+
 }
 

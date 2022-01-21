@@ -221,29 +221,12 @@ function MenuModal({ visible, onCancel }: MenuModalProps) {
             Analytics
           </div>
         </div>
-
-        {/* <div className={styles.flexBtn} onClick={() => window.open("https://cbridge-campaign.netlify.app/")}>
-          <div className={styles.flexBtnContent} style={{ padding: "10px 8px" }}>
-            <img src={leaderboardIcon} className={styles.flexBtnIcon} alt="" />
-            Leaderboard
-          </div>
-        </div> */}
-        {/* {!isMobile&&(
-          <div className={styles.flexBtn} onClick={() => window.open("https://test-sgn.celer.network/")}>
-            <div className={styles.flexBtnContent} style={{ padding: "10px 8px" }}>
-              <img src={sgnIcon} className={styles.flexBtnIcon} alt="" />
-              SGN
-            </div>
-          </div>
-        )} */}
         <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
           <Button className={styles.themeBtn} type="text" size="large" onClick={toggleTheme}>
             <img src={toggleIconUrl} width={27} height={27} alt="protocol icon" />
           </Button>
         </div>
-        {/* {bottomContent()} */}
       </div>
-      {/* {showFaucet && <FaucetModal tokenInfos={tokenInfo} onClose={closeFaucet} />} */}
     </Modal>
   );
 }

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable camelcase */
 import { FC, useEffect, useState, useContext } from "react";
@@ -8,9 +9,9 @@ import moment from "moment";
 import {
   WarningFilled,
   InfoCircleOutlined,
+  ReloadOutlined,
   ClockCircleOutlined,
   LinkOutlined,
-  ReloadOutlined,
 } from "@ant-design/icons";
 
 import { useWeb3Context } from "../providers/Web3ContextProvider";
@@ -18,7 +19,7 @@ import { Theme } from "../theme";
 import errorMessages from "../constants/errorMessage";
 import { formatDecimal } from "../helpers/format";
 import { transferHistory } from "../redux/gateway";
-import { TransferHistoryStatus, TransferHistory, } from "../constants/type";
+import { TransferHistoryStatus, TransferHistory } from "../constants/type";
 import { useAppSelector } from "../redux/store";
 import { switchChain, addChainToken } from "../redux/transferSlice";
 import { ColorThemeContext } from "../providers/ThemeProvider";
@@ -32,17 +33,13 @@ import runRightIconLight from "../images/runRightLight.svg";
 import { dataClone } from "../helpers/dataClone";
 import { usePeggedPairConfig, GetPeggedMode, PeggedChainMode } from "../hooks/usePeggedPairConfig";
 
-/* eslint-disable*/
 const defaultPageSize = 5;
-
-const upgradeTipText =
-  "cBridge v2 upgrade is completed on 12/03/2021. If you are looking for transfer history or liquidity history before upgrade, please visit this ";
 
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
   flexCenter: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
+    alignContent: "center",
     position: "relative",
   },
   headerTip: {
@@ -195,7 +192,7 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
   mobileItemRight: {
     marginTop: 20,
     marginBottom: 0,
-    textAlign: props => "left",
+    textAlign: "left",
     alignItems: "center",
     justifyContent: "space-between",
   },
@@ -261,10 +258,8 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     justifyContent: "flex-end",
     marginTop: 20,
   },
-  rebutton: {
-    position: "absolute",
-    right: 4,
-    zIndex: 10,
+  reloadButton: {
+    justifyContent: "end",
     "&.ant-btn": {
       boxShadow: "none",
       border: "none",
@@ -347,7 +342,7 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     },
   },
 }));
-const tooltipShowTime = process.env.REACT_APP_ENV === "TEST" ? 1 : 15; //m
+const tooltipShowTime = process.env.REACT_APP_ENV === "TEST" ? 1 : 15;
 
 const History: FC = () => {
   const { themeType } = useContext(ColorThemeContext);
@@ -370,9 +365,8 @@ const History: FC = () => {
     if (txid) {
       const res = await provider?.getTransactionReceipt(txid);
       return res;
-    } else {
-      return "";
     }
+    return "";
   };
   const setPageMapJson = (cPage, stemp) => {
     const oldPageMap = dataClone(pageMap);
@@ -381,8 +375,6 @@ const History: FC = () => {
   };
 
   const checkLocalHistoryList = (hisList, pMap, cPage) => {
-    let paddigNum = 0;
-    let num = 0;
     const promiseList: Array<Promise<any>> = [];
     let newList = hisList;
     let localTransferList;
@@ -400,13 +392,13 @@ const History: FC = () => {
             localItem?.txIsFailed ||
             Number(localItem.src_send_info.chain.id) !== Number(chainId)
           ) {
-            //过滤已经失败的tx
+            // Failed transactions filter
             const nullPromise = new Promise(resolve => {
               resolve(0);
             });
             promiseList.push(nullPromise);
           } else {
-            const promistx = getTxStatus(localItem.src_block_tx_link); //查询本地记录的tx状态
+            const promistx = getTxStatus(localItem.src_block_tx_link); // Check local transaction status
             promiseList.push(promistx);
           }
         }
@@ -421,10 +413,6 @@ const History: FC = () => {
           if (localItem.status === TransferHistoryStatus.TRANSFER_SUBMITTING) {
             localItem.status = Number(pItem.status) === 1 ? localItem.status : TransferHistoryStatus.TRANSFER_FAILED;
           }
-          // else if (localItem.status === TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND) {
-          //   localItem.status =
-          //     Number(pItem.status) === 1 ? localItem.status : TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED;
-          // }
         }
         return pItem;
       });
@@ -437,10 +425,10 @@ const History: FC = () => {
           } else if (item.transfer_id === localItem.transfer_id) {
             noExitList[i].hide = true;
             if (localItem.status === TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND) {
-              //如果本地是CONFIRMING，接口返回的是TO BE CONFIRMED
+              // If local status is CONFIRMING and gateway status is TO_BE_CONFIRMED
               if (item.status === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED) {
                 if (!localItem.txIsFailed) {
-                  //没失败过就置成CONFIRMING，失败过就正常展示
+                  // If there is no failure for local storage, show user CONFIRMING_YOUR_REFUND status
                   item.status = TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND;
                 }
                 item.updateTime = localItem.updateTime;
@@ -461,23 +449,7 @@ const History: FC = () => {
       const newJson = { [address]: newLocalList };
       localStorage.setItem("transferListJson", JSON.stringify(newJson));
       newList = newNoExitList ? [...newNoExitList, ...hisList] : hisList;
-      newList?.map(item => {
-        if (
-          item.status === TransferHistoryStatus.TRANSFER_TO_BE_REFUNDED ||
-          item.status === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED
-        ) {
-          num += 1;
-        }
-        if (
-          item.status !== TransferHistoryStatus.TRANSFER_UNKNOWN &&
-          item.status !== TransferHistoryStatus.TRANSFER_FAILED &&
-          item.status !== TransferHistoryStatus.TRANSFER_REFUNDED &&
-          item.status !== TransferHistoryStatus.TRANSFER_COMPLETED
-        ) {
-          paddigNum += 1;
-        }
-        return item;
-      });
+
       newList.sort((a, b) => Number(b.ts) - Number(a.ts));
       if (newList.length > 0) {
         const arrList: TransferHistory[][] = _.chunk(newList, 5);
@@ -488,7 +460,6 @@ const History: FC = () => {
       } else {
         setHistoryList([]);
       }
-
       newList.sort((a, b) => Number(b.ts) - Number(a.ts));
       if (newList.length > 0) {
         const arrList: TransferHistory[][] = _.chunk(newList, 5);
@@ -503,13 +474,12 @@ const History: FC = () => {
     });
   };
 
-  const gethistoryList = async (next_page_token, pMap = pageMap, cPage = currentPage) => {
+  const getHistoryList = async (next_page_token, pMap = pageMap, cPage = currentPage) => {
     setHisLoading(true);
     const res = await transferHistory({ addr: address, page_size: defaultPageSize, next_page_token });
     if (res) {
       setSize(res?.current_size);
-      //处理本地记录
-      let newList = res.history;
+      const newList = res.history;
       checkLocalHistoryList(newList, pMap, cPage);
     }
   };
@@ -519,17 +489,19 @@ const History: FC = () => {
     const newpMap = { 0: now };
     setPageMap(newpMap);
     setCurrentPage(0);
-    gethistoryList(now.toString(), newpMap, 0);
+    if (!showModal) {
+      getHistoryList(now.toString(), newpMap, 0);
+    }
   }, [showModal]);
 
   useEffect(() => {
     if (nexPageToken !== 0) {
-      gethistoryList(nexPageToken);   
+      getHistoryList(nexPageToken);
     }
   }, [nexPageToken]);
 
-  const reloadHisList = () => {
-    gethistoryList(currentPage === 0 ? now : pageMap[currentPage]);
+  const reloadHistoryList = () => {
+    getHistoryList(currentPage === 0 ? now : pageMap[currentPage]);
   };
 
   const clearHistoryLocalData = item => {
@@ -547,7 +519,7 @@ const History: FC = () => {
     }
     const newJson = { [address]: localList };
     localStorage.setItem("transferListJson", JSON.stringify(newJson));
-    reloadHisList();
+    reloadHistoryList();
   };
   const onPageChange = page => {
     const oldPageMap = dataClone(pageMap);
@@ -561,7 +533,7 @@ const History: FC = () => {
     setPageMap(oldPageMap);
   };
 
-  const tipsStatus = item => {
+  const tipsStatus = (item, peggedMode) => {
     let lab;
     const nowDate = new Date().getTime();
     const showResult = nowDate - Number(item.updateTime || item.ts) <= tooltipShowTime * 60 * 1000;
@@ -712,12 +684,21 @@ const History: FC = () => {
           <Tooltip
             overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
             title={
-              <span>
-                The transfer cannot be completed because{" "}
-                {errorMessages[item?.refund_reason] ||
-                  "the bridge rate has moved unfavorably by your slippage tolerance"}
-                . You may request a refund.
-              </span>
+              <div>
+                {peggedMode === PeggedChainMode.Deposit ? (
+                  <span>
+                    The transfer cannot be completed because there is not enough liquidity to bridge your transfer. You
+                    may request a refund.
+                  </span>
+                ) : (
+                  <span>
+                    The transfer cannot be completed because{" "}
+                    {errorMessages[item?.refund_reason] ||
+                      "the bridge rate has moved unfavorably by your slippage tolerance"}
+                    . You may request a refund.
+                  </span>
+                )}
+              </div>
             }
             placement={isMobile ? "bottomLeft" : "right"}
             color="#fff"
@@ -939,207 +920,230 @@ const History: FC = () => {
     <div className={isMobile ? classes.mobileHistoryBody : classes.historyBody}>
       <div>
         <div className={classes.flexCenter}>
-          <span style={{ color: themeType === "dark" ? "white" : "black", fontSize: 16 }}> History </span>
-          {isMobile ? null : (
-            <Button
-              type="primary"
-              className={classes.rebutton}
-              onClick={() => {
-                reloadHisList();
-              }}
-              icon={<ReloadOutlined style={{ fontSize: 20 }} />}
-            />
-          )}
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: 16,
+              lineHeight: "20px",
+              color: themeType === "dark" ? "white" : "black",
+              margin: "auto",
+            }}
+          >
+            History
+          </span>
+          <div className={classes.flexCenter}>
+            {isMobile ? null : (
+              <Button
+                type="primary"
+                className={classes.reloadButton}
+                onClick={() => {
+                  reloadHistoryList();
+                }}
+                icon={<ReloadOutlined style={{ fontSize: 20 }} />}
+              />
+            )}
+          </div>
         </div>
         <div className={classes.historyList}>
-            <div className={themeType === "dark" ? classes.spinblur : classes.whiteSpinblur}>
-              <Spin spinning={hisLoading}>
-                <div>
-                  {historyList.length > 0 ? (
-                    <div>
-                      {historyList?.map(item => {
-                        const sendAmountWithDecimal = formatDecimal(
-                          item.src_send_info.amount,
-                          item.src_send_info.token?.decimal,
-                        )
-                          .split(",")
-                          .join("");
-                        const receivedAmountWithDecimal = formatDecimal(
-                          item?.dst_received_info.amount,
-                          item?.dst_received_info?.token?.decimal,
-                        )
-                          .split(",")
-                          .join("");
+          <div className={themeType === "dark" ? classes.spinblur : classes.whiteSpinblur}>
+            <Spin spinning={hisLoading}>
+              <div>
+                {historyList.length > 0 ? (
+                  <div>
+                    {historyList?.map(item => {
+                      const sendAmountWithDecimal = formatDecimal(
+                        item.src_send_info.amount,
+                        item.src_send_info.token?.decimal,
+                      )
+                        .split(",")
+                        .join("");
+                      const receivedAmountWithDecimal = formatDecimal(
+                        item?.dst_received_info.amount,
+                        item?.dst_received_info?.token?.decimal,
+                      )
+                        .split(",")
+                        .join("");
 
-                        const showSupport =
-                          item.status !== TransferHistoryStatus.TRANSFER_COMPLETED &&
-                          item.status !== TransferHistoryStatus.TRANSFER_FAILED &&
-                          item.status !== TransferHistoryStatus.TRANSFER_REFUNDED;
+                      const showSupport =
+                        item.status !== TransferHistoryStatus.TRANSFER_COMPLETED &&
+                        item.status !== TransferHistoryStatus.TRANSFER_FAILED &&
+                        item.status !== TransferHistoryStatus.TRANSFER_REFUNDED;
 
-                        const peggedMode = GetPeggedMode(
-                          item?.src_send_info?.chain?.id,
-                          item?.dst_received_info?.chain?.id,
-                          item?.dst_received_info?.token?.symbol,
-                          transferInfo.transferConfig.pegged_pair_configs,
-                        );
+                      const peggedMode = GetPeggedMode(
+                        item?.src_send_info?.chain?.id,
+                        item?.dst_received_info?.chain?.id,
+                        item?.dst_received_info?.token?.symbol,
+                        transferInfo.transferConfig.pegged_pair_configs,
+                      );
 
-                        let srcChainSymbol = getTokenSymbol(
-                          item?.src_send_info.token.symbol,
-                          item?.src_send_info.chain.id,
-                        );
+                      let srcChainSymbol = getTokenSymbol(
+                        item?.src_send_info.token.symbol,
+                        item?.src_send_info.chain.id,
+                      );
 
-                        const dstChainSymbol = getTokenDisplaySymbol(
-                          item?.dst_received_info?.token,
-                          item?.src_send_info?.chain,
-                          item?.dst_received_info?.chain,
-                          transferInfo.transferConfig.pegged_pair_configs,
-                        );
+                      const dstChainSymbol = getTokenDisplaySymbol(
+                        item?.dst_received_info?.token,
+                        item?.src_send_info?.chain,
+                        item?.dst_received_info?.chain,
+                        transferInfo.transferConfig.pegged_pair_configs,
+                      );
 
-                        const isNativeToken = needToChangeTokenDisplaySymbol(
-                          item?.src_send_info.token,
-                          item?.dst_received_info.chain,
-                        );
+                      const isNativeToken = needToChangeTokenDisplaySymbol(
+                        item?.src_send_info.token,
+                        item?.dst_received_info.chain,
+                      );
 
-                        let shouldDisplayMetaMaskIcon = !isNativeToken;
+                      let shouldDisplayMetaMaskIcon = !isNativeToken;
 
-                        if (peggedMode !== PeggedChainMode.Off) {
-                          shouldDisplayMetaMaskIcon = true;
-                          srcChainSymbol = item?.src_send_info?.token.symbol;
-                        }
+                      if (peggedMode !== PeggedChainMode.Off) {
+                        shouldDisplayMetaMaskIcon = true;
+                        srcChainSymbol = item?.src_send_info?.token.symbol;
+                      }
 
-                        if (item?.dst_received_info?.chain?.id === 56 && item?.src_send_info?.token.symbol === "BNB") {
-                          shouldDisplayMetaMaskIcon = false;
-                        }
+                      if (item?.dst_received_info?.chain?.id === 56 && item?.src_send_info?.token.symbol === "BNB") {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
 
-                        if (
-                          item?.dst_received_info?.chain?.id === 43114 &&
-                          item?.src_send_info?.token.symbol === "AVAX"
-                        ) {
-                          shouldDisplayMetaMaskIcon = false;
-                        }
+                      if (
+                        item?.dst_received_info?.chain?.id === 43114 &&
+                        item?.src_send_info?.token.symbol === "AVAX"
+                      ) {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
 
-                        if (item?.dst_received_info?.chain?.id === 250 && item?.src_send_info?.token.symbol === "FTM") {
-                          shouldDisplayMetaMaskIcon = false;
-                        }
+                      if (item?.dst_received_info?.chain?.id === 250 && item?.src_send_info?.token.symbol === "FTM") {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
 
-                        return (
-                          <div className={classes.ListItem} key={item.transfer_id}>
-                            <div className={isMobile ? classes.mobileItemContent : classes.itemcont}>
-                              <div className={classes.itemLeft}>
-                                <div
-                                  className={classes.itemtitle}
-                                  style={isMobile ? { minWidth: 0 } : { minWidth: 160 }}
-                                >
-                                  <div>
-                                    <img src={item.src_send_info.chain.icon} alt="" className={classes.txIcon} />
-                                  </div>
-                                  <div className={classes.chaindes}>
-                                    <a className={classes.chainName} href={item.src_block_tx_link} target="_blank">
-                                      {item.src_send_info.chain.name} <LinkOutlined className={classes.linkIcon} />
-                                    </a>
+                      if (!window.ethereum.isMetaMask) {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
 
-                                    <div className={classes.reducetxnum}>
-                                      - {sendAmountWithDecimal} {srcChainSymbol}
-                                    </div>
-                                  </div>
+                      return (
+                        <div className={classes.ListItem} key={item.transfer_id}>
+                          <div className={isMobile ? classes.mobileItemContent : classes.itemcont}>
+                            <div className={classes.itemLeft}>
+                              <div className={classes.itemtitle} style={isMobile ? { minWidth: 0 } : { minWidth: 160 }}>
+                                <div>
+                                  <img src={item.src_send_info.chain.icon} alt="" className={classes.txIcon} />
                                 </div>
-                                <img
-                                  src={themeType === "dark" ? runRightIconDark : runRightIconLight}
-                                  alt=""
-                                  className={classes.turnRight}
-                                />
-                                <div className={classes.itemtitle}>
-                                  <div>
-                                    <img src={item?.dst_received_info.chain.icon} alt="" className={classes.txIcon} />
-                                  </div>
-                                  <div className={classes.chaindes}>
-                                    {item.dst_block_tx_link ? (
-                                      <a className={classes.linktitle} href={item.dst_block_tx_link} target="_blank">
-                                        {item?.dst_received_info.chain.name}{" "}
-                                        <LinkOutlined className={classes.linkIcon} />
-                                      </a>
-                                    ) : (
-                                      <div className={classes.linktitle}> {item?.dst_received_info.chain.name}</div>
-                                    )}
+                                <div className={classes.chaindes}>
+                                  <a
+                                    className={classes.chainName}
+                                    href={item.src_block_tx_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {item.src_send_info.chain.name} <LinkOutlined className={classes.linkIcon} />
+                                  </a>
 
-                                    {/* dest amount */}
-                                    {Number(receivedAmountWithDecimal) > 0 ? (
-                                      <div className={classes.receivetxnum}>
-                                        +{" "}
-                                        <span>
-                                          {receivedAmountWithDecimal} {dstChainSymbol}
-                                        </span>
-                                        {!isMobile && (
-                                          <Tooltip
-                                            overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
-                                            title={"Add to MetaMask"}
-                                            placement={"bottom"}
-                                            color="#fff"
-                                            overlayInnerStyle={{ color: "#000" }}
-                                          >
-                                            <img
-                                              onClick={() => {
-                                                addTokenMethod(
-                                                  item?.src_send_info.chain.id,
-                                                  item?.dst_received_info.chain.id,
-                                                  item?.dst_received_info.token,
-                                                  dstChainSymbol,
-                                                );
-                                              }}
-                                              src={meta}
-                                              alt=""
-                                              height={14}
-                                              style={{
-                                                display: shouldDisplayMetaMaskIcon ? "flex" : "none",
-                                                marginLeft: 5,
-                                                cursor: "pointer",
-                                              }}
-                                            />
-                                          </Tooltip>
-                                        )}
-                                      </div>
-                                    ) : null}
+                                  <div className={classes.reducetxnum}>
+                                    - {sendAmountWithDecimal} {srcChainSymbol}
                                   </div>
                                 </div>
                               </div>
-                              <div className={isMobile ? classes.mobileItemRight : classes.itemRight}>
-                                <div className={showSupport ? classes.showSuppord : ""}>
-                                  <div>{tipsStatus(item)}</div>
-                                  <div className={classes.itemTime}>
-                                    {moment(Number(item.ts)).format("YYYY-MM-DD HH:mm:ss")}
-                                  </div>
-                                  {showSupport && (
+                              <img
+                                src={themeType === "dark" ? runRightIconDark : runRightIconLight}
+                                alt=""
+                                className={classes.turnRight}
+                              />
+                              <div className={classes.itemtitle}>
+                                <div>
+                                  <img src={item?.dst_received_info.chain.icon} alt="" className={classes.txIcon} />
+                                </div>
+                                <div className={classes.chaindes}>
+                                  {item.dst_block_tx_link ? (
                                     <a
-                                      href={`https://form.typeform.com/to/Q4LMjUaK#srctx=${item.src_block_tx_link}&transferid=${item.transfer_id}`}
+                                      className={classes.linktitle}
+                                      href={item.dst_block_tx_link}
                                       target="_blank"
-                                      rel="noreferrer"
+                                      rel="noopener noreferrer"
                                     >
-                                      Contact Support
+                                      {item?.dst_received_info.chain.name} <LinkOutlined className={classes.linkIcon} />
                                     </a>
+                                  ) : (
+                                    <div className={classes.linktitle}> {item?.dst_received_info.chain.name}</div>
                                   )}
+
+                                  {/* dest amount */}
+                                  {Number(receivedAmountWithDecimal) > 0 ? (
+                                    <div className={classes.receivetxnum}>
+                                      +{" "}
+                                      <span>
+                                        {receivedAmountWithDecimal} {dstChainSymbol}
+                                      </span>
+                                      {!isMobile && (
+                                        <Tooltip
+                                          overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
+                                          title="Add to MetaMask"
+                                          placement="bottom"
+                                          color="#fff"
+                                          overlayInnerStyle={{ color: "#000" }}
+                                        >
+                                          {/* eslint-disable-next-line */}
+                                          <img
+                                            onClick={() => {
+                                              addTokenMethod(
+                                                item?.src_send_info.chain.id,
+                                                item?.dst_received_info.chain.id,
+                                                item?.dst_received_info.token,
+                                                dstChainSymbol,
+                                              );
+                                            }}
+                                            src={meta}
+                                            alt=""
+                                            height={14}
+                                            style={{
+                                              display: shouldDisplayMetaMaskIcon ? "flex" : "none",
+                                              marginLeft: 5,
+                                              cursor: "pointer",
+                                            }}
+                                          />
+                                        </Tooltip>
+                                      )}
+                                    </div>
+                                  ) : null}
                                 </div>
                               </div>
                             </div>
-                            <div>{btnChange(item)}</div>
+                            <div className={isMobile ? classes.mobileItemRight : classes.itemRight}>
+                              <div className={showSupport ? classes.showSuppord : ""}>
+                                <div>{tipsStatus(item, peggedMode)}</div>
+                                <div className={classes.itemTime}>
+                                  {moment(Number(item.ts)).format("YYYY-MM-DD HH:mm:ss")}
+                                </div>
+                                {showSupport && (
+                                  <a
+                                    href={`https://form.typeform.com/to/Q4LMjUaK#srctx=${item.src_block_tx_link}&transferid=${item.transfer_id}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    Contact Support
+                                  </a>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className={classes.empty}>
-                      {!hisLoading && (
-                        <div>
-                          <div style={{ width: "100%", textAlign: "center", marginBottom: 15 }}>
-                            <ClockCircleOutlined style={{ fontSize: 30 }} />
-                          </div>
-                          <div style={{ fontSize: 15 }}> No history yet!</div>
+                          <div>{btnChange(item)}</div>
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </Spin>
-            </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className={classes.empty}>
+                    {!hisLoading && (
+                      <div>
+                        <div style={{ width: "100%", textAlign: "center", marginBottom: 15 }}>
+                          <ClockCircleOutlined style={{ fontSize: 30 }} />
+                        </div>
+                        <div style={{ fontSize: 15 }}> No history yet!</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Spin>
+          </div>
         </div>
         {currentPage !== undefined ? (
           <div className={classes.pagination}>

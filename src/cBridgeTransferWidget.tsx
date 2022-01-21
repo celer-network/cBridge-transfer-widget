@@ -2,7 +2,7 @@ import { HashRouter } from "react-router-dom";
 import { PersistGate } from "redux-persist/lib/integration/react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { persistor } from "./redux/store";
-import CBridgeHome  from "./views/CBridgeHome";
+import CBridgeTransferHome  from "./views/CBridgeTransferHome";
 import { Web3ContextProvider } from "./providers/Web3ContextProvider";
 import { ContractsContextProvider } from "./providers/ContractsContextProvider";
 import { ThemeProvider } from "react-jss";
@@ -34,7 +34,7 @@ export default function CBridgeTransferWidget(): JSX.Element {
               <ConfigContextProvider>
                 <ColorThemeContext.Provider value={{ themeType, toggleTheme }}>
                   <ThemeProvider theme={ themeType === "dark" ? darkTheme : lightTheme}>
-                    <CBridgeHome />
+                    <CBridgeTransferHome />
                   </ThemeProvider>
                 </ColorThemeContext.Provider>
               </ConfigContextProvider>
