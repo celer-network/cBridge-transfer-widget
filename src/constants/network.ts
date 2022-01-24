@@ -14,7 +14,6 @@ export interface NetworkInfo {
   symbol: string;
   blockExplorerUrl: string;
   tokenSymbolList: string[];
-  lqMintTokenSymbolBlackList: string[];
 }
 
 export const INFURA_ID = process.env.REACT_APP_INFURA_ID;

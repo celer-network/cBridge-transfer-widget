@@ -10,7 +10,6 @@ export const testNetworks = {
     symbol: "",
     blockExplorerUrl: "",
     tokenSymbolList: ["USDT"],
-    lqMintTokenSymbolBlackList: [],
   },
   884: {
     name: "884",
@@ -23,7 +22,6 @@ export const testNetworks = {
     symbol: "",
     blockExplorerUrl: "",
     tokenSymbolList: ["USDT"],
-    lqMintTokenSymbolBlackList: [],
   },
   localhost: {
     name: "--",
@@ -36,7 +34,6 @@ export const testNetworks = {
     symbol: "ETH",
     blockExplorerUrl: "",
     tokenSymbolList: ["USDT"],
-    lqMintTokenSymbolBlackList: [],
   },
   bscTest: {
     name: "BSC Testnet",
@@ -49,7 +46,6 @@ export const testNetworks = {
     symbol: "BNB",
     blockExplorerUrl: "https://testnet.bscscan.com",
     tokenSymbolList: ["CELR", "USDT", "WETH", "MCB", "PSP", "PCE", "MELI"],
-    lqMintTokenSymbolBlackList: ["PSP", "MELI"],
   },
   ropsten: {
     name: "Ropsten Testnet",
@@ -62,7 +58,6 @@ export const testNetworks = {
     symbol: "ETH",
     blockExplorerUrl: "https://ropsten.etherscan.io",
     tokenSymbolList: ["CELR", "USDT", "WETH"],
-    lqMintTokenSymbolBlackList: [],
   },
   goerli: {
     name: "Goerli Testnet",
@@ -76,7 +71,6 @@ export const testNetworks = {
     blockExplorerUrl: "https://goerli.etherscan.io",
     tokenSymbolList: ["CELR", "USDT", "WETH", "TCELR", "USDC", "DOMI", "MCB", "cUSD", "PSP"],
     contractAddr: "0x358234B325EF9eA8115291A8b81b7d33A2Fa762D",
-    lqMintTokenSymbolBlackList: ["DOMI", "cUSD", "PSP"],
   },
   mainnet: {
     name: "Ethereum Mainnet",
@@ -103,7 +97,6 @@ export const testNetworks = {
       "BOBA",
       "FRAX",
     ],
-    lqMintTokenSymbolBlackList: ["DOMI", "oneDODO", "OLO", "FRAX"],
   },
   bsc: {
     name: "BSC",
@@ -116,7 +109,6 @@ export const testNetworks = {
     symbol: "BNB",
     blockExplorerUrl: "https://bscscan.com",
     tokenSymbolList: ["USDC", "USDT", "WETH", "BUSD", "DODO", "DOMI", "MCB", "cUSD", "oneDODO", "OLO", "FRAX"],
-    lqMintTokenSymbolBlackList: ["DOMI", "cUSD", "oneDODO", "OLO", "FRAX"],
   },
 
   polygon: {
@@ -130,7 +122,6 @@ export const testNetworks = {
     symbol: "MATIC",
     blockExplorerUrl: "https://polygonscan.com",
     tokenSymbolList: ["USDC", "USDT", "WETH", "IMX"],
-    lqMintTokenSymbolBlackList: [],
   },
   arbitrum: {
     name: "Arbitrum",
@@ -143,7 +134,6 @@ export const testNetworks = {
     symbol: "ETH",
     blockExplorerUrl: "https://arbiscan.io",
     tokenSymbolList: ["USDC", "USDT", "WETH", "DODO", "MCB", "IMX"],
-    lqMintTokenSymbolBlackList: [],
   },
   Avalanche: {
     name: "Avalanche",
@@ -156,7 +146,6 @@ export const testNetworks = {
     symbol: "AVAX",
     blockExplorerUrl: "https://snowtrace.io",
     tokenSymbolList: ["USDC", "USDT", "WETH", "IMX"],
-    lqMintTokenSymbolBlackList: [],
   },
   Optimism: {
     name: "Optimism",
@@ -169,7 +158,6 @@ export const testNetworks = {
     symbol: "ETH",
     blockExplorerUrl: "https://optimistic.etherscan.io",
     tokenSymbolList: ["USDC", "USDT", "WETH", "LYRA"],
-    lqMintTokenSymbolBlackList: [],
   },
   OptimisticKovan: {
     name: "Optimistic Kovan",
@@ -182,7 +170,6 @@ export const testNetworks = {
     symbol: "ETH",
     blockExplorerUrl: "https://kovan-optimistic.etherscan.io",
     tokenSymbolList: ["CELR", "USDT", "WETH"],
-    lqMintTokenSymbolBlackList: [],
   },
   Fantom: {
     name: "Fantom",
@@ -195,7 +182,6 @@ export const testNetworks = {
     symbol: "FTM",
     blockExplorerUrl: "https://ftmscan.com",
     tokenSymbolList: ["USDC", "USDT", "WETH"],
-    lqMintTokenSymbolBlackList: [],
   },
   FantomTestnet: {
     name: "Fantom Testnet",
@@ -208,36 +194,7 @@ export const testNetworks = {
     symbol: "FTM",
     blockExplorerUrl: "https://testnet.ftmscan.com",
     tokenSymbolList: ["CELR", "USDT", "TCELR", "WETH"],
-    lqMintTokenSymbolBlackList: ["WETH"],
   },
-
-  // Harmony: {
-  //   name: "Harmony",
-  //   color: "#3099f2",
-  //   chainId: 1666600000,
-  //   rpcUrl: "https://api.harmony.one",
-  //   blockTime: 5000,
-  //   iconUrl: "./harmony.png",
-  //   blockDelay: 20,
-  //   symbol: "ONE",
-  //   blockExplorerUrl: "https://explorer.harmony.one",
-  //   tokenSymbolList: ["USDC", "WETH"],
-  // lqMintTokenSymbolBlackList:[]
-  // },
-
-  // Moonriver: {
-  //   name: "Moonriver",
-  //   color: "#3099f2",
-  //   chainId: 1285,
-  //   rpcUrl: "https://rpc.moonriver.moonbeam.network",
-  //   blockTime: 5000,
-  //   iconUrl: "./moonriver.png",
-  //   blockDelay: 20,
-  //   symbol: "MOVR",
-  //   blockExplorerUrl: "https://moonriver.moonscan.io",
-  //   tokenSymbolList: ["USDC"],
-  // lqMintTokenSymbolBlackList:[]
-  // },
 
   BoBa: {
     name: "Boba Network",
@@ -250,7 +207,6 @@ export const testNetworks = {
     symbol: "ETH",
     blockExplorerUrl: "https://blockexplorer.boba.network",
     tokenSymbolList: ["USDC", "OLO", "BOBA"],
-    lqMintTokenSymbolBlackList: ["OLO"],
   },
 
   CeloTestnet: {
@@ -264,7 +220,6 @@ export const testNetworks = {
     symbol: "CELO",
     blockExplorerUrl: "https://alfajores-blockscout.celo-testnet.org",
     tokenSymbolList: ["USDC", "cUSD"],
-    lqMintTokenSymbolBlackList: ["USDC", "cUSD"],
   },
 
   Celo: {
@@ -278,7 +233,6 @@ export const testNetworks = {
     symbol: "CELO",
     blockExplorerUrl: "https://explorer.celo.org",
     tokenSymbolList: ["USDC", "USDT", "cUSD"],
-    lqMintTokenSymbolBlackList: ["USDC", "USDT", "cUSD"],
   },
 
   OKExChainTestnet: {
@@ -292,8 +246,8 @@ export const testNetworks = {
     symbol: "PCE",
     blockExplorerUrl: "https://explorer.celo.org",
     tokenSymbolList: ["PCE", "MELI"],
-    lqMintTokenSymbolBlackList: ["MELI"],
   },
+
   MoonbaseAlpha: {
     name: "Moonbase Alpha",
     color: "#3099f2",
@@ -305,7 +259,6 @@ export const testNetworks = {
     symbol: "DEV",
     blockExplorerUrl: "https://moonbase-blockscout.testnet.moonbeam.network/",
     tokenSymbolList: ["USDC", "USDT", "WETH"],
-    lqMintTokenSymbolBlackList: ["USDC", "USDT", "WETH"],
   },
 
   REITestnet: {
@@ -319,7 +272,6 @@ export const testNetworks = {
     symbol: "DEV",
     blockExplorerUrl: "https://scan-test.rei.network",
     tokenSymbolList: ["USDC"],
-    lqMintTokenSymbolBlackList: ["USDC"],
   },
 
   OasisTestnet: {
@@ -333,6 +285,5 @@ export const testNetworks = {
     symbol: "ROSE",
     blockExplorerUrl: "https://explorer.testnet.oasis.updev.si",
     tokenSymbolList: ["USDT"],
-    lqMintTokenSymbolBlackList: ["USDT"],
   },
 };

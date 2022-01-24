@@ -10,7 +10,6 @@ export const mainnetNetworks = {
     symbol: "ETH",
     blockExplorerUrl: "",
     tokenSymbolList: ["USDT"],
-    lqMintTokenSymbolBlackList: [],
   },
   mainnet: {
     name: "Ethereum Mainnet",
@@ -51,19 +50,6 @@ export const mainnetNetworks = {
       "SAFLE",
       "DAI",
     ],
-    lqMintTokenSymbolBlackList: [
-      "DOMI",
-      "oneDODO",
-      "OLO",
-      "PSP",
-      "WXT",
-      "PEOPLE",
-      "SOS",
-      "FRAX",
-      "CELR",
-      "SAFLE",
-      "DAI",
-    ],
   },
   bsc: {
     name: "BSC",
@@ -97,6 +83,5 @@ export const mainnetNetworks = {
       "WBNB",
       "BNB",
     ],
-    lqMintTokenSymbolBlackList: ["DOMI", "oneDODO", "OLO", "PSP", "ATL", "PEOPLE", "SOS", "FRAX", "SAFLE", "BNB"],
   },
 };
