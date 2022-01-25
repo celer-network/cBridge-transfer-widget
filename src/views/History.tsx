@@ -39,8 +39,8 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
   flexCenter: {
     display: "flex",
     alignItems: "center",
-    alignContent: "center",
-    position: "relative",
+    justifyContent: "center",
+    marginTop: "10px",
   },
   headerTip: {
     marginTop: 16,
@@ -96,7 +96,7 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
   },
   historyBody: {
     width: 786,
-    padding: "72px 8px",
+    padding: "35px 8px",
     background: theme.globalBg,
     borderRadius: 16,
     border: `1px solid ${theme.primaryBorder}`,
@@ -258,8 +258,19 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     justifyContent: "flex-end",
     marginTop: 20,
   },
+  historyTitle: {
+    position: "absolute",
+    alignItems: "center",
+    color: theme.surfacePrimary,
+    top: 17,
+    fontSize: 16,
+    zIndex: 10,
+  },
   reloadButton: {
-    justifyContent: "end",
+    position: "absolute",
+    top: 11,
+    right: 44,
+    zIndex: 10,
     "&.ant-btn": {
       boxShadow: "none",
       border: "none",
@@ -920,29 +931,17 @@ const History: FC = () => {
     <div className={isMobile ? classes.mobileHistoryBody : classes.historyBody}>
       <div>
         <div className={classes.flexCenter}>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: 16,
-              lineHeight: "20px",
-              color: themeType === "dark" ? "white" : "black",
-              margin: "auto",
-            }}
-          >
-            History
-          </span>
-          <div className={classes.flexCenter}>
-            {isMobile ? null : (
-              <Button
-                type="primary"
-                className={classes.reloadButton}
-                onClick={() => {
-                  reloadHistoryList();
-                }}
-                icon={<ReloadOutlined style={{ fontSize: 20 }} />}
-              />
-            )}
-          </div>
+          <div className={classes.historyTitle}>History</div>
+          {isMobile ? null : (
+            <Button
+              type="primary"
+              className={classes.reloadButton}
+              onClick={() => {
+                reloadHistoryList();
+              }}
+              icon={<ReloadOutlined style={{ fontSize: 20 }} />}
+            />
+          )}
         </div>
         <div className={classes.historyList}>
           <div className={themeType === "dark" ? classes.spinblur : classes.whiteSpinblur}>
