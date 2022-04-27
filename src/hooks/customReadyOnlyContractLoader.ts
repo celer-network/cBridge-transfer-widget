@@ -34,3 +34,18 @@ export default function useReadOnlyCustomContractLoader(
   }, [address]);
   return contract;
 }
+
+export const readOnlyContract = async (
+  signerOrJsonRpcProvider: Signer | Provider | undefined,
+  contractAddress: string,
+  factory: {
+    // eslint-disable-next-line
+    connect(address: string, signerOrProvider: Signer | Provider): Contract;
+  },
+) => {
+  if (typeof signerOrJsonRpcProvider !== "undefined" && factory && contractAddress) {
+    const customContract = await factory.connect(contractAddress, signerOrJsonRpcProvider);
+    return customContract;
+  }
+  return undefined;
+};

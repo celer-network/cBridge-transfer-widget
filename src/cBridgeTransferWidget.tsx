@@ -12,6 +12,9 @@ import { darkTheme, lightTheme } from "./theme/theme";
 import useThemeType from "./hooks/useThemeType";
 import "./app/app.less";
 import { useWindowWidth } from "./hooks";
+import BlockList from "./components/blockList";
+import { NonEVMContextProvider } from "./providers/NonEVMContextProvider";
+import { WalletConnectionContextProvider } from "./providers/WalletConnectionContextProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,15 +33,21 @@ export default function CBridgeTransferWidget(): JSX.Element {
       <QueryClientProvider client={queryClient}>
         <HashRouter>
           <Web3ContextProvider>
-            <ContractsContextProvider>
-              <ConfigContextProvider>
-                <ColorThemeContext.Provider value={{ themeType, toggleTheme }}>
-                  <ThemeProvider theme={ themeType === "dark" ? darkTheme : lightTheme}>
-                    <CBridgeTransferHome />
-                  </ThemeProvider>
-                </ColorThemeContext.Provider>
-              </ConfigContextProvider>
-            </ContractsContextProvider>
+            <BlockList>
+              <NonEVMContextProvider>
+                <WalletConnectionContextProvider>
+                  <ContractsContextProvider>
+                    <ConfigContextProvider>
+                      <ColorThemeContext.Provider value={{ themeType, toggleTheme }}>
+                        <ThemeProvider theme={ themeType === "dark" ? darkTheme : lightTheme}>
+                          <CBridgeTransferHome />
+                        </ThemeProvider>
+                      </ColorThemeContext.Provider>
+                    </ConfigContextProvider>
+                  </ContractsContextProvider>
+                </WalletConnectionContextProvider>
+              </NonEVMContextProvider>
+            </BlockList>
           </Web3ContextProvider>
         </HashRouter>
       </QueryClientProvider>

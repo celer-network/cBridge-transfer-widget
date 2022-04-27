@@ -1,7 +1,6 @@
-import * as jspb from 'google-protobuf'
+import * as jspb from "google-protobuf";
 
-import * as sgn_cbridge_v1_cbridge_pb from '../../../sgn/cbridge/v1/cbridge_pb';
-
+import * as sgn_cbridge_v1_cbridge_pb from "../../../sgn/cbridge/v1/cbridge_pb";
 
 export class EmptyRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
@@ -13,8 +12,7 @@ export class EmptyRequest extends jspb.Message {
 }
 
 export namespace EmptyRequest {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class QueryParamsResponse extends jspb.Message {
@@ -33,8 +31,8 @@ export class QueryParamsResponse extends jspb.Message {
 
 export namespace QueryParamsResponse {
   export type AsObject = {
-    params?: sgn_cbridge_v1_cbridge_pb.Params.AsObject,
-  }
+    params?: sgn_cbridge_v1_cbridge_pb.Params.AsObject;
+  };
 }
 
 export class QueryConfigResponse extends jspb.Message {
@@ -53,8 +51,8 @@ export class QueryConfigResponse extends jspb.Message {
 
 export namespace QueryConfigResponse {
   export type AsObject = {
-    cbrconfig?: sgn_cbridge_v1_cbridge_pb.CbrConfig.AsObject,
-  }
+    cbrconfig?: sgn_cbridge_v1_cbridge_pb.CbrConfig.AsObject;
+  };
 }
 
 export class QueryRelayRequest extends jspb.Message {
@@ -73,8 +71,8 @@ export class QueryRelayRequest extends jspb.Message {
 
 export namespace QueryRelayRequest {
   export type AsObject = {
-    xrefId: Uint8Array | string,
-  }
+    xrefId: Uint8Array | string;
+  };
 }
 
 export class QueryRelayResponse extends jspb.Message {
@@ -93,8 +91,8 @@ export class QueryRelayResponse extends jspb.Message {
 
 export namespace QueryRelayResponse {
   export type AsObject = {
-    xferRelay?: sgn_cbridge_v1_cbridge_pb.XferRelay.AsObject,
-  }
+    xferRelay?: sgn_cbridge_v1_cbridge_pb.XferRelay.AsObject;
+  };
 }
 
 export class QueryChainSignersRequest extends jspb.Message {
@@ -106,13 +104,16 @@ export class QueryChainSignersRequest extends jspb.Message {
   static toObject(includeInstance: boolean, msg: QueryChainSignersRequest): QueryChainSignersRequest.AsObject;
   static serializeBinaryToWriter(message: QueryChainSignersRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryChainSignersRequest;
-  static deserializeBinaryFromReader(message: QueryChainSignersRequest, reader: jspb.BinaryReader): QueryChainSignersRequest;
+  static deserializeBinaryFromReader(
+    message: QueryChainSignersRequest,
+    reader: jspb.BinaryReader,
+  ): QueryChainSignersRequest;
 }
 
 export namespace QueryChainSignersRequest {
   export type AsObject = {
-    chainId: number,
-  }
+    chainId: number;
+  };
 }
 
 export class QueryChainSignersResponse extends jspb.Message {
@@ -126,13 +127,16 @@ export class QueryChainSignersResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: QueryChainSignersResponse): QueryChainSignersResponse.AsObject;
   static serializeBinaryToWriter(message: QueryChainSignersResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryChainSignersResponse;
-  static deserializeBinaryFromReader(message: QueryChainSignersResponse, reader: jspb.BinaryReader): QueryChainSignersResponse;
+  static deserializeBinaryFromReader(
+    message: QueryChainSignersResponse,
+    reader: jspb.BinaryReader,
+  ): QueryChainSignersResponse;
 }
 
 export namespace QueryChainSignersResponse {
   export type AsObject = {
-    chainSigners?: sgn_cbridge_v1_cbridge_pb.ChainSigners.AsObject,
-  }
+    chainSigners?: sgn_cbridge_v1_cbridge_pb.ChainSigners.AsObject;
+  };
 }
 
 export class QueryLatestSignersResponse extends jspb.Message {
@@ -146,13 +150,16 @@ export class QueryLatestSignersResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: QueryLatestSignersResponse): QueryLatestSignersResponse.AsObject;
   static serializeBinaryToWriter(message: QueryLatestSignersResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryLatestSignersResponse;
-  static deserializeBinaryFromReader(message: QueryLatestSignersResponse, reader: jspb.BinaryReader): QueryLatestSignersResponse;
+  static deserializeBinaryFromReader(
+    message: QueryLatestSignersResponse,
+    reader: jspb.BinaryReader,
+  ): QueryLatestSignersResponse;
 }
 
 export namespace QueryLatestSignersResponse {
   export type AsObject = {
-    latestSigners?: sgn_cbridge_v1_cbridge_pb.LatestSigners.AsObject,
-  }
+    latestSigners?: sgn_cbridge_v1_cbridge_pb.LatestSigners.AsObject;
+  };
 }
 
 export class QueryDebugAnyRequest extends jspb.Message {
@@ -171,8 +178,8 @@ export class QueryDebugAnyRequest extends jspb.Message {
 
 export namespace QueryDebugAnyRequest {
   export type AsObject = {
-    key: Uint8Array | string,
-  }
+    key: Uint8Array | string;
+  };
 }
 
 export class QueryDebugAnyResponse extends jspb.Message {
@@ -191,8 +198,74 @@ export class QueryDebugAnyResponse extends jspb.Message {
 
 export namespace QueryDebugAnyResponse {
   export type AsObject = {
-    data: Uint8Array | string,
-  }
+    data: Uint8Array | string;
+  };
+}
+
+export class QueryAssetsResponse extends jspb.Message {
+  getAssetsList(): Array<sgn_cbridge_v1_cbridge_pb.ChainAsset>;
+  setAssetsList(value: Array<sgn_cbridge_v1_cbridge_pb.ChainAsset>): QueryAssetsResponse;
+  clearAssetsList(): QueryAssetsResponse;
+  addAssets(value?: sgn_cbridge_v1_cbridge_pb.ChainAsset, index?: number): sgn_cbridge_v1_cbridge_pb.ChainAsset;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryAssetsResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryAssetsResponse): QueryAssetsResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryAssetsResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryAssetsResponse;
+  static deserializeBinaryFromReader(message: QueryAssetsResponse, reader: jspb.BinaryReader): QueryAssetsResponse;
+}
+
+export namespace QueryAssetsResponse {
+  export type AsObject = {
+    assetsList: Array<sgn_cbridge_v1_cbridge_pb.ChainAsset.AsObject>;
+  };
+}
+
+export class QueryAssetPriceRequest extends jspb.Message {
+  getSymbol(): string;
+  setSymbol(value: string): QueryAssetPriceRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryAssetPriceRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryAssetPriceRequest): QueryAssetPriceRequest.AsObject;
+  static serializeBinaryToWriter(message: QueryAssetPriceRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryAssetPriceRequest;
+  static deserializeBinaryFromReader(
+    message: QueryAssetPriceRequest,
+    reader: jspb.BinaryReader,
+  ): QueryAssetPriceRequest;
+}
+
+export namespace QueryAssetPriceRequest {
+  export type AsObject = {
+    symbol: string;
+  };
+}
+
+export class QueryAssetPriceResponse extends jspb.Message {
+  getPrice(): number;
+  setPrice(value: number): QueryAssetPriceResponse;
+
+  getExtraPower10(): number;
+  setExtraPower10(value: number): QueryAssetPriceResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): QueryAssetPriceResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: QueryAssetPriceResponse): QueryAssetPriceResponse.AsObject;
+  static serializeBinaryToWriter(message: QueryAssetPriceResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): QueryAssetPriceResponse;
+  static deserializeBinaryFromReader(
+    message: QueryAssetPriceResponse,
+    reader: jspb.BinaryReader,
+  ): QueryAssetPriceResponse;
+}
+
+export namespace QueryAssetPriceResponse {
+  export type AsObject = {
+    price: number;
+    extraPower10: number;
+  };
 }
 
 export class QueryLPsRequest extends jspb.Message {
@@ -212,9 +285,9 @@ export class QueryLPsRequest extends jspb.Message {
 
 export namespace QueryLPsRequest {
   export type AsObject = {
-    chainId: number,
-    tokenAddr: string,
-  }
+    chainId: number;
+    tokenAddr: string;
+  };
 }
 
 export class QueryLPsResponse extends jspb.Message {
@@ -233,8 +306,8 @@ export class QueryLPsResponse extends jspb.Message {
 
 export namespace QueryLPsResponse {
   export type AsObject = {
-    lpsList: Array<string>,
-  }
+    lpsList: Array<string>;
+  };
 }
 
 export class CheckLiqSumRequest extends jspb.Message {
@@ -254,9 +327,9 @@ export class CheckLiqSumRequest extends jspb.Message {
 
 export namespace CheckLiqSumRequest {
   export type AsObject = {
-    chainId: number,
-    tokenAddr: string,
-  }
+    chainId: number;
+    tokenAddr: string;
+  };
 }
 
 export class CheckLiqSumResponse extends jspb.Message {
@@ -276,9 +349,9 @@ export class CheckLiqSumResponse extends jspb.Message {
 
 export namespace CheckLiqSumResponse {
   export type AsObject = {
-    liqsum: string,
-    sumiter: string,
-  }
+    liqsum: string;
+    sumiter: string;
+  };
 }
 
 export class ChainTokensConfigRequest extends jspb.Message {
@@ -287,12 +360,14 @@ export class ChainTokensConfigRequest extends jspb.Message {
   static toObject(includeInstance: boolean, msg: ChainTokensConfigRequest): ChainTokensConfigRequest.AsObject;
   static serializeBinaryToWriter(message: ChainTokensConfigRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): ChainTokensConfigRequest;
-  static deserializeBinaryFromReader(message: ChainTokensConfigRequest, reader: jspb.BinaryReader): ChainTokensConfigRequest;
+  static deserializeBinaryFromReader(
+    message: ChainTokensConfigRequest,
+    reader: jspb.BinaryReader,
+  ): ChainTokensConfigRequest;
 }
 
 export namespace ChainTokensConfigRequest {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class ChainTokensConfigResponse extends jspb.Message {
@@ -304,13 +379,16 @@ export class ChainTokensConfigResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: ChainTokensConfigResponse): ChainTokensConfigResponse.AsObject;
   static serializeBinaryToWriter(message: ChainTokensConfigResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): ChainTokensConfigResponse;
-  static deserializeBinaryFromReader(message: ChainTokensConfigResponse, reader: jspb.BinaryReader): ChainTokensConfigResponse;
+  static deserializeBinaryFromReader(
+    message: ChainTokensConfigResponse,
+    reader: jspb.BinaryReader,
+  ): ChainTokensConfigResponse;
 }
 
 export namespace ChainTokensConfigResponse {
   export type AsObject = {
-    chainTokensMap: Array<[string, Tokens.AsObject]>,
-  }
+    chainTokensMap: Array<[string, Tokens.AsObject]>;
+  };
 }
 
 export class Tokens extends jspb.Message {
@@ -335,10 +413,10 @@ export class Tokens extends jspb.Message {
 
 export namespace Tokens {
   export type AsObject = {
-    tokensList: Array<Token.AsObject>,
-    contractAddr: string,
-    blockDelay: number,
-  }
+    tokensList: Array<Token.AsObject>;
+    contractAddr: string;
+    blockDelay: number;
+  };
 }
 
 export class GetFeeRequest extends jspb.Message {
@@ -367,12 +445,12 @@ export class GetFeeRequest extends jspb.Message {
 
 export namespace GetFeeRequest {
   export type AsObject = {
-    srcChainId: number,
-    dstChainId: number,
-    srcTokenAddr: string,
-    amt: string,
-    lpAddr: string,
-  }
+    srcChainId: number;
+    dstChainId: number;
+    srcTokenAddr: string;
+    amt: string;
+    lpAddr: string;
+  };
 }
 
 export class GetFeeResponse extends jspb.Message {
@@ -398,11 +476,11 @@ export class GetFeeResponse extends jspb.Message {
 
 export namespace GetFeeResponse {
   export type AsObject = {
-    eqValueTokenAmt: string,
-    percFee: string,
-    baseFee: string,
-    decimal: number,
-  }
+    eqValueTokenAmt: string;
+    percFee: string;
+    baseFee: string;
+    decimal: number;
+  };
 }
 
 export class GetFeePercentageRequest extends jspb.Message {
@@ -420,15 +498,18 @@ export class GetFeePercentageRequest extends jspb.Message {
   static toObject(includeInstance: boolean, msg: GetFeePercentageRequest): GetFeePercentageRequest.AsObject;
   static serializeBinaryToWriter(message: GetFeePercentageRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): GetFeePercentageRequest;
-  static deserializeBinaryFromReader(message: GetFeePercentageRequest, reader: jspb.BinaryReader): GetFeePercentageRequest;
+  static deserializeBinaryFromReader(
+    message: GetFeePercentageRequest,
+    reader: jspb.BinaryReader,
+  ): GetFeePercentageRequest;
 }
 
 export namespace GetFeePercentageRequest {
   export type AsObject = {
-    srcChainId: number,
-    dstChainId: number,
-    symbol: string,
-  }
+    srcChainId: number;
+    dstChainId: number;
+    symbol: string;
+  };
 }
 
 export class GetFeePercentageResponse extends jspb.Message {
@@ -440,13 +521,16 @@ export class GetFeePercentageResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: GetFeePercentageResponse): GetFeePercentageResponse.AsObject;
   static serializeBinaryToWriter(message: GetFeePercentageResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): GetFeePercentageResponse;
-  static deserializeBinaryFromReader(message: GetFeePercentageResponse, reader: jspb.BinaryReader): GetFeePercentageResponse;
+  static deserializeBinaryFromReader(
+    message: GetFeePercentageResponse,
+    reader: jspb.BinaryReader,
+  ): GetFeePercentageResponse;
 }
 
 export namespace GetFeePercentageResponse {
   export type AsObject = {
-    feePerc: number,
-  }
+    feePerc: number;
+  };
 }
 
 export class QueryTransferStatusRequest extends jspb.Message {
@@ -460,13 +544,16 @@ export class QueryTransferStatusRequest extends jspb.Message {
   static toObject(includeInstance: boolean, msg: QueryTransferStatusRequest): QueryTransferStatusRequest.AsObject;
   static serializeBinaryToWriter(message: QueryTransferStatusRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryTransferStatusRequest;
-  static deserializeBinaryFromReader(message: QueryTransferStatusRequest, reader: jspb.BinaryReader): QueryTransferStatusRequest;
+  static deserializeBinaryFromReader(
+    message: QueryTransferStatusRequest,
+    reader: jspb.BinaryReader,
+  ): QueryTransferStatusRequest;
 }
 
 export namespace QueryTransferStatusRequest {
   export type AsObject = {
-    transferIdList: Array<string>,
-  }
+    transferIdList: Array<string>;
+  };
 }
 
 export class QueryTransferStatusResponse extends jspb.Message {
@@ -478,13 +565,16 @@ export class QueryTransferStatusResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: QueryTransferStatusResponse): QueryTransferStatusResponse.AsObject;
   static serializeBinaryToWriter(message: QueryTransferStatusResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryTransferStatusResponse;
-  static deserializeBinaryFromReader(message: QueryTransferStatusResponse, reader: jspb.BinaryReader): QueryTransferStatusResponse;
+  static deserializeBinaryFromReader(
+    message: QueryTransferStatusResponse,
+    reader: jspb.BinaryReader,
+  ): QueryTransferStatusResponse;
 }
 
 export namespace QueryTransferStatusResponse {
   export type AsObject = {
-    statusMap: Array<[string, TransferStatus.AsObject]>,
-  }
+    statusMap: Array<[string, TransferStatus.AsObject]>;
+  };
 }
 
 export class LiquidityDetail extends jspb.Message {
@@ -515,12 +605,12 @@ export class LiquidityDetail extends jspb.Message {
 
 export namespace LiquidityDetail {
   export type AsObject = {
-    chainId: number,
-    token?: Token.AsObject,
-    usrLiquidity: string,
-    usrLpFeeEarning: string,
-    totalLiquidity: string,
-  }
+    chainId: number;
+    token?: Token.AsObject;
+    usrLiquidity: string;
+    usrLpFeeEarning: string;
+    totalLiquidity: string;
+  };
 }
 
 export class ChainTokenAddrPair extends jspb.Message {
@@ -540,9 +630,9 @@ export class ChainTokenAddrPair extends jspb.Message {
 
 export namespace ChainTokenAddrPair {
   export type AsObject = {
-    chainId: number,
-    tokenAddr: string,
-  }
+    chainId: number;
+    tokenAddr: string;
+  };
 }
 
 export class LiquidityDetailListRequest extends jspb.Message {
@@ -559,14 +649,17 @@ export class LiquidityDetailListRequest extends jspb.Message {
   static toObject(includeInstance: boolean, msg: LiquidityDetailListRequest): LiquidityDetailListRequest.AsObject;
   static serializeBinaryToWriter(message: LiquidityDetailListRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): LiquidityDetailListRequest;
-  static deserializeBinaryFromReader(message: LiquidityDetailListRequest, reader: jspb.BinaryReader): LiquidityDetailListRequest;
+  static deserializeBinaryFromReader(
+    message: LiquidityDetailListRequest,
+    reader: jspb.BinaryReader,
+  ): LiquidityDetailListRequest;
 }
 
 export namespace LiquidityDetailListRequest {
   export type AsObject = {
-    lpAddr: string,
-    chainTokenList: Array<ChainTokenAddrPair.AsObject>,
-  }
+    lpAddr: string;
+    chainTokenList: Array<ChainTokenAddrPair.AsObject>;
+  };
 }
 
 export class LiquidityDetailListResponse extends jspb.Message {
@@ -580,13 +673,16 @@ export class LiquidityDetailListResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: LiquidityDetailListResponse): LiquidityDetailListResponse.AsObject;
   static serializeBinaryToWriter(message: LiquidityDetailListResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): LiquidityDetailListResponse;
-  static deserializeBinaryFromReader(message: LiquidityDetailListResponse, reader: jspb.BinaryReader): LiquidityDetailListResponse;
+  static deserializeBinaryFromReader(
+    message: LiquidityDetailListResponse,
+    reader: jspb.BinaryReader,
+  ): LiquidityDetailListResponse;
 }
 
 export namespace LiquidityDetailListResponse {
   export type AsObject = {
-    liquidityDetailList: Array<LiquidityDetail.AsObject>,
-  }
+    liquidityDetailList: Array<LiquidityDetail.AsObject>;
+  };
 }
 
 export class QueryTotalLiquidityRequest extends jspb.Message {
@@ -601,14 +697,17 @@ export class QueryTotalLiquidityRequest extends jspb.Message {
   static toObject(includeInstance: boolean, msg: QueryTotalLiquidityRequest): QueryTotalLiquidityRequest.AsObject;
   static serializeBinaryToWriter(message: QueryTotalLiquidityRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryTotalLiquidityRequest;
-  static deserializeBinaryFromReader(message: QueryTotalLiquidityRequest, reader: jspb.BinaryReader): QueryTotalLiquidityRequest;
+  static deserializeBinaryFromReader(
+    message: QueryTotalLiquidityRequest,
+    reader: jspb.BinaryReader,
+  ): QueryTotalLiquidityRequest;
 }
 
 export namespace QueryTotalLiquidityRequest {
   export type AsObject = {
-    chainId: number,
-    tokenAddr: string,
-  }
+    chainId: number;
+    tokenAddr: string;
+  };
 }
 
 export class QueryTotalLiquidityResponse extends jspb.Message {
@@ -620,13 +719,16 @@ export class QueryTotalLiquidityResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: QueryTotalLiquidityResponse): QueryTotalLiquidityResponse.AsObject;
   static serializeBinaryToWriter(message: QueryTotalLiquidityResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryTotalLiquidityResponse;
-  static deserializeBinaryFromReader(message: QueryTotalLiquidityResponse, reader: jspb.BinaryReader): QueryTotalLiquidityResponse;
+  static deserializeBinaryFromReader(
+    message: QueryTotalLiquidityResponse,
+    reader: jspb.BinaryReader,
+  ): QueryTotalLiquidityResponse;
 }
 
 export namespace QueryTotalLiquidityResponse {
   export type AsObject = {
-    totalLiq: string,
-  }
+    totalLiq: string;
+  };
 }
 
 export class QueryAddLiquidityStatusRequest extends jspb.Message {
@@ -638,17 +740,23 @@ export class QueryAddLiquidityStatusRequest extends jspb.Message {
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueryAddLiquidityStatusRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: QueryAddLiquidityStatusRequest): QueryAddLiquidityStatusRequest.AsObject;
+  static toObject(
+    includeInstance: boolean,
+    msg: QueryAddLiquidityStatusRequest,
+  ): QueryAddLiquidityStatusRequest.AsObject;
   static serializeBinaryToWriter(message: QueryAddLiquidityStatusRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryAddLiquidityStatusRequest;
-  static deserializeBinaryFromReader(message: QueryAddLiquidityStatusRequest, reader: jspb.BinaryReader): QueryAddLiquidityStatusRequest;
+  static deserializeBinaryFromReader(
+    message: QueryAddLiquidityStatusRequest,
+    reader: jspb.BinaryReader,
+  ): QueryAddLiquidityStatusRequest;
 }
 
 export namespace QueryAddLiquidityStatusRequest {
   export type AsObject = {
-    chainId: number,
-    seqNum: number,
-  }
+    chainId: number;
+    seqNum: number;
+  };
 }
 
 export class QueryWithdrawLiquidityStatusRequest extends jspb.Message {
@@ -660,17 +768,23 @@ export class QueryWithdrawLiquidityStatusRequest extends jspb.Message {
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueryWithdrawLiquidityStatusRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: QueryWithdrawLiquidityStatusRequest): QueryWithdrawLiquidityStatusRequest.AsObject;
+  static toObject(
+    includeInstance: boolean,
+    msg: QueryWithdrawLiquidityStatusRequest,
+  ): QueryWithdrawLiquidityStatusRequest.AsObject;
   static serializeBinaryToWriter(message: QueryWithdrawLiquidityStatusRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryWithdrawLiquidityStatusRequest;
-  static deserializeBinaryFromReader(message: QueryWithdrawLiquidityStatusRequest, reader: jspb.BinaryReader): QueryWithdrawLiquidityStatusRequest;
+  static deserializeBinaryFromReader(
+    message: QueryWithdrawLiquidityStatusRequest,
+    reader: jspb.BinaryReader,
+  ): QueryWithdrawLiquidityStatusRequest;
 }
 
 export namespace QueryWithdrawLiquidityStatusRequest {
   export type AsObject = {
-    seqNum: number,
-    usrAddr: string,
-  }
+    seqNum: number;
+    usrAddr: string;
+  };
 }
 
 export class QueryLiquidityStatusResponse extends jspb.Message {
@@ -687,14 +801,17 @@ export class QueryLiquidityStatusResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: QueryLiquidityStatusResponse): QueryLiquidityStatusResponse.AsObject;
   static serializeBinaryToWriter(message: QueryLiquidityStatusResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): QueryLiquidityStatusResponse;
-  static deserializeBinaryFromReader(message: QueryLiquidityStatusResponse, reader: jspb.BinaryReader): QueryLiquidityStatusResponse;
+  static deserializeBinaryFromReader(
+    message: QueryLiquidityStatusResponse,
+    reader: jspb.BinaryReader,
+  ): QueryLiquidityStatusResponse;
 }
 
 export namespace QueryLiquidityStatusResponse {
   export type AsObject = {
-    status: WithdrawStatus,
-    detail?: sgn_cbridge_v1_cbridge_pb.WithdrawDetail.AsObject,
-  }
+    status: WithdrawStatus;
+    detail?: sgn_cbridge_v1_cbridge_pb.WithdrawDetail.AsObject;
+  };
 }
 
 export class CheckChainTokenValidRequest extends jspb.Message {
@@ -712,15 +829,18 @@ export class CheckChainTokenValidRequest extends jspb.Message {
   static toObject(includeInstance: boolean, msg: CheckChainTokenValidRequest): CheckChainTokenValidRequest.AsObject;
   static serializeBinaryToWriter(message: CheckChainTokenValidRequest, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): CheckChainTokenValidRequest;
-  static deserializeBinaryFromReader(message: CheckChainTokenValidRequest, reader: jspb.BinaryReader): CheckChainTokenValidRequest;
+  static deserializeBinaryFromReader(
+    message: CheckChainTokenValidRequest,
+    reader: jspb.BinaryReader,
+  ): CheckChainTokenValidRequest;
 }
 
 export namespace CheckChainTokenValidRequest {
   export type AsObject = {
-    srcChainId: number,
-    srcTokenAddr: string,
-    destChainId: number,
-  }
+    srcChainId: number;
+    srcTokenAddr: string;
+    destChainId: number;
+  };
 }
 
 export class CheckChainTokenValidResponse extends jspb.Message {
@@ -732,13 +852,16 @@ export class CheckChainTokenValidResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: CheckChainTokenValidResponse): CheckChainTokenValidResponse.AsObject;
   static serializeBinaryToWriter(message: CheckChainTokenValidResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): CheckChainTokenValidResponse;
-  static deserializeBinaryFromReader(message: CheckChainTokenValidResponse, reader: jspb.BinaryReader): CheckChainTokenValidResponse;
+  static deserializeBinaryFromReader(
+    message: CheckChainTokenValidResponse,
+    reader: jspb.BinaryReader,
+  ): CheckChainTokenValidResponse;
 }
 
 export namespace CheckChainTokenValidResponse {
   export type AsObject = {
-    valid: boolean,
-  }
+    valid: boolean;
+  };
 }
 
 export class TransferStatus extends jspb.Message {
@@ -758,9 +881,9 @@ export class TransferStatus extends jspb.Message {
 
 export namespace TransferStatus {
   export type AsObject = {
-    gatewayStatus: TransferHistoryStatus,
-    sgnStatus: sgn_cbridge_v1_cbridge_pb.XferStatus,
-  }
+    gatewayStatus: TransferHistoryStatus;
+    sgnStatus: sgn_cbridge_v1_cbridge_pb.XferStatus;
+  };
 }
 
 export class Token extends jspb.Message {
@@ -786,14 +909,14 @@ export class Token extends jspb.Message {
 
 export namespace Token {
   export type AsObject = {
-    symbol: string,
-    address: string,
-    decimal: number,
-    xferDisabled: boolean,
-  }
+    symbol: string;
+    address: string;
+    decimal: number;
+    xferDisabled: boolean;
+  };
 }
 
-export enum WithdrawStatus { 
+export enum WithdrawStatus {
   WD_UNKNOWN = 0,
   WD_WAITING_FOR_SGN = 1,
   WD_WAITING_FOR_LP = 2,
@@ -802,7 +925,7 @@ export enum WithdrawStatus {
   WD_FAILED = 5,
   WD_DELAYED = 6,
 }
-export enum TransferHistoryStatus { 
+export enum TransferHistoryStatus {
   TRANSFER_UNKNOWN = 0,
   TRANSFER_SUBMITTING = 1,
   TRANSFER_FAILED = 2,

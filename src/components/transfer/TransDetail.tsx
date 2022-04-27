@@ -2,9 +2,9 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { FC } from "react";
 import { createUseStyles } from "react-jss";
-import { parseUnits, formatUnits } from "@ethersproject/units";
+import { formatUnits } from "@ethersproject/units";
 import { BigNumber } from "@ethersproject/bignumber";
-import { formatDecimalPart } from "celer-web-utils/lib/format";
+import { formatDecimalPart, safeParseUnits } from "celer-web-utils/lib/format";
 import { Theme } from "../../theme";
 import { useAppSelector } from "../../redux/store";
 import { formatDecimal, formatPercentage } from "../../helpers/format";
@@ -13,6 +13,9 @@ import { Chain, Token, PeggedPairConfig } from "../../constants/type";
 import { NETWORKS } from "../../constants/network";
 import { useBigAmountDelay } from "../../hooks";
 import { PeggedChainMode, usePeggedPairConfig } from "../../hooks/usePeggedPairConfig";
+import { useNonEVMBigAmountDelay } from "../../hooks/useNonEVMBigAmountDelay";
+import { NonEVMMode, useNonEVMContext } from "../../providers/NonEVMContextProvider";
+import { useMultiBurnConfig } from "../../hooks/useMultiBurnConfig";
 
 /* eslint-disable camelcase */
 
@@ -22,6 +25,13 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
   },
   detailItem: {
     borderBottom: `1px solid ${theme.primaryBorder}`,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    position: "relative",
+    padding: "12px 0",
+  },
+  detailItemWithoutBorder: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -62,7 +72,12 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
   itemTextDes: {
     fontSize: 12,
     fontWeight: 400,
-    color: theme.secondBrand,
+    color: theme.surfacePrimary,
+  },
+  recipientDescText: {
+    fontSize: 14,
+    fontWeight: 500,
+    color: theme.surfacePrimary,
   },
   totalValue: {
     fontSize: 15,
@@ -95,6 +110,11 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     borderRadius: 16,
     padding: "10px 16px 16px 16px",
     margin: props => (props.isMobile ? "16px 0" : "40px 0"),
+  },
+  recipientContainer: {
+    background: theme.primaryBackground,
+    borderRadius: 8,
+    padding: "4px 14px 4px 14px",
   },
   descripetItem: {
     display: "flex",
@@ -132,18 +152,22 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
 interface IProps {
   amount: string;
   receiveAmount: number;
+  receiverAddress: string;
 }
 
-const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
+const TransDetail: FC<IProps> = ({ amount, receiveAmount, receiverAddress }) => {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const classes = useStyles({ isMobile });
   const { transferInfo } = useAppSelector(state => state);
   const { fromChain, toChain, selectedToken, estimateAmtInfoInState, transferConfig } = transferInfo;
   const pegConfig = usePeggedPairConfig();
+  const { multiBurnConfig } = useMultiBurnConfig();
   const { isBigAmountDelayed, delayMinutes } = useBigAmountDelay(toChain, selectedToken?.token, receiveAmount);
+  const { nonEVMBigAmountDelayed, nonEVMDelayTimeInMinute } = useNonEVMBigAmountDelay(receiveAmount);
   const getTokenByChainAndTokenSymbol = (chainId, tokenSymbol) => {
     return transferConfig?.chain_token[chainId]?.token?.find(tokenInfo => tokenInfo?.token?.symbol === tokenSymbol);
   };
+  const { nonEVMMode } = useNonEVMContext();
 
   let estimatedReceiveAmount;
   if (receiveAmount === 0) {
@@ -168,7 +192,7 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
     );
     let minimumReceivedNum = BigNumber.from("0");
     if (amount) {
-      const amountBn = parseUnits(amount, selectedToken?.token.decimal);
+      const amountBn = safeParseUnits(amount, selectedToken?.token.decimal ?? 18);
       minimumReceivedNum = amountBn.sub(
         amountBn.mul(BigNumber.from(estimateAmtInfoInState.maxSlippage)).div(millionBigNum),
       );
@@ -197,6 +221,16 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
       " " +
       getTokenDisplaySymbol(selectedToken?.token, fromChain, toChain, transferConfig.pegged_pair_configs);
   }
+
+  const delayTime = () => {
+    let result = "5-20 minutes";
+    if (isBigAmountDelayed) {
+      result = `up to ${delayMinutes} minutes`;
+    } else if (nonEVMBigAmountDelayed) {
+      result = `up to ${nonEVMDelayTimeInMinute} minutes`;
+    }
+    return result;
+  };
   // const oneKeyCopy = text => {
   //   copy(text);
   //   message.success("Copy Success!");
@@ -214,13 +248,15 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
           </div>
         </div>
         <div className={classes.itemRight}>
-          <div className={classes.totalValue}>- {Number(amount).toFixed(6) || "0.0"}</div>
+          <div className={classes.totalValue}>
+            - {Number(formatDecimalPart(amount, 6, "floor", true)).toFixed(6) || "0.0"}
+          </div>
           <div className={classes.fromNet}>
             {selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)}
           </div>
         </div>
       </div>
-      <div className={classes.detailItem}>
+      <div className={nonEVMMode !== NonEVMMode.off ? classes.detailItemWithoutBorder : classes.detailItem}>
         <div className={classes.itemLeft}>
           <div>
             <img className={classes.itemContImg} src={toChain?.icon} alt="" />
@@ -237,6 +273,13 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
           }`}</div>
         </div>
       </div>
+
+      {nonEVMMode !== NonEVMMode.off && (
+        <div className={classes.recipientContainer}>
+          <div className={classes.recipientDescText}>Recipient: {receiverAddress}</div>
+        </div>
+      )}
+
       <div className={classes.descripet}>
         <div className={classes.descripetItem}>
           <div className={classes.leftTitle}>Bridge Rate</div>
@@ -248,7 +291,7 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
               {selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token?.symbol, fromChain?.id)}{" "}
               on
               <img className={classes.desImg} height={14} style={{ marginRight: 6 }} src={fromChain?.icon} alt="" />
-              {pegConfig.mode === PeggedChainMode.Off ? "≈" : "="} {bridgeRate}{" "}
+              {pegConfig.mode === PeggedChainMode.Off && multiBurnConfig === undefined ? "≈" : "="} {bridgeRate}{" "}
               {getTokenDisplaySymbol(selectedToken?.token, fromChain, toChain, transferConfig.pegged_pair_configs)} on
               <img className={classes.desImg} height={14} src={toChain?.icon} alt="" />
             </div>
@@ -262,22 +305,24 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
                 title={
                   <div className={classes.tooltipContent} style={{ whiteSpace: "pre-line" }}>
                     <span style={{ fontWeight: 700 }}>Base Fee</span>
-                    {`:${formatDecimalPart(baseTgas, 8, "round", true)} ${getTokenDisplaySymbol(
+                    {`:${formatDecimalPart(baseTgas || "0", 8, "round", true)} ${getTokenDisplaySymbol(
                       selectedToken?.token,
                       fromChain,
                       toChain,
                       transferConfig.pegged_pair_configs,
                     )}\n`}
                     <span style={{ fontWeight: 700 }}>
-                      {pegConfig.mode === PeggedChainMode.Off ? "Liquidity Fee" : "Bridge Fee"}
+                      {pegConfig.mode === PeggedChainMode.Off && multiBurnConfig === undefined
+                        ? "Liquidity Fee"
+                        : "Bridge Fee"}
                     </span>
-                    {`:${formatDecimalPart(percTgas, 8, "round", true)} ${getTokenDisplaySymbol(
+                    {`:${formatDecimalPart(percTgas || "0", 8, "round", true)} ${getTokenDisplaySymbol(
                       selectedToken?.token,
                       fromChain,
                       toChain,
                       transferConfig.pegged_pair_configs,
                     )}\n\nBase Fee is used to cover the gas cost for sending your transfer on the destination chain.\n\n`}
-                    {pegConfig.mode === PeggedChainMode.Off
+                    {pegConfig.mode === PeggedChainMode.Off && multiBurnConfig === undefined
                       ? "Liquidity Fee is paid to cBridge LPs and Celer SGN stakers as economic incentives."
                       : "Bridge Fee is paid to Celer SGN as economic incentives for guarding the security of cBridge."}
                   </div>
@@ -292,11 +337,11 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
             </div>
           </div>
           <div className={classes.rightContent}>
-            {formatDecimalPart(totalFee, 8, "round", true)}{" "}
+            {formatDecimalPart(totalFee || "0", 8, "round", true)}{" "}
             {getTokenDisplaySymbol(selectedToken?.token, fromChain, toChain, transferConfig.pegged_pair_configs)}
           </div>
         </div>
-        {pegConfig.mode === PeggedChainMode.Off ? (
+        {pegConfig.mode === PeggedChainMode.Off && multiBurnConfig === undefined ? (
           <>
             <div className={classes.descripetItem}>
               <div className={classes.leftTitle}>
@@ -342,9 +387,7 @@ const TransDetail: FC<IProps> = ({ amount, receiveAmount }) => {
         ) : null}
         <div className={classes.descripetItem}>
           <span className={classes.leftTitle}>Estimated Time of Arrival</span>
-          <span className={classes.rightContent}>
-            {isBigAmountDelayed ? `up to ${delayMinutes} minutes` : "5-20 minutes"}
-          </span>
+          <span className={classes.rightContent}>{delayTime()}</span>
         </div>
       </div>
     </div>

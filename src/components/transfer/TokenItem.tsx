@@ -5,6 +5,7 @@ import { useWeb3Context } from "../../providers/Web3ContextProvider";
 import { useAppSelector } from "../../redux/store";
 import { Theme } from "../../theme";
 import { getTokenListSymbol } from "../../redux/assetSlice";
+import { getNonEVMMode, NonEVMMode } from "../../providers/NonEVMContextProvider";
 
 /* eslint-disable camelcase */
 const useStyles = createUseStyles((theme: Theme) => ({
@@ -104,7 +105,12 @@ const TokenItem = ({ onSelectToken, tokenInfo }) => {
     <div
       className={selectedTokenSymbol === (display_symbol ?? symbol) ? classes.activeItem : classes.item}
       onClick={() => {
-        onSelectToken(display_symbol ?? getTokenListSymbol(symbol, chainId));
+        const fromChainNonEVMMode = getNonEVMMode(fromChain?.id ?? 0);
+        if (fromChainNonEVMMode === NonEVMMode.off) {
+          onSelectToken(display_symbol ?? getTokenListSymbol(symbol, chainId));
+        } else {
+          onSelectToken(display_symbol ?? getTokenListSymbol(symbol, fromChain?.id));
+        }
       }}
     >
       <div className={classes.litem}>

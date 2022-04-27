@@ -9,6 +9,8 @@ export enum ModalName {
   menu = "showMenuModal",
   unclaimedRewards = "showUnclaimedRewardsModal",
   yourLiquidity = "showYourLiquidity",
+  flowProvider = "showFlowProviderModal",
+  terraProvider = "showTerraProviderModal",
 }
 
 interface IModalState {
@@ -19,6 +21,8 @@ interface IModalState {
   showMenuModal: boolean;
   showUnclaimedRewardsModal: boolean;
   showYourLiquidity: boolean;
+  showFlowProviderModal: boolean;
+  showTerraProviderModal: boolean;
 }
 
 const initialState: IModalState = {
@@ -29,6 +33,8 @@ const initialState: IModalState = {
   showMenuModal: false,
   showUnclaimedRewardsModal: false,
   showYourLiquidity: false,
+  showFlowProviderModal: false,
+  showTerraProviderModal: false,
 };
 
 const modalSlice = createSlice({

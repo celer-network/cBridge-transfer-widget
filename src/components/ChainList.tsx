@@ -11,6 +11,7 @@ import { CHAIN_LIST } from "../constants/network";
 import { sortedChainNames } from "../constants/sortedChain";
 import { useTransferSupportedChainList } from "../hooks/transferSupportedInfoList";
 import ringBell from "../images/ringBell.svg";
+import { isNonEVMChain } from "../providers/NonEVMContextProvider";
 
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
   chainModal: {
@@ -257,7 +258,7 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
         chainModalId = toChain?.id;
         break;
       case "wallet":
-        chainModalId = chainId;
+        chainModalId = isNonEVMChain(fromChain?.id ?? 0) ? fromChain?.id : chainId;
         break;
       default:
         break;

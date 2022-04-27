@@ -10,6 +10,7 @@ export { default as useEthBalance } from "./ethBalance";
 export { default as useTokenBalance } from "./tokenBalance";
 // export { default as useTokenBalancePoller } from "./tokenBalancePoller";
 export { default as useWindowWidth } from "./windowWidth";
+export { default as useNonEVMTokenBalance } from "./nonEVMTokenBalance";
 // export { default as getTransferStatus } from "./getTransferStatus";
 export { useBigAmountDelay } from "./useBigAmountDelay";
 export { useNativeETHToken } from "./useNativeETHToken";

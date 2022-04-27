@@ -1,10 +1,9 @@
-import * as jspb from 'google-protobuf'
+import * as jspb from "google-protobuf";
 
-import * as cosmos_proto_cosmos_pb from '../../../cosmos_proto/cosmos_pb';
-import * as gogoproto_gogo_pb from '../../../gogoproto/gogo_pb';
-import * as google_protobuf_duration_pb from 'google-protobuf/google/protobuf/duration_pb';
-import * as sgn_common_v1_common_pb from '../../../sgn/common/v1/common_pb';
-
+import * as cosmos_proto_cosmos_pb from "../../../cosmos_proto/cosmos_pb";
+import * as gogoproto_gogo_pb from "../../../gogoproto/gogo_pb";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as sgn_common_v1_common_pb from "../../../sgn/common/v1/common_pb";
 
 export class Params extends jspb.Message {
   getTriggerSignCooldown(): google_protobuf_duration_pb.Duration | undefined;
@@ -22,20 +21,26 @@ export class Params extends jspb.Message {
 
 export namespace Params {
   export type AsObject = {
-    triggerSignCooldown?: google_protobuf_duration_pb.Duration.AsObject,
-  }
+    triggerSignCooldown?: google_protobuf_duration_pb.Duration.AsObject;
+  };
 }
 
 export class PegConfig extends jspb.Message {
   getPeggedTokenBridgesList(): Array<sgn_common_v1_common_pb.ContractInfo>;
   setPeggedTokenBridgesList(value: Array<sgn_common_v1_common_pb.ContractInfo>): PegConfig;
   clearPeggedTokenBridgesList(): PegConfig;
-  addPeggedTokenBridges(value?: sgn_common_v1_common_pb.ContractInfo, index?: number): sgn_common_v1_common_pb.ContractInfo;
+  addPeggedTokenBridges(
+    value?: sgn_common_v1_common_pb.ContractInfo,
+    index?: number,
+  ): sgn_common_v1_common_pb.ContractInfo;
 
   getOriginalTokenVaultsList(): Array<sgn_common_v1_common_pb.ContractInfo>;
   setOriginalTokenVaultsList(value: Array<sgn_common_v1_common_pb.ContractInfo>): PegConfig;
   clearOriginalTokenVaultsList(): PegConfig;
-  addOriginalTokenVaults(value?: sgn_common_v1_common_pb.ContractInfo, index?: number): sgn_common_v1_common_pb.ContractInfo;
+  addOriginalTokenVaults(
+    value?: sgn_common_v1_common_pb.ContractInfo,
+    index?: number,
+  ): sgn_common_v1_common_pb.ContractInfo;
 
   getOrigPeggedPairsList(): Array<OrigPeggedPair>;
   setOrigPeggedPairsList(value: Array<OrigPeggedPair>): PegConfig;
@@ -52,10 +57,10 @@ export class PegConfig extends jspb.Message {
 
 export namespace PegConfig {
   export type AsObject = {
-    peggedTokenBridgesList: Array<sgn_common_v1_common_pb.ContractInfo.AsObject>,
-    originalTokenVaultsList: Array<sgn_common_v1_common_pb.ContractInfo.AsObject>,
-    origPeggedPairsList: Array<OrigPeggedPair.AsObject>,
-  }
+    peggedTokenBridgesList: Array<sgn_common_v1_common_pb.ContractInfo.AsObject>;
+    originalTokenVaultsList: Array<sgn_common_v1_common_pb.ContractInfo.AsObject>;
+    origPeggedPairsList: Array<OrigPeggedPair.AsObject>;
+  };
 }
 
 export class OrigPeggedPair extends jspb.Message {
@@ -81,6 +86,9 @@ export class OrigPeggedPair extends jspb.Message {
   getMaxBurnFee(): string;
   setMaxBurnFee(value: string): OrigPeggedPair;
 
+  getSupplyCap(): string;
+  setSupplyCap(value: string): OrigPeggedPair;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): OrigPeggedPair.AsObject;
   static toObject(includeInstance: boolean, msg: OrigPeggedPair): OrigPeggedPair.AsObject;
@@ -91,13 +99,14 @@ export class OrigPeggedPair extends jspb.Message {
 
 export namespace OrigPeggedPair {
   export type AsObject = {
-    orig?: sgn_common_v1_common_pb.ERC20Token.AsObject,
-    pegged?: sgn_common_v1_common_pb.ERC20Token.AsObject,
-    mintFeePips: number,
-    maxMintFee: string,
-    burnFeePips: number,
-    maxBurnFee: string,
-  }
+    orig?: sgn_common_v1_common_pb.ERC20Token.AsObject;
+    pegged?: sgn_common_v1_common_pb.ERC20Token.AsObject;
+    mintFeePips: number;
+    maxMintFee: string;
+    burnFeePips: number;
+    maxBurnFee: string;
+    supplyCap: string;
+  };
 }
 
 export class PeggedOrigIndex extends jspb.Message {
@@ -121,9 +130,9 @@ export class PeggedOrigIndex extends jspb.Message {
 
 export namespace PeggedOrigIndex {
   export type AsObject = {
-    pegged?: sgn_common_v1_common_pb.ContractInfo.AsObject,
-    orig?: sgn_common_v1_common_pb.ContractInfo.AsObject,
-  }
+    pegged?: sgn_common_v1_common_pb.ContractInfo.AsObject;
+    orig?: sgn_common_v1_common_pb.ContractInfo.AsObject;
+  };
 }
 
 export class DepositInfo extends jspb.Message {
@@ -150,10 +159,10 @@ export class DepositInfo extends jspb.Message {
 
 export namespace DepositInfo {
   export type AsObject = {
-    chainId: number,
-    depositId: Uint8Array | string,
-    mintId: Uint8Array | string,
-  }
+    chainId: number;
+    depositId: Uint8Array | string;
+    mintId: Uint8Array | string;
+  };
 }
 
 export class MintInfo extends jspb.Message {
@@ -192,14 +201,14 @@ export class MintInfo extends jspb.Message {
 
 export namespace MintInfo {
   export type AsObject = {
-    chainId: number,
-    mintProtoBytes: Uint8Array | string,
-    signaturesList: Array<sgn_common_v1_common_pb.Signature.AsObject>,
-    baseFee: string,
-    percentageFee: string,
-    success: boolean,
-    lastReqTime: number,
-  }
+    chainId: number;
+    mintProtoBytes: Uint8Array | string;
+    signaturesList: Array<sgn_common_v1_common_pb.Signature.AsObject>;
+    baseFee: string;
+    percentageFee: string;
+    success: boolean;
+    lastReqTime: number;
+  };
 }
 
 export class BurnInfo extends jspb.Message {
@@ -226,10 +235,10 @@ export class BurnInfo extends jspb.Message {
 
 export namespace BurnInfo {
   export type AsObject = {
-    chainId: number,
-    burnId: Uint8Array | string,
-    withdrawId: Uint8Array | string,
-  }
+    chainId: number;
+    burnId: Uint8Array | string;
+    withdrawId: Uint8Array | string;
+  };
 }
 
 export class WithdrawInfo extends jspb.Message {
@@ -268,14 +277,14 @@ export class WithdrawInfo extends jspb.Message {
 
 export namespace WithdrawInfo {
   export type AsObject = {
-    chainId: number,
-    withdrawProtoBytes: Uint8Array | string,
-    signaturesList: Array<sgn_common_v1_common_pb.Signature.AsObject>,
-    baseFee: string,
-    percentageFee: string,
-    success: boolean,
-    lastReqTime: number,
-  }
+    chainId: number;
+    withdrawProtoBytes: Uint8Array | string;
+    signaturesList: Array<sgn_common_v1_common_pb.Signature.AsObject>;
+    baseFee: string;
+    percentageFee: string;
+    success: boolean;
+    lastReqTime: number;
+  };
 }
 
 export class FeeClaimInfo extends jspb.Message {
@@ -294,8 +303,8 @@ export class FeeClaimInfo extends jspb.Message {
 
 export namespace FeeClaimInfo {
   export type AsObject = {
-    withdrawId: Uint8Array | string,
-  }
+    withdrawId: Uint8Array | string;
+  };
 }
 
 export class MintOnChain extends jspb.Message {
@@ -337,13 +346,13 @@ export class MintOnChain extends jspb.Message {
 
 export namespace MintOnChain {
   export type AsObject = {
-    token: Uint8Array | string,
-    account: Uint8Array | string,
-    amount: Uint8Array | string,
-    depositor: Uint8Array | string,
-    refChainId: number,
-    refId: Uint8Array | string,
-  }
+    token: Uint8Array | string;
+    account: Uint8Array | string;
+    amount: Uint8Array | string;
+    depositor: Uint8Array | string;
+    refChainId: number;
+    refId: Uint8Array | string;
+  };
 }
 
 export class WithdrawOnChain extends jspb.Message {
@@ -385,13 +394,13 @@ export class WithdrawOnChain extends jspb.Message {
 
 export namespace WithdrawOnChain {
   export type AsObject = {
-    token: Uint8Array | string,
-    receiver: Uint8Array | string,
-    amount: Uint8Array | string,
-    burnAccount: Uint8Array | string,
-    refChainId: number,
-    refId: Uint8Array | string,
-  }
+    token: Uint8Array | string;
+    receiver: Uint8Array | string;
+    amount: Uint8Array | string;
+    burnAccount: Uint8Array | string;
+    refChainId: number;
+    refId: Uint8Array | string;
+  };
 }
 
 export class PegProposal extends jspb.Message {
@@ -419,10 +428,80 @@ export class PegProposal extends jspb.Message {
 
 export namespace PegProposal {
   export type AsObject = {
-    title: string,
-    description: string,
-    pegConfig?: PegConfig.AsObject,
-    deposit: string,
-  }
+    title: string;
+    description: string;
+    pegConfig?: PegConfig.AsObject;
+    deposit: string;
+  };
 }
 
+export class PairDeleteProposal extends jspb.Message {
+  getTitle(): string;
+  setTitle(value: string): PairDeleteProposal;
+
+  getDescription(): string;
+  setDescription(value: string): PairDeleteProposal;
+
+  getPairToDelete(): OrigPeggedPair | undefined;
+  setPairToDelete(value?: OrigPeggedPair): PairDeleteProposal;
+  hasPairToDelete(): boolean;
+  clearPairToDelete(): PairDeleteProposal;
+
+  getDeposit(): string;
+  setDeposit(value: string): PairDeleteProposal;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PairDeleteProposal.AsObject;
+  static toObject(includeInstance: boolean, msg: PairDeleteProposal): PairDeleteProposal.AsObject;
+  static serializeBinaryToWriter(message: PairDeleteProposal, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PairDeleteProposal;
+  static deserializeBinaryFromReader(message: PairDeleteProposal, reader: jspb.BinaryReader): PairDeleteProposal;
+}
+
+export namespace PairDeleteProposal {
+  export type AsObject = {
+    title: string;
+    description: string;
+    pairToDelete?: OrigPeggedPair.AsObject;
+    deposit: string;
+  };
+}
+
+export class TotalSupplyUpdateProposal extends jspb.Message {
+  getTitle(): string;
+  setTitle(value: string): TotalSupplyUpdateProposal;
+
+  getDescription(): string;
+  setDescription(value: string): TotalSupplyUpdateProposal;
+
+  getPair(): OrigPeggedPair | undefined;
+  setPair(value?: OrigPeggedPair): TotalSupplyUpdateProposal;
+  hasPair(): boolean;
+  clearPair(): TotalSupplyUpdateProposal;
+
+  getTotalSupply(): string;
+  setTotalSupply(value: string): TotalSupplyUpdateProposal;
+
+  getDeposit(): string;
+  setDeposit(value: string): TotalSupplyUpdateProposal;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TotalSupplyUpdateProposal.AsObject;
+  static toObject(includeInstance: boolean, msg: TotalSupplyUpdateProposal): TotalSupplyUpdateProposal.AsObject;
+  static serializeBinaryToWriter(message: TotalSupplyUpdateProposal, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TotalSupplyUpdateProposal;
+  static deserializeBinaryFromReader(
+    message: TotalSupplyUpdateProposal,
+    reader: jspb.BinaryReader,
+  ): TotalSupplyUpdateProposal;
+}
+
+export namespace TotalSupplyUpdateProposal {
+  export type AsObject = {
+    title: string;
+    description: string;
+    pair?: OrigPeggedPair.AsObject;
+    totalSupply: string;
+    deposit: string;
+  };
+}

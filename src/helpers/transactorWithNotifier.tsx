@@ -6,6 +6,7 @@ import { BigNumber, BigNumberish, ethers } from "ethers";
 
 import { JsonRpcProvider, TransactionRequest, TransactionResponse } from "@ethersproject/providers";
 import { parseUnits } from "@ethersproject/units";
+import { storageConstants } from "../constants/const";
 
 export type Transactor<T extends ethers.Transaction> = (
   tx: Promise<T> | ethers.utils.Deferrable<TransactionRequest>,
@@ -27,7 +28,7 @@ export default function transactorWithNotifier<T extends ethers.Transaction>(
     return async (tx: Promise<T> | ethers.utils.Deferrable<TransactionRequest>): Promise<T | TransactionResponse> => {
       const signer = provider.getSigner();
       const network = await provider.getNetwork();
-      const localChainName = localStorage.getItem("chainName");
+      const localChainName = localStorage.getItem(storageConstants.KEY_CHAIN_NAME);
 
       const options = {
         dappId: "0b58206a-f3c0-4701-a62f-73c7243e8c77", // GET YOUR OWN KEY AT https://account.blocknative.com
@@ -80,7 +81,7 @@ export default function transactorWithNotifier<T extends ethers.Transaction>(
             message: (
               <div style={{ fontSize: 14 }}>
                 Your transaction has been
-                {localChainName && <div>send to {localChainName}</div>}
+                {localChainName && <div>sent to {localChainName}</div>}
               </div>
             ),
             description: new Date().toLocaleTimeString(),

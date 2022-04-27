@@ -16,14 +16,16 @@
 // > xDai 100
 const sortedChainNames = [
   "Ethereum",
-  "BSC",
+  "Astar",
+  "BNB Chain",
   "Avalanche",
   "Polygon",
   "Arbitrum",
   "Fantom",
+  "Flow",
   "Metis",
   "Oasis",
-  "Celo",
+  "Evmos",
   "Aurora",
   "Harmony",
   "Moonbeam",
@@ -32,6 +34,7 @@ const sortedChainNames = [
   "Boba",
   "OKExChain",
   "Heco",
+  "Celo",
   "xDai",
 ];
 

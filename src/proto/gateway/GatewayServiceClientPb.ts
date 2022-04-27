@@ -13,6 +13,7 @@ import * as grpcWeb from "grpc-web";
 
 import * as gateway_gateway_pb from "../gateway/gateway_pb";
 import * as sgn_health_v1_health_pb from "../sgn/health/v1/health_pb";
+import * as sgn_message_v1_query_pb from "../sgn/message/v1/query_pb";
 
 export class WebClient {
   client_: grpcWeb.AbstractClientBase;
@@ -1009,6 +1010,138 @@ export class WebClient {
     );
   }
 
+  methodInfoGetAbnormalStatusInfo = new grpcWeb.MethodDescriptor(
+    "/sgn.gateway.v1.Web/GetAbnormalStatusInfo",
+    grpcWeb.MethodType.UNARY,
+    gateway_gateway_pb.GetAbnormalStatusInfoRequest,
+    gateway_gateway_pb.GetAbnormalStatusInfoResponse,
+    (request: gateway_gateway_pb.GetAbnormalStatusInfoRequest) => {
+      return request.serializeBinary();
+    },
+    gateway_gateway_pb.GetAbnormalStatusInfoResponse.deserializeBinary,
+  );
+
+  getAbnormalStatusInfo(
+    request: gateway_gateway_pb.GetAbnormalStatusInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+  ): Promise<gateway_gateway_pb.GetAbnormalStatusInfoResponse>;
+
+  getAbnormalStatusInfo(
+    request: gateway_gateway_pb.GetAbnormalStatusInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError, response: gateway_gateway_pb.GetAbnormalStatusInfoResponse) => void,
+  ): grpcWeb.ClientReadableStream<gateway_gateway_pb.GetAbnormalStatusInfoResponse>;
+
+  getAbnormalStatusInfo(
+    request: gateway_gateway_pb.GetAbnormalStatusInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError, response: gateway_gateway_pb.GetAbnormalStatusInfoResponse) => void,
+  ) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ + "/sgn.gateway.v1.Web/GetAbnormalStatusInfo",
+        request,
+        metadata || {},
+        this.methodInfoGetAbnormalStatusInfo,
+        callback,
+      );
+    }
+    return this.client_.unaryCall(
+      this.hostname_ + "/sgn.gateway.v1.Web/GetAbnormalStatusInfo",
+      request,
+      metadata || {},
+      this.methodInfoGetAbnormalStatusInfo,
+    );
+  }
+
+  methodInfoGetAllLPInfo = new grpcWeb.MethodDescriptor(
+    "/sgn.gateway.v1.Web/GetAllLPInfo",
+    grpcWeb.MethodType.UNARY,
+    gateway_gateway_pb.GetAllLPInfoRequest,
+    gateway_gateway_pb.GetAllLPInfoResponse,
+    (request: gateway_gateway_pb.GetAllLPInfoRequest) => {
+      return request.serializeBinary();
+    },
+    gateway_gateway_pb.GetAllLPInfoResponse.deserializeBinary,
+  );
+
+  getAllLPInfo(
+    request: gateway_gateway_pb.GetAllLPInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+  ): Promise<gateway_gateway_pb.GetAllLPInfoResponse>;
+
+  getAllLPInfo(
+    request: gateway_gateway_pb.GetAllLPInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError, response: gateway_gateway_pb.GetAllLPInfoResponse) => void,
+  ): grpcWeb.ClientReadableStream<gateway_gateway_pb.GetAllLPInfoResponse>;
+
+  getAllLPInfo(
+    request: gateway_gateway_pb.GetAllLPInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError, response: gateway_gateway_pb.GetAllLPInfoResponse) => void,
+  ) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ + "/sgn.gateway.v1.Web/GetAllLPInfo",
+        request,
+        metadata || {},
+        this.methodInfoGetAllLPInfo,
+        callback,
+      );
+    }
+    return this.client_.unaryCall(
+      this.hostname_ + "/sgn.gateway.v1.Web/GetAllLPInfo",
+      request,
+      metadata || {},
+      this.methodInfoGetAllLPInfo,
+    );
+  }
+
+  methodInfoGetAllTXInfo = new grpcWeb.MethodDescriptor(
+    "/sgn.gateway.v1.Web/GetAllTXInfo",
+    grpcWeb.MethodType.UNARY,
+    gateway_gateway_pb.GetAllTXInfoRequest,
+    gateway_gateway_pb.GetAllTXInfoResponse,
+    (request: gateway_gateway_pb.GetAllTXInfoRequest) => {
+      return request.serializeBinary();
+    },
+    gateway_gateway_pb.GetAllTXInfoResponse.deserializeBinary,
+  );
+
+  getAllTXInfo(
+    request: gateway_gateway_pb.GetAllTXInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+  ): Promise<gateway_gateway_pb.GetAllTXInfoResponse>;
+
+  getAllTXInfo(
+    request: gateway_gateway_pb.GetAllTXInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError, response: gateway_gateway_pb.GetAllTXInfoResponse) => void,
+  ): grpcWeb.ClientReadableStream<gateway_gateway_pb.GetAllTXInfoResponse>;
+
+  getAllTXInfo(
+    request: gateway_gateway_pb.GetAllTXInfoRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError, response: gateway_gateway_pb.GetAllTXInfoResponse) => void,
+  ) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ + "/sgn.gateway.v1.Web/GetAllTXInfo",
+        request,
+        metadata || {},
+        this.methodInfoGetAllTXInfo,
+        callback,
+      );
+    }
+    return this.client_.unaryCall(
+      this.hostname_ + "/sgn.gateway.v1.Web/GetAllTXInfo",
+      request,
+      metadata || {},
+      this.methodInfoGetAllTXInfo,
+    );
+  }
+
   methodInfoFixEventMiss = new grpcWeb.MethodDescriptor(
     "/sgn.gateway.v1.Web/FixEventMiss",
     grpcWeb.MethodType.UNARY,
@@ -1188,29 +1321,29 @@ export class WebClient {
   methodInfoReportCurrentBlockNumber = new grpcWeb.MethodDescriptor(
     "/sgn.gateway.v1.Web/ReportCurrentBlockNumber",
     grpcWeb.MethodType.UNARY,
-    sgn_health_v1_health_pb.ReportCurrentBlockNumberRequest,
-    sgn_health_v1_health_pb.ReportCurrentBlockNumberResponse,
-    (request: sgn_health_v1_health_pb.ReportCurrentBlockNumberRequest) => {
+    sgn_health_v1_health_pb.ReportSgnAnalyticsRequest,
+    sgn_health_v1_health_pb.ReportSgnAnalyticsResponse,
+    (request: sgn_health_v1_health_pb.ReportSgnAnalyticsRequest) => {
       return request.serializeBinary();
     },
-    sgn_health_v1_health_pb.ReportCurrentBlockNumberResponse.deserializeBinary,
+    sgn_health_v1_health_pb.ReportSgnAnalyticsResponse.deserializeBinary,
   );
 
   reportCurrentBlockNumber(
-    request: sgn_health_v1_health_pb.ReportCurrentBlockNumberRequest,
+    request: sgn_health_v1_health_pb.ReportSgnAnalyticsRequest,
     metadata: grpcWeb.Metadata | null,
-  ): Promise<sgn_health_v1_health_pb.ReportCurrentBlockNumberResponse>;
+  ): Promise<sgn_health_v1_health_pb.ReportSgnAnalyticsResponse>;
 
   reportCurrentBlockNumber(
-    request: sgn_health_v1_health_pb.ReportCurrentBlockNumberRequest,
+    request: sgn_health_v1_health_pb.ReportSgnAnalyticsRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError, response: sgn_health_v1_health_pb.ReportCurrentBlockNumberResponse) => void,
-  ): grpcWeb.ClientReadableStream<sgn_health_v1_health_pb.ReportCurrentBlockNumberResponse>;
+    callback: (err: grpcWeb.RpcError, response: sgn_health_v1_health_pb.ReportSgnAnalyticsResponse) => void,
+  ): grpcWeb.ClientReadableStream<sgn_health_v1_health_pb.ReportSgnAnalyticsResponse>;
 
   reportCurrentBlockNumber(
-    request: sgn_health_v1_health_pb.ReportCurrentBlockNumberRequest,
+    request: sgn_health_v1_health_pb.ReportSgnAnalyticsRequest,
     metadata: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError, response: sgn_health_v1_health_pb.ReportCurrentBlockNumberResponse) => void,
+    callback?: (err: grpcWeb.RpcError, response: sgn_health_v1_health_pb.ReportSgnAnalyticsResponse) => void,
   ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
@@ -1710,6 +1843,138 @@ export class WebClient {
       request,
       metadata || {},
       this.methodInfoClaimPegBridgeFee,
+    );
+  }
+
+  methodInfoInitWithdraw = new grpcWeb.MethodDescriptor(
+    "/sgn.gateway.v1.Web/InitWithdraw",
+    grpcWeb.MethodType.UNARY,
+    gateway_gateway_pb.InitWithdrawRequest,
+    gateway_gateway_pb.InitWithdrawResponse,
+    (request: gateway_gateway_pb.InitWithdrawRequest) => {
+      return request.serializeBinary();
+    },
+    gateway_gateway_pb.InitWithdrawResponse.deserializeBinary,
+  );
+
+  initWithdraw(
+    request: gateway_gateway_pb.InitWithdrawRequest,
+    metadata: grpcWeb.Metadata | null,
+  ): Promise<gateway_gateway_pb.InitWithdrawResponse>;
+
+  initWithdraw(
+    request: gateway_gateway_pb.InitWithdrawRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError, response: gateway_gateway_pb.InitWithdrawResponse) => void,
+  ): grpcWeb.ClientReadableStream<gateway_gateway_pb.InitWithdrawResponse>;
+
+  initWithdraw(
+    request: gateway_gateway_pb.InitWithdrawRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError, response: gateway_gateway_pb.InitWithdrawResponse) => void,
+  ) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ + "/sgn.gateway.v1.Web/InitWithdraw",
+        request,
+        metadata || {},
+        this.methodInfoInitWithdraw,
+        callback,
+      );
+    }
+    return this.client_.unaryCall(
+      this.hostname_ + "/sgn.gateway.v1.Web/InitWithdraw",
+      request,
+      metadata || {},
+      this.methodInfoInitWithdraw,
+    );
+  }
+
+  methodInfoInitPegRefund = new grpcWeb.MethodDescriptor(
+    "/sgn.gateway.v1.Web/InitPegRefund",
+    grpcWeb.MethodType.UNARY,
+    gateway_gateway_pb.InitPegRefundRequest,
+    gateway_gateway_pb.InitPegRefundResponse,
+    (request: gateway_gateway_pb.InitPegRefundRequest) => {
+      return request.serializeBinary();
+    },
+    gateway_gateway_pb.InitPegRefundResponse.deserializeBinary,
+  );
+
+  initPegRefund(
+    request: gateway_gateway_pb.InitPegRefundRequest,
+    metadata: grpcWeb.Metadata | null,
+  ): Promise<gateway_gateway_pb.InitPegRefundResponse>;
+
+  initPegRefund(
+    request: gateway_gateway_pb.InitPegRefundRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError, response: gateway_gateway_pb.InitPegRefundResponse) => void,
+  ): grpcWeb.ClientReadableStream<gateway_gateway_pb.InitPegRefundResponse>;
+
+  initPegRefund(
+    request: gateway_gateway_pb.InitPegRefundRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError, response: gateway_gateway_pb.InitPegRefundResponse) => void,
+  ) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ + "/sgn.gateway.v1.Web/InitPegRefund",
+        request,
+        metadata || {},
+        this.methodInfoInitPegRefund,
+        callback,
+      );
+    }
+    return this.client_.unaryCall(
+      this.hostname_ + "/sgn.gateway.v1.Web/InitPegRefund",
+      request,
+      metadata || {},
+      this.methodInfoInitPegRefund,
+    );
+  }
+
+  methodInfoExecutionContexts = new grpcWeb.MethodDescriptor(
+    "/sgn.gateway.v1.Web/ExecutionContexts",
+    grpcWeb.MethodType.UNARY,
+    sgn_message_v1_query_pb.QueryExecutionContextsRequest,
+    sgn_message_v1_query_pb.QueryExecutionContextsResponse,
+    (request: sgn_message_v1_query_pb.QueryExecutionContextsRequest) => {
+      return request.serializeBinary();
+    },
+    sgn_message_v1_query_pb.QueryExecutionContextsResponse.deserializeBinary,
+  );
+
+  executionContexts(
+    request: sgn_message_v1_query_pb.QueryExecutionContextsRequest,
+    metadata: grpcWeb.Metadata | null,
+  ): Promise<sgn_message_v1_query_pb.QueryExecutionContextsResponse>;
+
+  executionContexts(
+    request: sgn_message_v1_query_pb.QueryExecutionContextsRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError, response: sgn_message_v1_query_pb.QueryExecutionContextsResponse) => void,
+  ): grpcWeb.ClientReadableStream<sgn_message_v1_query_pb.QueryExecutionContextsResponse>;
+
+  executionContexts(
+    request: sgn_message_v1_query_pb.QueryExecutionContextsRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError, response: sgn_message_v1_query_pb.QueryExecutionContextsResponse) => void,
+  ) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ + "/sgn.gateway.v1.Web/ExecutionContexts",
+        request,
+        metadata || {},
+        this.methodInfoExecutionContexts,
+        callback,
+      );
+    }
+    return this.client_.unaryCall(
+      this.hostname_ + "/sgn.gateway.v1.Web/ExecutionContexts",
+      request,
+      metadata || {},
+      this.methodInfoExecutionContexts,
     );
   }
 }

@@ -1,8 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getNetworkById } from "../constants/network";
-import { Chain, TokenInfo, GetTransferConfigsResponse } from "../constants/type";
+import {
+  Chain,
+  TokenInfo,
+  GetTransferConfigsResponse,
+  MultiBurnPairConfig,
+  FlowTokenPathConfig,
+  PeggedPairConfig,
+} from "../constants/type";
 import { EstimateAmtResponse } from "../proto/gateway/gateway_pb";
+import { storageConstants } from "../constants/const";
 
 /* eslint-disable camelcase */
 /* eslint-disable no-debugger */
@@ -26,6 +34,8 @@ interface TransferIState {
   refreshHistory: boolean;
   refreshTransferAndLiquidity: boolean;
   bigAmountDelayInfos: Array<BigAmountDelayInfo>;
+  multiBurnConfigs: Array<MultiBurnPairConfig>;
+  flowTokenPathConfigs: Array<FlowTokenPathConfig>;
 }
 
 const initialState: TransferIState = {
@@ -46,13 +56,15 @@ const initialState: TransferIState = {
   totalActionNum: 0,
   totalPaddingNum: 0,
   estimateAmtInfoInState: null,
-  rate: localStorage.getItem("ratio") || "1",
+  rate: localStorage.getItem(storageConstants.KEY_RATIO) || "1",
   getConfigsFinish: false,
   refreshHistory: false,
   refreshTransferAndLiquidity: false,
   fromChain: undefined,
   toChain: undefined,
   bigAmountDelayInfos: [],
+  flowTokenPathConfigs: [],
+  multiBurnConfigs: [],
 };
 
 const transferSlice = createSlice({
@@ -101,7 +113,108 @@ const transferSlice = createSlice({
         configsWithETH[chainId] = currentChainTokens;
       });
 
+      const configsLength = payload.pegged_pair_configs.length;
+      const multiBurnConfigs: MultiBurnPairConfig[] = [];
+
+      for (let i = 0; i < configsLength; i++) {
+        for (let j = i + 1; j < configsLength; j++) {
+          const peggedConfigI = payload.pegged_pair_configs[i];
+          const peggedConfigJ = payload.pegged_pair_configs[j];
+          if (
+            peggedConfigI.org_chain_id === peggedConfigJ.org_chain_id &&
+            peggedConfigI.org_token.token.symbol === peggedConfigJ.org_token.token.symbol
+          ) {
+            /// Only upgraded PegBridge can support multi burn to other pegged chain
+            if (peggedConfigI.bridge_version === 2) {
+              multiBurnConfigs.push({
+                burn_config_as_org: {
+                  chain_id: peggedConfigI.pegged_chain_id,
+                  token: peggedConfigI.pegged_token,
+                  burn_contract_addr: peggedConfigI.pegged_burn_contract_addr,
+                  canonical_token_contract_addr: peggedConfigI.canonical_token_contract_addr,
+                  burn_contract_version: peggedConfigI.bridge_version,
+                },
+                burn_config_as_dst: {
+                  chain_id: peggedConfigJ.pegged_chain_id,
+                  token: peggedConfigJ.pegged_token,
+                  burn_contract_addr: peggedConfigJ.pegged_burn_contract_addr,
+                  canonical_token_contract_addr: peggedConfigJ.canonical_token_contract_addr,
+                  burn_contract_version: peggedConfigJ.bridge_version,
+                },
+              });
+            }
+
+            if (peggedConfigJ.bridge_version === 2) {
+              multiBurnConfigs.push({
+                burn_config_as_org: {
+                  chain_id: peggedConfigJ.pegged_chain_id,
+                  token: peggedConfigJ.pegged_token,
+                  burn_contract_addr: peggedConfigJ.pegged_burn_contract_addr,
+                  canonical_token_contract_addr: peggedConfigJ.canonical_token_contract_addr,
+                  burn_contract_version: peggedConfigJ.bridge_version,
+                },
+                burn_config_as_dst: {
+                  chain_id: peggedConfigI.pegged_chain_id,
+                  token: peggedConfigI.pegged_token,
+                  burn_contract_addr: peggedConfigI.pegged_burn_contract_addr,
+                  canonical_token_contract_addr: peggedConfigI.canonical_token_contract_addr,
+                  burn_contract_version: peggedConfigI.bridge_version,
+                },
+              });
+            }
+          }
+        }
+      }
+
+      const ethPeggedPairConfigs: PeggedPairConfig[] = [];
+
+      payload.pegged_pair_configs.forEach(peggedPairConfig => {
+        if (
+          chainIds.includes(peggedPairConfig.org_chain_id) &&
+          peggedPairConfig.org_token.token.symbol === "WETH" &&
+          peggedPairConfig.vault_version > 0
+        ) {
+          const wethToken = peggedPairConfig.org_token;
+          const wethTokenInfo = wethToken.token;
+          const ethToken: TokenInfo = {
+            token: {
+              symbol: "WETH",
+              address: wethTokenInfo.address,
+              decimal: wethTokenInfo.decimal,
+              xfer_disabled: wethTokenInfo.xfer_disabled,
+              display_symbol: "ETH",
+            },
+            name: "ETH",
+            icon: "https://get.celer.app/cbridge-icons/ETH.png",
+            max_amt: wethToken.max_amt,
+          };
+
+          ethPeggedPairConfigs.push({
+            org_chain_id: peggedPairConfig.org_chain_id,
+            org_token: ethToken,
+            pegged_chain_id: peggedPairConfig.pegged_chain_id,
+            pegged_token: peggedPairConfig.pegged_token,
+            pegged_burn_contract_addr: peggedPairConfig.pegged_burn_contract_addr,
+            pegged_deposit_contract_addr: peggedPairConfig.pegged_deposit_contract_addr,
+            canonical_token_contract_addr: peggedPairConfig.canonical_token_contract_addr,
+            bridge_version: peggedPairConfig.bridge_version,
+            vault_version: peggedPairConfig.vault_version,
+          });
+        }
+      });
+
+      payload.pegged_pair_configs = payload.pegged_pair_configs
+        .concat(ethPeggedPairConfigs)
+        .filter(peggedPairConfig => {
+          return !(
+            peggedPairConfig.org_chain_id === 5 &&
+            peggedPairConfig.pegged_chain_id === 647 &&
+            peggedPairConfig.org_token.name === "Wrapped Ether"
+          );
+        });
+
       state.transferConfig = payload;
+      state.multiBurnConfigs = multiBurnConfigs;
     },
     setSlippageTolerance: (state, { payload }: PayloadAction<number>) => {
       state.slippageTolerance = payload;
@@ -122,18 +235,19 @@ const transferSlice = createSlice({
       state.tokenList = payload;
     },
     setFromChain: (state, { payload }: PayloadAction<Chain>) => {
-      // localStorage.setItem("fromChainInfo", JSON.stringify(payload));
-      localStorage.setItem("fromChainId", JSON.stringify(payload.id));
+      localStorage.setItem(storageConstants.KEY_FROM_CHAIN_ID, JSON.stringify(payload.id));
       state.fromChain = payload;
     },
     setToChain: (state, { payload }: PayloadAction<Chain>) => {
-      // localStorage.setItem("toChainInfo", JSON.stringify(payload));
-      localStorage.setItem("toChainId", JSON.stringify(payload.id));
+      localStorage.setItem(storageConstants.KEY_TO_CHAIN_ID, JSON.stringify(payload.id));
       state.toChain = payload;
     },
     setSelectedToken: (state, { payload }: PayloadAction<TokenInfo>) => {
       state.selectedToken = payload;
-      localStorage.setItem("selectedTokenSymbol", payload.token.display_symbol ?? payload.token.symbol);
+      localStorage.setItem(
+        storageConstants.KEY_SELECTED_TOKEN_SYMBOL,
+        payload.token.display_symbol ?? payload.token.symbol,
+      );
     },
     setSelectedTokenSymbol: (state, { payload }: PayloadAction<string>) => {
       state.selectedTokenSymbol = payload;
@@ -141,14 +255,14 @@ const transferSlice = createSlice({
     setTotalActionNum: (state, { payload }: PayloadAction<number>) => {
       state.totalActionNum = payload;
     },
-    setTotalPaddingNum: (state, { payload }: PayloadAction<number>) => {
+    setTotalPendingNum: (state, { payload }: PayloadAction<number>) => {
       state.totalPaddingNum = payload;
     },
     setEstimateAmtInfoInState: (state, { payload }: PayloadAction<EstimateAmtResponse.AsObject | null>) => {
       state.estimateAmtInfoInState = payload;
     },
     setRate: (state, { payload }: PayloadAction<string>) => {
-      localStorage.setItem("ratio", payload);
+      localStorage.setItem(storageConstants.KEY_RATIO, payload);
       state.rate = payload;
     },
     setGetConfigsFinish: (state, { payload }: PayloadAction<boolean>) => {
@@ -162,6 +276,9 @@ const transferSlice = createSlice({
     },
     setBigAmountDelayInfos: (state, { payload }: PayloadAction<Array<BigAmountDelayInfo>>) => {
       state.bigAmountDelayInfos = payload;
+    },
+    setFlowTokenPathConfigs: (state, { payload }: PayloadAction<Array<FlowTokenPathConfig>>) => {
+      state.flowTokenPathConfigs = payload;
     },
   },
 });
@@ -179,32 +296,57 @@ export const {
   setSelectedToken,
   setSelectedTokenSymbol,
   setTotalActionNum,
-  setTotalPaddingNum,
+  setTotalPendingNum,
   setEstimateAmtInfoInState,
   setRate,
   setGetConfigsFinish,
   setRefreshHistory,
   setRefreshTransferAndLiquidity,
   setBigAmountDelayInfos,
+  setFlowTokenPathConfigs,
 } = transferSlice.actions;
 
 export default transferSlice.reducer;
 
-export const switchChain = async (id, atoken) => {
+interface SwitchChainSuccessCallback {
+  (id: number): void;
+}
+
+export const switchChain = async (id, atoken, switchChainSuccessCallback: SwitchChainSuccessCallback) => {
   const inId = Number(id);
 
-  const providerName = localStorage.getItem("web3providerName");
+  const providerName = localStorage.getItem(storageConstants.KEY_WEB3_PROVIDER_NAME);
   if (providerName && providerName === "walletconnect") {
     return;
   }
 
   try {
-    await window.ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${inId.toString(16)}` }],
-    });
+    if (window.clover) {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [
+          {
+            chainId: `0x${inId.toString(16)}`,
+            rpcUrls: [getNetworkById(inId).rpcUrl],
+            chainName: getNetworkById(inId).name,
+            blockExplorerUrls: [getNetworkById(inId).blockExplorerUrl],
+            nativeCurrency: {
+              name: getNetworkById(inId).symbol,
+              symbol: getNetworkById(inId).symbol, // 2-6 characters long
+              decimals: 18,
+            },
+          },
+        ],
+      });
+    } else {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: `0x${inId.toString(16)}` }],
+      });
+    }
+    switchChainSuccessCallback(id);
     if (atoken) {
-      localStorage.setItem("ToAddToken", JSON.stringify({ atoken, toId: inId }));
+      localStorage.setItem(storageConstants.KEY_TO_ADD_TOKEN, JSON.stringify({ atoken, toId: inId }));
     }
   } catch (switchError) {
     // This error code indicates that the chain has not been added to MetaMask.
@@ -230,8 +372,9 @@ export const switchChain = async (id, atoken) => {
             },
           ],
         });
+        switchChainSuccessCallback(id);
         if (atoken) {
-          localStorage.setItem("ToAddToken", JSON.stringify({ atoken, toId: id }));
+          localStorage.setItem(storageConstants.KEY_TO_ADD_TOKEN, JSON.stringify({ atoken, toId: id }));
         }
       } catch (addError) {
         // handle "add" error
@@ -244,7 +387,8 @@ export const switchChain = async (id, atoken) => {
 export const addChainToken = async addtoken => {
   try {
     // wasAdded is a boolean. Like any RPC method, an error may be thrown.
-    const wasAdded = await window.ethereum.request({
+    localStorage.setItem(storageConstants.KEY_TO_ADD_TOKEN, "");
+    await window.ethereum.request({
       method: "wallet_watchAsset",
       params: {
         type: "ERC20", // Initially only supports ERC20, but eventually more!
@@ -256,11 +400,6 @@ export const addChainToken = async addtoken => {
         },
       },
     });
-    if (wasAdded) {
-      localStorage.setItem("ToAddToken", "");
-    } else {
-      localStorage.setItem("ToAddToken", "");
-    }
   } catch (error) {
     console.log(error);
   }

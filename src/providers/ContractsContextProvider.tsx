@@ -32,7 +32,9 @@ export const ContractsContextProvider = ({ children }: ContractsContextProviderP
     farmingRewardAddresses,
     faucetAddresses,
     oTContractAddr,
+    oTContractAddrV2,
     pTContractAddr,
+    pTContractAddrV2,
     fraxContractAddr,
   } = useAppSelector(state => state.globalInfo);
   useEffect(() => {
@@ -45,7 +47,9 @@ export const ContractsContextProvider = ({ children }: ContractsContextProviderP
         incentiveEventsReward: `${process.env.REACT_APP_INCENTIVE_REWARDS_ADDRESS}`,
         faucet: faucetAddresses[chainId],
         originalTokenVault: oTContractAddr,
+        originalTokenVaultV2: oTContractAddrV2,
         peggedTokenBridge: pTContractAddr,
+        peggedTokenBridgeV2: pTContractAddrV2,
       });
     }
   }, [
@@ -55,7 +59,9 @@ export const ContractsContextProvider = ({ children }: ContractsContextProviderP
     chainId,
     faucetAddresses,
     oTContractAddr,
+    oTContractAddrV2,
     pTContractAddr,
+    pTContractAddrV2,
     fraxContractAddr,
   ]);
 

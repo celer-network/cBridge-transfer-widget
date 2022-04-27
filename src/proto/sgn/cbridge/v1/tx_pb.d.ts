@@ -1,8 +1,7 @@
-import * as jspb from 'google-protobuf'
+import * as jspb from "google-protobuf";
 
-import * as gogoproto_gogo_pb from '../../../gogoproto/gogo_pb';
-import * as sgn_cbridge_v1_cbridge_pb from '../../../sgn/cbridge/v1/cbridge_pb';
-
+import * as gogoproto_gogo_pb from "../../../gogoproto/gogo_pb";
+import * as sgn_cbridge_v1_cbridge_pb from "../../../sgn/cbridge/v1/cbridge_pb";
 
 export class MsgSendMySig extends jspb.Message {
   getDatatype(): SignDataType;
@@ -31,11 +30,11 @@ export class MsgSendMySig extends jspb.Message {
 
 export namespace MsgSendMySig {
   export type AsObject = {
-    datatype: SignDataType,
-    data: Uint8Array | string,
-    mySigsList: Array<MySig.AsObject>,
-    creator: string,
-  }
+    datatype: SignDataType;
+    data: Uint8Array | string;
+    mySigsList: Array<MySig.AsObject>;
+    creator: string;
+  };
 }
 
 export class MySig extends jspb.Message {
@@ -57,9 +56,9 @@ export class MySig extends jspb.Message {
 
 export namespace MySig {
   export type AsObject = {
-    chainId: number,
-    sig: Uint8Array | string,
-  }
+    chainId: number;
+    sig: Uint8Array | string;
+  };
 }
 
 export class MsgSendMySigResp extends jspb.Message {
@@ -72,8 +71,7 @@ export class MsgSendMySigResp extends jspb.Message {
 }
 
 export namespace MsgSendMySigResp {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class WithdrawLq extends jspb.Message {
@@ -99,11 +97,11 @@ export class WithdrawLq extends jspb.Message {
 
 export namespace WithdrawLq {
   export type AsObject = {
-    fromChainId: number,
-    tokenAddr: string,
-    ratio: number,
-    maxSlippage: number,
-  }
+    fromChainId: number;
+    tokenAddr: string;
+    ratio: number;
+    maxSlippage: number;
+  };
 }
 
 export class WithdrawReq extends jspb.Message {
@@ -134,12 +132,12 @@ export class WithdrawReq extends jspb.Message {
 
 export namespace WithdrawReq {
   export type AsObject = {
-    xferId: string,
-    withdrawsList: Array<WithdrawLq.AsObject>,
-    exitChainId: number,
-    reqId: number,
-    withdrawType: WithdrawType,
-  }
+    xferId: string;
+    withdrawsList: Array<WithdrawLq.AsObject>;
+    exitChainId: number;
+    reqId: number;
+    withdrawType: WithdrawType;
+  };
 }
 
 export class MsgInitWithdraw extends jspb.Message {
@@ -166,10 +164,10 @@ export class MsgInitWithdraw extends jspb.Message {
 
 export namespace MsgInitWithdraw {
   export type AsObject = {
-    withdrawReq: Uint8Array | string,
-    userSig: Uint8Array | string,
-    creator: string,
-  }
+    withdrawReq: Uint8Array | string;
+    userSig: Uint8Array | string;
+    creator: string;
+  };
 }
 
 export class MsgInitWithdrawResp extends jspb.Message {
@@ -182,8 +180,7 @@ export class MsgInitWithdrawResp extends jspb.Message {
 }
 
 export namespace MsgInitWithdrawResp {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class MsgSignAgain extends jspb.Message {
@@ -216,12 +213,12 @@ export class MsgSignAgain extends jspb.Message {
 
 export namespace MsgSignAgain {
   export type AsObject = {
-    dataType: SignDataType,
-    userAddr: Uint8Array | string,
-    reqId: number,
-    xferId: Uint8Array | string,
-    creator: string,
-  }
+    dataType: SignDataType;
+    userAddr: Uint8Array | string;
+    reqId: number;
+    xferId: Uint8Array | string;
+    creator: string;
+  };
 }
 
 export class MsgSignAgainResp extends jspb.Message {
@@ -234,8 +231,7 @@ export class MsgSignAgainResp extends jspb.Message {
 }
 
 export namespace MsgSignAgainResp {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class MsgUpdateLatestSigners extends jspb.Message {
@@ -247,13 +243,16 @@ export class MsgUpdateLatestSigners extends jspb.Message {
   static toObject(includeInstance: boolean, msg: MsgUpdateLatestSigners): MsgUpdateLatestSigners.AsObject;
   static serializeBinaryToWriter(message: MsgUpdateLatestSigners, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): MsgUpdateLatestSigners;
-  static deserializeBinaryFromReader(message: MsgUpdateLatestSigners, reader: jspb.BinaryReader): MsgUpdateLatestSigners;
+  static deserializeBinaryFromReader(
+    message: MsgUpdateLatestSigners,
+    reader: jspb.BinaryReader,
+  ): MsgUpdateLatestSigners;
 }
 
 export namespace MsgUpdateLatestSigners {
   export type AsObject = {
-    creator: string,
-  }
+    creator: string;
+  };
 }
 
 export class MsgUpdateLatestSignersResp extends jspb.Message {
@@ -262,12 +261,14 @@ export class MsgUpdateLatestSignersResp extends jspb.Message {
   static toObject(includeInstance: boolean, msg: MsgUpdateLatestSignersResp): MsgUpdateLatestSignersResp.AsObject;
   static serializeBinaryToWriter(message: MsgUpdateLatestSignersResp, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): MsgUpdateLatestSignersResp;
-  static deserializeBinaryFromReader(message: MsgUpdateLatestSignersResp, reader: jspb.BinaryReader): MsgUpdateLatestSignersResp;
+  static deserializeBinaryFromReader(
+    message: MsgUpdateLatestSignersResp,
+    reader: jspb.BinaryReader,
+  ): MsgUpdateLatestSignersResp;
 }
 
 export namespace MsgUpdateLatestSignersResp {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class MsgSyncFarming extends jspb.Message {
@@ -293,11 +294,11 @@ export class MsgSyncFarming extends jspb.Message {
 
 export namespace MsgSyncFarming {
   export type AsObject = {
-    lpAddress: string,
-    chainId: number,
-    tokenAddress: string,
-    creator: string,
-  }
+    lpAddress: string;
+    chainId: number;
+    tokenAddress: string;
+    creator: string;
+  };
 }
 
 export class MsgSyncFarmingResponse extends jspb.Message {
@@ -306,12 +307,14 @@ export class MsgSyncFarmingResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: MsgSyncFarmingResponse): MsgSyncFarmingResponse.AsObject;
   static serializeBinaryToWriter(message: MsgSyncFarmingResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): MsgSyncFarmingResponse;
-  static deserializeBinaryFromReader(message: MsgSyncFarmingResponse, reader: jspb.BinaryReader): MsgSyncFarmingResponse;
+  static deserializeBinaryFromReader(
+    message: MsgSyncFarmingResponse,
+    reader: jspb.BinaryReader,
+  ): MsgSyncFarmingResponse;
 }
 
 export namespace MsgSyncFarmingResponse {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class ErrMsg extends jspb.Message {
@@ -331,23 +334,24 @@ export class ErrMsg extends jspb.Message {
 
 export namespace ErrMsg {
   export type AsObject = {
-    code: ErrCode,
-    desc: string,
-  }
+    code: ErrCode;
+    desc: string;
+  };
 }
 
-export enum SignDataType { 
+export enum SignDataType {
   INVALID = 0,
   RELAY = 1,
   WITHDRAW = 2,
   SIGNERS = 3,
 }
-export enum WithdrawType { 
+export enum WithdrawType {
   WITHDRAW_TYPE_REMOVE_LIQUIDITY = 0,
   WITHDRAW_TYPE_REFUND_TRANSFER = 1,
   WITHDRAW_TYPE_CLAIM_FEE_SHARE = 2,
+  WITHDRAW_TYPE_VALIDATOR_CLAIM_FEE_SHARE = 3,
 }
-export enum ErrCode { 
+export enum ErrCode {
   UNDEFINED = 0,
   INVALID_REQ = 1,
   INVALID_SIG = 2,

@@ -1,10 +1,9 @@
-import * as jspb from 'google-protobuf'
+import * as jspb from "google-protobuf";
 
-import * as cosmos_proto_cosmos_pb from '../../../cosmos_proto/cosmos_pb';
-import * as gogoproto_gogo_pb from '../../../gogoproto/gogo_pb';
-import * as google_protobuf_duration_pb from 'google-protobuf/google/protobuf/duration_pb';
-import * as sgn_common_v1_common_pb from '../../../sgn/common/v1/common_pb';
-
+import * as cosmos_proto_cosmos_pb from "../../../cosmos_proto/cosmos_pb";
+import * as gogoproto_gogo_pb from "../../../gogoproto/gogo_pb";
+import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as sgn_common_v1_common_pb from "../../../sgn/common/v1/common_pb";
 
 export class Params extends jspb.Message {
   getSignerUpdateDuration(): google_protobuf_duration_pb.Duration | undefined;
@@ -27,9 +26,9 @@ export class Params extends jspb.Message {
 
 export namespace Params {
   export type AsObject = {
-    signerUpdateDuration?: google_protobuf_duration_pb.Duration.AsObject,
-    signAgainCoolDownDuration?: google_protobuf_duration_pb.Duration.AsObject,
-  }
+    signerUpdateDuration?: google_protobuf_duration_pb.Duration.AsObject;
+    signAgainCoolDownDuration?: google_protobuf_duration_pb.Duration.AsObject;
+  };
 }
 
 export class CbrConfig extends jspb.Message {
@@ -67,6 +66,9 @@ export class CbrConfig extends jspb.Message {
   getMaxGainPerc(): number;
   setMaxGainPerc(value: number): CbrConfig;
 
+  getUpdateGasCost(): boolean;
+  setUpdateGasCost(value: boolean): CbrConfig;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CbrConfig.AsObject;
   static toObject(includeInstance: boolean, msg: CbrConfig): CbrConfig.AsObject;
@@ -77,15 +79,16 @@ export class CbrConfig extends jspb.Message {
 
 export namespace CbrConfig {
   export type AsObject = {
-    lpFeePerc: number,
-    pickLpSize: number,
-    relayGasCostList: Array<RelayGasCostParam.AsObject>,
-    assetsList: Array<ChainAsset.AsObject>,
-    chainPairsList: Array<ChainPair.AsObject>,
-    cbrContractsList: Array<sgn_common_v1_common_pb.ContractInfo.AsObject>,
-    overrideList: Array<PerChainPairAssetOverride.AsObject>,
-    maxGainPerc: number,
-  }
+    lpFeePerc: number;
+    pickLpSize: number;
+    relayGasCostList: Array<RelayGasCostParam.AsObject>;
+    assetsList: Array<ChainAsset.AsObject>;
+    chainPairsList: Array<ChainPair.AsObject>;
+    cbrContractsList: Array<sgn_common_v1_common_pb.ContractInfo.AsObject>;
+    overrideList: Array<PerChainPairAssetOverride.AsObject>;
+    maxGainPerc: number;
+    updateGasCost: boolean;
+  };
 }
 
 export class CbrPrice extends jspb.Message {
@@ -112,10 +115,10 @@ export class CbrPrice extends jspb.Message {
 
 export namespace CbrPrice {
   export type AsObject = {
-    updateEpoch: number,
-    assetPriceList: Array<AssetPrice.AsObject>,
-    gasPriceList: Array<GasPrice.AsObject>,
-  }
+    updateEpoch: number;
+    assetPriceList: Array<AssetPrice.AsObject>;
+    gasPriceList: Array<GasPrice.AsObject>;
+  };
 }
 
 export class RelayGasCostParam extends jspb.Message {
@@ -141,11 +144,11 @@ export class RelayGasCostParam extends jspb.Message {
 
 export namespace RelayGasCostParam {
   export type AsObject = {
-    chainId: number,
-    costBase: number,
-    perValidator: number,
-    perSig: number,
-  }
+    chainId: number;
+    costBase: number;
+    perValidator: number;
+    perSig: number;
+  };
 }
 
 export class AssetPrice extends jspb.Message {
@@ -160,6 +163,9 @@ export class AssetPrice extends jspb.Message {
   getPrice(): number;
   setPrice(value: number): AssetPrice;
 
+  getExtraPower10(): number;
+  setExtraPower10(value: number): AssetPrice;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AssetPrice.AsObject;
   static toObject(includeInstance: boolean, msg: AssetPrice): AssetPrice.AsObject;
@@ -170,10 +176,11 @@ export class AssetPrice extends jspb.Message {
 
 export namespace AssetPrice {
   export type AsObject = {
-    symbol: string,
-    chainIdsList: Array<number>,
-    price: number,
-  }
+    symbol: string;
+    chainIdsList: Array<number>;
+    price: number;
+    extraPower10: number;
+  };
 }
 
 export class GasPrice extends jspb.Message {
@@ -193,9 +200,9 @@ export class GasPrice extends jspb.Message {
 
 export namespace GasPrice {
   export type AsObject = {
-    chainId: number,
-    price: string,
-  }
+    chainId: number;
+    price: string;
+  };
 }
 
 export class ChainAsset extends jspb.Message {
@@ -230,14 +237,14 @@ export class ChainAsset extends jspb.Message {
 
 export namespace ChainAsset {
   export type AsObject = {
-    symbol: string,
-    chainId: number,
-    addr: string,
-    decimal: number,
-    maxFeeAmount: string,
-    xferDisabled: boolean,
-    maxOutAmt: string,
-  }
+    symbol: string;
+    chainId: number;
+    addr: string;
+    decimal: number;
+    maxFeeAmount: string;
+    xferDisabled: boolean;
+    maxOutAmt: string;
+  };
 }
 
 export class ChainPair extends jspb.Message {
@@ -272,14 +279,14 @@ export class ChainPair extends jspb.Message {
 
 export namespace ChainPair {
   export type AsObject = {
-    chid1: number,
-    chid2: number,
-    weight1: number,
-    fee1to2: number,
-    fee2to1: number,
-    constA: number,
-    noCurve: boolean,
-  }
+    chid1: number;
+    chid2: number;
+    weight1: number;
+    fee1to2: number;
+    fee2to1: number;
+    constA: number;
+    noCurve: boolean;
+  };
 }
 
 export class PerChainPairAssetOverride extends jspb.Message {
@@ -296,14 +303,17 @@ export class PerChainPairAssetOverride extends jspb.Message {
   static toObject(includeInstance: boolean, msg: PerChainPairAssetOverride): PerChainPairAssetOverride.AsObject;
   static serializeBinaryToWriter(message: PerChainPairAssetOverride, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): PerChainPairAssetOverride;
-  static deserializeBinaryFromReader(message: PerChainPairAssetOverride, reader: jspb.BinaryReader): PerChainPairAssetOverride;
+  static deserializeBinaryFromReader(
+    message: PerChainPairAssetOverride,
+    reader: jspb.BinaryReader,
+  ): PerChainPairAssetOverride;
 }
 
 export namespace PerChainPairAssetOverride {
   export type AsObject = {
-    symbol: string,
-    chpair?: ChainPair.AsObject,
-  }
+    symbol: string;
+    chpair?: ChainPair.AsObject;
+  };
 }
 
 export class CbrProposal extends jspb.Message {
@@ -331,11 +341,11 @@ export class CbrProposal extends jspb.Message {
 
 export namespace CbrProposal {
   export type AsObject = {
-    title: string,
-    description: string,
-    cbrConfig?: CbrConfig.AsObject,
-    deposit: string,
-  }
+    title: string;
+    description: string;
+    cbrConfig?: CbrConfig.AsObject;
+    deposit: string;
+  };
 }
 
 export class OnChainEvent extends jspb.Message {
@@ -360,10 +370,10 @@ export class OnChainEvent extends jspb.Message {
 
 export namespace OnChainEvent {
   export type AsObject = {
-    chainid: number,
-    evtype: string,
-    elog: Uint8Array | string,
-  }
+    chainid: number;
+    evtype: string;
+    elog: Uint8Array | string;
+  };
 }
 
 export class RelayOnChain extends jspb.Message {
@@ -408,14 +418,14 @@ export class RelayOnChain extends jspb.Message {
 
 export namespace RelayOnChain {
   export type AsObject = {
-    sender: Uint8Array | string,
-    receiver: Uint8Array | string,
-    token: Uint8Array | string,
-    amount: Uint8Array | string,
-    srcChainId: number,
-    dstChainId: number,
-    srcTransferId: Uint8Array | string,
-  }
+    sender: Uint8Array | string;
+    receiver: Uint8Array | string;
+    token: Uint8Array | string;
+    amount: Uint8Array | string;
+    srcChainId: number;
+    dstChainId: number;
+    srcTransferId: Uint8Array | string;
+  };
 }
 
 export class WithdrawOnchain extends jspb.Message {
@@ -455,13 +465,13 @@ export class WithdrawOnchain extends jspb.Message {
 
 export namespace WithdrawOnchain {
   export type AsObject = {
-    chainid: number,
-    seqnum: number,
-    receiver: Uint8Array | string,
-    token: Uint8Array | string,
-    amount: Uint8Array | string,
-    refid: Uint8Array | string,
-  }
+    chainid: number;
+    seqnum: number;
+    receiver: Uint8Array | string;
+    token: Uint8Array | string;
+    amount: Uint8Array | string;
+    refid: Uint8Array | string;
+  };
 }
 
 export class XferRelay extends jspb.Message {
@@ -498,12 +508,12 @@ export class XferRelay extends jspb.Message {
 
 export namespace XferRelay {
   export type AsObject = {
-    relay: Uint8Array | string,
-    sortedSigsList: Array<AddrSig.AsObject>,
-    lastReqTime: number,
-    percFee: Uint8Array | string,
-    baseFee: Uint8Array | string,
-  }
+    relay: Uint8Array | string;
+    sortedSigsList: Array<AddrSig.AsObject>;
+    lastReqTime: number;
+    percFee: Uint8Array | string;
+    baseFee: Uint8Array | string;
+  };
 }
 
 export class WithdrawDetail extends jspb.Message {
@@ -538,12 +548,12 @@ export class WithdrawDetail extends jspb.Message {
 
 export namespace WithdrawDetail {
   export type AsObject = {
-    wdOnchain: Uint8Array | string,
-    sortedSigsList: Array<AddrSig.AsObject>,
-    completed: boolean,
-    lastReqTime: number,
-    xferid: Uint8Array | string,
-  }
+    wdOnchain: Uint8Array | string;
+    sortedSigsList: Array<AddrSig.AsObject>;
+    completed: boolean;
+    lastReqTime: number;
+    xferid: Uint8Array | string;
+  };
 }
 
 export class AddrSig extends jspb.Message {
@@ -567,9 +577,9 @@ export class AddrSig extends jspb.Message {
 
 export namespace AddrSig {
   export type AsObject = {
-    addr: Uint8Array | string,
-    sig: Uint8Array | string,
-  }
+    addr: Uint8Array | string;
+    sig: Uint8Array | string;
+  };
 }
 
 export class Signer extends jspb.Message {
@@ -593,9 +603,9 @@ export class Signer extends jspb.Message {
 
 export namespace Signer {
   export type AsObject = {
-    addr: Uint8Array | string,
-    power: Uint8Array | string,
-  }
+    addr: Uint8Array | string;
+    power: Uint8Array | string;
+  };
 }
 
 export class ChainSigners extends jspb.Message {
@@ -622,10 +632,10 @@ export class ChainSigners extends jspb.Message {
 
 export namespace ChainSigners {
   export type AsObject = {
-    chainId: number,
-    sortedSignersList: Array<Signer.AsObject>,
-    sortedSigsList: Array<AddrSig.AsObject>,
-  }
+    chainId: number;
+    sortedSignersList: Array<Signer.AsObject>;
+    sortedSigsList: Array<AddrSig.AsObject>;
+  };
 }
 
 export class LatestSigners extends jspb.Message {
@@ -655,14 +665,14 @@ export class LatestSigners extends jspb.Message {
 
 export namespace LatestSigners {
   export type AsObject = {
-    sortedSignersList: Array<Signer.AsObject>,
-    signersBytes: Uint8Array | string,
-    triggerTime: number,
-    lastSignTime: number,
-  }
+    sortedSignersList: Array<Signer.AsObject>;
+    signersBytes: Uint8Array | string;
+    triggerTime: number;
+    lastSignTime: number;
+  };
 }
 
-export enum XferStatus { 
+export enum XferStatus {
   UNKNOWN = 0,
   OK_TO_RELAY = 1,
   SUCCESS = 2,

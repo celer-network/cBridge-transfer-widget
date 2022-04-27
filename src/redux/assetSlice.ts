@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { GetPeggedMode, PeggedChainMode } from "../hooks/usePeggedPairConfig";
 import { PeggedPairConfig } from "../constants/type";
+import { storageConstants } from "../constants/const";
 
 /* eslint-disable*/
 /* eslint-disable no-debugger */
@@ -37,7 +38,7 @@ interface ISliceState {
   transferConfig: TransferConfig;
   slippageTolerance: number;
 }
-const localeFromChainId = Number(localStorage.getItem("fromChainId" + process.env.REACT_APP_ENV));
+const localeFromChainId = Number(localStorage.getItem(storageConstants.KEY_FROM_CHAIN_ID + process.env.REACT_APP_ENV));
 // const chainArray = process.env.REACT_APP_ENV === "TEST" ? [3, 5, 97] : [1, 56, 137, 42161, 100, 66];
 let defaultFromChainId;
 if (localeFromChainId) {
@@ -47,15 +48,15 @@ if (localeFromChainId) {
 }
 const initialState: ISliceState = {
   allToken: {},
-  selectedIndex: Number(localStorage.getItem("selectedIndex")) || 0,
+  selectedIndex: Number(localStorage.getItem(storageConstants.KEY_SELECTED_INDEX)) || 0,
   fromChainId: defaultFromChainId,
-  toChainId: localStorage.getItem("toChainId" + process.env.REACT_APP_ENV)
-    ? Number(localStorage.getItem("toChainId" + process.env.REACT_APP_ENV))
+  toChainId: localStorage.getItem(storageConstants.KEY_TO_CHAIN_ID + process.env.REACT_APP_ENV)
+    ? Number(localStorage.getItem(storageConstants.KEY_TO_CHAIN_ID + process.env.REACT_APP_ENV))
     : Number(process.env.REACT_APP_BSC_ID),
   loading: false,
   isReject: false,
   tvl: 0,
-  tabkey: localStorage.getItem("tabkey") || "transfer",
+  tabkey: localStorage.getItem(storageConstants.KEY_TAB_KEY) || "transfer",
   transferStatus: "",
   historyList: [],
   waitingNum: 0,
@@ -76,7 +77,7 @@ const assetSlice = createSlice({
   reducers: {
     setSelectedTokenIndex: (state, { payload }: PayloadAction<number>) => {
       state.selectedIndex = payload;
-      localStorage.setItem("selectedIndex", payload.toString());
+      localStorage.setItem(storageConstants.KEY_SELECTED_INDEX, payload.toString());
     },
     setFromChainId: (state, { payload }: PayloadAction<number>) => {
       state.fromChainId = payload;
@@ -86,7 +87,7 @@ const assetSlice = createSlice({
       //   return item;
       // });
       state.selectedIndex = 0;
-      localStorage.setItem("selectedIndex", "0");
+      localStorage.setItem(storageConstants.KEY_SELECTED_INDEX, "0");
       // } else {
       //   console.log("no token list");
       // }
@@ -101,7 +102,7 @@ const assetSlice = createSlice({
       state.isReject = payload;
     },
     setTableKey: (state, { payload }: PayloadAction<string>) => {
-      localStorage.setItem("tabkey", payload);
+      localStorage.setItem(storageConstants.KEY_TAB_KEY, payload);
       state.tabkey = payload;
     },
     setWaitingNum: (state, { payload }: PayloadAction<number>) => {
@@ -238,6 +239,71 @@ export const getTokenListSymbol = (symbol, chId) => {
     }
   }
 
+  if (chainId === 1 || chainId === 56) {
+    if (symbol === "SYS") {
+      name = "WSYS";
+    }
+  }
+
+  if (chainId === 9001) {
+    if (symbol === "WETH") {
+      name = "ceWETH";
+    }
+
+    if (symbol === "USDC") {
+      name = "ceUSDC";
+    }
+
+    if (symbol === "USDT") {
+      name = "ceUSDT";
+    }
+
+    if (symbol === "DAI") {
+      name = "ceDAI";
+    }
+
+    if (symbol === "WBTC") {
+      name = "ceWBTC";
+    }
+  }
+
+  if (chainId === 12340001) {
+    if (symbol === "AVAX") {
+      name = "ceAVAX";
+    }
+
+    if (symbol === "BNB") {
+      name = "ceBNB";
+    }
+
+    if (symbol === "BUSD") {
+      name = "ceBUSD";
+    }
+
+    if (symbol === "DAI") {
+      name = "ceDAI";
+    }
+
+    if (symbol === "FTM") {
+      name = "ceFTM";
+    }
+
+    if (symbol === "MATIC") {
+      name = "ceMATIC";
+    }
+
+    if (symbol === "USDT") {
+      name = "ceUSDT";
+    }
+
+    if (symbol === "WBTC") {
+      name = "ceWBTC";
+    }
+
+    if (symbol === "WETH") {
+      name = "ceWETH";
+    }
+  }
   return name;
 };
 
@@ -251,6 +317,21 @@ export const getTokenSymbolWithPeggedMode = (
   if (peggedMode === PeggedChainMode.Off) {
     return getTokenSymbol(tokenSymbol, toChainId);
   }
+
+  const vaultV2BurnForWETH = pegged_pair_configs.find(peggedPairConfig => {
+    return (
+      peggedPairConfig.org_chain_id === toChainId &&
+      peggedPairConfig.pegged_chain_id === fromChainId &&
+      peggedPairConfig.vault_version > 0 &&
+      peggedPairConfig.org_token.token.symbol === tokenSymbol &&
+      tokenSymbol === "WETH"
+    );
+  });
+
+  if (vaultV2BurnForWETH) {
+    return "ETH";
+  }
+
   return getTokenListSymbol(tokenSymbol, toChainId);
 };
 
@@ -265,7 +346,7 @@ export const switchChain = async (id, isMobile, atoken) => {
       params: [{ chainId: `0x${inId.toString(16)}` }],
     });
     if (atoken) {
-      localStorage.setItem("ToAddToken", JSON.stringify({ atoken, toId: id }));
+      localStorage.setItem(storageConstants.KEY_TO_ADD_TOKEN, JSON.stringify({ atoken, toId: id }));
     }
   } catch (switchError) {
     // This error code indicates that the chain has not been added to MetaMask.
@@ -313,9 +394,9 @@ export const addChainToken = async (addtoken, chId) => {
       },
     });
     if (wasAdded) {
-      localStorage.setItem("ToAddToken", "");
+      localStorage.setItem(storageConstants.KEY_TO_ADD_TOKEN, "");
     } else {
-      localStorage.setItem("ToAddToken", "");
+      localStorage.setItem(storageConstants.KEY_TO_ADD_TOKEN, "");
     }
   } catch (error) {
     console.log(error);

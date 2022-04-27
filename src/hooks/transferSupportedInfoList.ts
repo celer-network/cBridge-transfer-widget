@@ -1,12 +1,12 @@
 /* eslint-disable camelcase */
 import { useEffect, useState } from "react";
-import { Chain, PeggedPairConfig, TokenInfo, Token, GetTransferConfigsResponse } from "../constants/type";
+import { Chain, TokenInfo, Token, GetTransferConfigsResponse, MultiBurnPairConfig } from "../constants/type";
 import { useAppSelector } from "../redux/store";
 import { getNetworkById, CHAIN_LIST } from "../constants/network";
 
 export const useTransferSupportedChainList = (useAsDestinationChain: boolean): Chain[] => {
   const { transferInfo } = useAppSelector(state => state);
-  const { fromChain, transferConfig } = transferInfo;
+  const { fromChain, transferConfig, multiBurnConfigs } = transferInfo;
 
   const [fromChainList, setFromChainList] = useState<Chain[]>([]);
   const [chainList, setChainList] = useState<Chain[]>([]);
@@ -35,7 +35,7 @@ export const useTransferSupportedChainList = (useAsDestinationChain: boolean): C
           return;
         }
 
-        if (twoChainBridged(id1, id2, transferConfig)) {
+        if (twoChainBridged(id1, id2, transferConfig, multiBurnConfigs)) {
           bridgedIds.add(id1);
           bridgedIds.add(id2);
         }
@@ -47,7 +47,7 @@ export const useTransferSupportedChainList = (useAsDestinationChain: boolean): C
     });
 
     setFromChainList(supportedChains);
-  }, [transferConfig]);
+  }, [transferConfig, multiBurnConfigs]);
 
   useEffect(() => {
     if (useAsDestinationChain && fromChain && fromChain !== undefined) {
@@ -103,6 +103,20 @@ export const useTransferSupportedChainList = (useAsDestinationChain: boolean): C
         }
       });
 
+      multiBurnConfigs.forEach(multiBurnConfig => {
+        if (
+          multiBurnConfig.burn_config_as_org.chain_id === fromChain.id &&
+          fromChainTokenSymbolWhiteList.includes(multiBurnConfig.burn_config_as_org.token.token.symbol)
+        ) {
+          const peggedChainTokenSymbolWhiteList = getNetworkById(
+            multiBurnConfig.burn_config_as_dst.chain_id,
+          ).tokenSymbolList;
+          if (peggedChainTokenSymbolWhiteList.includes(multiBurnConfig.burn_config_as_dst.token.token.symbol)) {
+            potentialTargetChainIds.add(multiBurnConfig.burn_config_as_dst.chain_id);
+          }
+        }
+      });
+
       const targetChains: Chain[] = [];
 
       potentialTargetChainIds.forEach(chainId => {
@@ -119,14 +133,14 @@ export const useTransferSupportedChainList = (useAsDestinationChain: boolean): C
       /// User can select any transfer supported chain in chain white list as source chain
       setChainList(fromChainList);
     }
-  }, [fromChain, fromChainList, useAsDestinationChain, transferConfig]);
+  }, [fromChain, fromChainList, useAsDestinationChain, transferConfig, multiBurnConfigs]);
 
   return chainList;
 };
 
 export const useTransferSupportedTokenList = (): TokenInfo[] => {
   const { transferInfo } = useAppSelector(state => state);
-  const { fromChain, toChain, transferConfig } = transferInfo;
+  const { fromChain, toChain, transferConfig, multiBurnConfigs } = transferInfo;
   const { chain_token, pegged_pair_configs } = transferConfig;
 
   const [tokenList, setTokenList] = useState<TokenInfo[]>([]);
@@ -152,6 +166,23 @@ export const useTransferSupportedTokenList = (): TokenInfo[] => {
             return tokenInfo.token.symbol;
           });
 
+        const multiBurnTokens: TokenInfo[] = [];
+        multiBurnConfigs.forEach(burnConfig => {
+          if (
+            burnConfig.burn_config_as_org.chain_id === fromChainId &&
+            burnConfig.burn_config_as_dst.chain_id === toChainId &&
+            fromChainTokenSymbolWhiteList.includes(burnConfig.burn_config_as_org.token.token.symbol) &&
+            toChainTokenSymbolWhiteList.includes(burnConfig.burn_config_as_dst.token.token.symbol)
+          ) {
+            multiBurnTokens.push(
+              replaceTokenAddressForCanonicalTokenSwapIfNeeded(
+                burnConfig.burn_config_as_org.token,
+                burnConfig.burn_config_as_org.canonical_token_contract_addr,
+              ),
+            );
+          }
+        });
+
         const mintBurnTokens: TokenInfo[] = [];
         pegged_pair_configs.forEach(peggedPairConfig => {
           if (
@@ -169,11 +200,20 @@ export const useTransferSupportedTokenList = (): TokenInfo[] => {
             fromChainTokenSymbolWhiteList.includes(peggedPairConfig.pegged_token.token.symbol)
           ) {
             /// Pegged Burn Mode && Canonical Token Swap Mode
-            mintBurnTokens.push(replaceTokenAddressForCanonicalTokenSwapIfNeeded(peggedPairConfig));
+            /// If there is pegged pair config, it will not appear in multiBurn configs. No need to
+            /// check whether this pegged token has been pushed into multiBurnTokens
+            mintBurnTokens.push(
+              replaceTokenAddressForCanonicalTokenSwapIfNeeded(
+                peggedPairConfig.pegged_token,
+                peggedPairConfig.canonical_token_contract_addr,
+              ),
+            );
           }
         });
 
-        const mintBurnTokenSymbols: string[] = mintBurnTokens.map(tokenInfo => {
+        const peggedModeTokens = multiBurnTokens.concat(mintBurnTokens);
+
+        const peggedModeTokenSymbols: string[] = peggedModeTokens.map(tokenInfo => {
           return tokenInfo.token.symbol;
         });
 
@@ -183,55 +223,35 @@ export const useTransferSupportedTokenList = (): TokenInfo[] => {
         const poolBasedTokens: TokenInfo[] = fromChainPoolBasedTokens.filter(tokenInfo => {
           return (
             toChainPoolBasedTokenSymbol.includes(tokenInfo.token.symbol) &&
-            !mintBurnTokenSymbols.includes(tokenInfo.token.display_symbol ?? tokenInfo.token.symbol)
+            !peggedModeTokenSymbols.includes(tokenInfo.token.display_symbol ?? tokenInfo.token.symbol)
           );
         });
 
-        const finalTokens = poolBasedTokens.concat(mintBurnTokens).filter(tokenInfo => {
+        const finalTokens = poolBasedTokens.concat(peggedModeTokens).filter(tokenInfo => {
           return fromChainTokenSymbolWhiteList.includes(tokenInfo.token.symbol);
         });
 
         setTokenList(finalTokens);
       } else {
-        const mintBurnTokens: TokenInfo[] = [];
-        pegged_pair_configs.forEach(peggedPairConfig => {
-          if (peggedPairConfig.org_chain_id === fromChainId) {
-            /// Pegged Mint Mode
-            mintBurnTokens.push(peggedPairConfig.org_token);
-          } else if (peggedPairConfig.pegged_chain_id === fromChainId) {
-            /// Pegged Burn Mode && Canonical Token Swap Mode
-            mintBurnTokens.push(replaceTokenAddressForCanonicalTokenSwapIfNeeded(peggedPairConfig));
-          }
-        });
-
-        const mintBurnTokenSymbols: string[] = mintBurnTokens.map(tokenInfo => {
-          return tokenInfo.token.symbol;
-        });
-
-        /// Filter all tokens which have been set inside mintBurnTokens
-        /// tokenInfo.token.display_symbol is used for ETH protection with mintBurn Filter
-        const poolBasedTokens: TokenInfo[] = fromChainPoolBasedTokens.filter(tokenInfo => {
-          return !mintBurnTokenSymbols.includes(tokenInfo.token.display_symbol ?? tokenInfo.token.symbol);
-        });
-
-        const finalTokens = poolBasedTokens.concat(mintBurnTokens).filter(tokenInfo => {
-          return fromChainTokenSymbolWhiteList.includes(tokenInfo.token.symbol);
-        });
-        setTokenList(finalTokens);
+        /// If there is no destination chain, token list should be empty
+        setTokenList([]);
       }
     }
-  }, [fromChain, toChain, chain_token, pegged_pair_configs, transferConfig]);
+  }, [fromChain, toChain, chain_token, pegged_pair_configs, transferConfig, multiBurnConfigs]);
 
   return tokenList;
 };
 
-const replaceTokenAddressForCanonicalTokenSwapIfNeeded = (peggedPairConfig: PeggedPairConfig) => {
-  if (peggedPairConfig.canonical_token_contract_addr.length > 0) {
+const replaceTokenAddressForCanonicalTokenSwapIfNeeded = (
+  tokenInfo: TokenInfo,
+  canonical_token_contract_addr: string,
+) => {
+  if (canonical_token_contract_addr.length > 0) {
     /// Canonical Token Swap, should use canonical_token_contract_addr
-    const tempTokenInfo = peggedPairConfig.pegged_token;
+    const tempTokenInfo = tokenInfo;
     const tempToken: Token = {
       symbol: tempTokenInfo.token.symbol,
-      address: peggedPairConfig.canonical_token_contract_addr,
+      address: canonical_token_contract_addr,
       decimal: tempTokenInfo.token.decimal,
       xfer_disabled: tempTokenInfo.token.xfer_disabled,
     };
@@ -247,14 +267,36 @@ const replaceTokenAddressForCanonicalTokenSwapIfNeeded = (peggedPairConfig: Pegg
     return result;
   }
 
-  return peggedPairConfig.pegged_token;
+  return tokenInfo;
 };
 
-const twoChainBridged = (chainId1: number, chainId2: number, transferConfig: GetTransferConfigsResponse) => {
+const twoChainBridged = (
+  chainId1: number,
+  chainId2: number,
+  transferConfig: GetTransferConfigsResponse,
+  multiBurnConfigs: MultiBurnPairConfig[],
+) => {
   let peggedBridged = false;
 
   const chain1TokenWhiteListSymbol = getNetworkById(chainId1).tokenSymbolList;
   const chain2TokenWhiteListSymbol = getNetworkById(chainId2).tokenSymbolList;
+
+  const burnConfig = multiBurnConfigs.find(multiBurnConfig => {
+    return (
+      (multiBurnConfig.burn_config_as_org.chain_id === chainId1 &&
+        chain1TokenWhiteListSymbol.includes(multiBurnConfig.burn_config_as_org.token.token.symbol) &&
+        multiBurnConfig.burn_config_as_dst.chain_id === chainId2 &&
+        chain2TokenWhiteListSymbol.includes(multiBurnConfig.burn_config_as_dst.token.token.symbol)) ||
+      (multiBurnConfig.burn_config_as_dst.chain_id === chainId1 &&
+        chain1TokenWhiteListSymbol.includes(multiBurnConfig.burn_config_as_dst.token.token.symbol) &&
+        multiBurnConfig.burn_config_as_org.chain_id === chainId2 &&
+        chain2TokenWhiteListSymbol.includes(multiBurnConfig.burn_config_as_org.token.token.symbol))
+    );
+  });
+
+  if (burnConfig) {
+    return true;
+  }
 
   transferConfig.pegged_pair_configs.forEach(peggedPairConfig => {
     const bridged =

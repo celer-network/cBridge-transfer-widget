@@ -15,6 +15,8 @@ import unicorn from "../images/unicorn.png";
 import dark from "../images/dark.svg";
 import light from "../images/light.svg";
 import { getNetworkById } from "../constants/network";
+import { useNonEVMContext } from "../providers/NonEVMContextProvider";
+/* eslint-disable*/
 import cBrdige2Light from "../images/cBrdigeLight.png";
 import cBrdige2Dark from "../images/cBrdigeDark.png";
 
@@ -267,6 +269,12 @@ const useStyles = createUseStyles((theme: Theme) => ({
     fontSize: 18,
     fontWeight: 700,
     marginTop: 24,
+    "&:focus, &:hover": {
+      background: theme.buttonHover,
+    },
+    "&::before": {
+      backgroundColor: `${theme.primaryBrand} !important`,
+    },
   },
   logoWrapper: {
     cursor: "pointer",
@@ -375,16 +383,16 @@ export default function Header(): JSX.Element {
   const classes = useStyles();
   const { themeType, toggleTheme } = useContext(ColorThemeContext);
   const { network, signer, chainId } = useWeb3Context();
+  const { nonEVMConnected } = useNonEVMContext();
   const dispatch = useAppDispatch();
-  const { totalActionNum, totalPaddingNum } = useAppSelector(state => state.transferInfo);
+  const { totalActionNum, totalPaddingNum, fromChain, transferConfig, tokenList, selectedToken } = useAppSelector(
+    state => state.transferInfo,
+  );
 
   const bigLogoUrl = themeType === "dark" ? cBrdige2Dark : cBrdige2Light;
   const toggleIconUrl = themeType === "dark" ? light : dark;
 
   const showChain = type => {
-    if (!signer) {
-      return;
-    }
     dispatch(setChainSource(type));
     dispatch(setIsChainShow(true));
   };
@@ -486,20 +494,17 @@ export default function Header(): JSX.Element {
       </div>
 
       <div className={classes.headerRight}>
-        {signer && (
-          <div>
-            <div
-              className={totalActionNum || totalPaddingNum ? classes.activeChainLocale : classes.chainLocale}
-              onClick={() => {
-                handleOpenHistoryModal();
-              }}
-            >
-              <div className={classes.historyText}>{getstatusText()}</div>
-            </div>
+        {(signer || nonEVMConnected) && (
+          <div
+            className={totalActionNum || totalPaddingNum ? classes.activeChainLocale : classes.chainLocale}
+            onClick={() => {
+              handleOpenHistoryModal();
+            }}
+          >
+            <div className={classes.historyText}>{getstatusText()}</div>
           </div>
         )}
-
-        {signer && (
+        {(signer || nonEVMConnected) && (
           <div
             className="chainLocale"
             style={
@@ -514,12 +519,14 @@ export default function Header(): JSX.Element {
             <img
               className={classes.historyIcon}
               style={{ marginRight: 0 }}
-              alt="historyIconImage"
-              src={getNetworkById(chainId)?.iconUrl}
+              alt={"chain name"}
+              src={getNetworkById(fromChain?.id ?? chainId)?.iconUrl}
             />
             <div className="chinName">
               <span style={{ maxLines: 1, whiteSpace: "nowrap" }}>
-                {getNetworkById(chainId).name !== "--" ? getNetworkById(chainId).name : network}
+                {getNetworkById(fromChain?.id ?? chainId).name !== "--"
+                  ? getNetworkById(fromChain?.id ?? chainId).name
+                  : network}
               </span>
             </div>
           </div>

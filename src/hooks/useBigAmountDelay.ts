@@ -13,6 +13,9 @@ import { Token, Chain } from "../constants/type";
 import { PeggedChainMode, usePeggedPairConfig } from "./usePeggedPairConfig";
 import { OriginalTokenVault__factory } from "../typechain/typechain/factories/OriginalTokenVault__factory";
 import { PeggedTokenBridge__factory } from "../typechain/typechain/factories/PeggedTokenBridge__factory";
+import { OriginalTokenVaultV2__factory } from "../typechain/typechain/factories/OriginalTokenVaultV2__factory";
+import { PeggedTokenBridgeV2__factory } from "../typechain/typechain/factories/PeggedTokenBridgeV2__factory";
+import { isNonEVMChain } from "../providers/NonEVMContextProvider";
 
 export const useBigAmountDelay = (
   chain: Chain | undefined,
@@ -37,18 +40,37 @@ export const useBigAmountDelay = (
   }, [rpcUrl]);
   const pegConfig = usePeggedPairConfig();
   const contractAddress = (() => {
+    if (isNonEVMChain(chain?.id ?? 0)) {
+      return "";
+    }
     switch (pegConfig.mode) {
       case PeggedChainMode.Deposit:
+        if (isNonEVMChain(pegConfig.config.pegged_chain_id)) {
+          return "";
+        }
         return pegConfig.config.pegged_burn_contract_addr;
       case PeggedChainMode.Burn:
+        if (isNonEVMChain(pegConfig.config.org_chain_id)) {
+          return "";
+        }
         return pegConfig.config.pegged_deposit_contract_addr;
       default:
         return chain?.contract_addr ?? "";
     }
   })();
+
   const dstBridge = useReadOnlyCustomContractLoader(provider, contractAddress, Bridge__factory) as Bridge | undefined;
-  const originalTokenVault = useReadOnlyCustomContractLoader(provider, contractAddress, OriginalTokenVault__factory);
-  const peggedTokenBridge = useReadOnlyCustomContractLoader(provider, contractAddress, PeggedTokenBridge__factory);
+  const originalTokenVault = useReadOnlyCustomContractLoader(
+    provider,
+    contractAddress,
+    pegConfig.config.vault_version > 0 ? OriginalTokenVaultV2__factory : OriginalTokenVault__factory,
+  );
+  const peggedTokenBridge = useReadOnlyCustomContractLoader(
+    provider,
+    contractAddress,
+    pegConfig.config.bridge_version > 0 ? PeggedTokenBridgeV2__factory : PeggedTokenBridge__factory,
+  );
+
   const bridge = (() => {
     switch (pegConfig.mode) {
       case PeggedChainMode.Deposit:
@@ -107,9 +129,17 @@ export const useBigAmountDelay = (
       setValues(delayInfo, tokenValue);
       return;
     }
+
+    function isHex(hexString) {
+      return Boolean(hexString.match(/^0x[0-9a-f]+$/i));
+    }
+
     (async () => {
       setIsBigAmountDelayed(false);
       const tokenAddress = tokenValue?.address ?? "";
+      if (!tokenAddress || !isHex(tokenAddress)) {
+        return;
+      }
       const period = await bridge.delayPeriod();
       const thresholds = await bridge.delayThresholds(tokenAddress);
       const info: BigAmountDelayInfo = {
@@ -126,7 +156,7 @@ export const useBigAmountDelay = (
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chain, token?.address, hasEpochVolumeCaps, epochVolumeCaps]);
+  }, [chain, token?.address, hasEpochVolumeCaps, epochVolumeCaps, amount]);
 
-  return { isBigAmountDelayed, delayMinutes, delayThresholds };
+  return { isBigAmountDelayed, delayMinutes, delayThresholds, amount };
 };

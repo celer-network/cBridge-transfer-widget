@@ -1,10 +1,11 @@
 /* eslint-disable */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable camelcase */
-import { FC, useEffect, useState, useContext } from "react";
+/* eslint-disable */
+import { FC, useEffect, useState, useContext, useCallback } from "react";
 import { Tooltip, Button, Spin } from "antd";
 import { createUseStyles } from "react-jss";
-import _ from "lodash";
+import _, { debounce } from "lodash";
 import moment from "moment";
 import {
   WarningFilled,
@@ -15,23 +16,38 @@ import {
 } from "@ant-design/icons";
 
 import { useWeb3Context } from "../providers/Web3ContextProvider";
+
 import { Theme } from "../theme";
 import errorMessages from "../constants/errorMessage";
+import { storageConstants } from "../constants/const";
 import { formatDecimal } from "../helpers/format";
 import { transferHistory } from "../redux/gateway";
 import { TransferHistoryStatus, TransferHistory } from "../constants/type";
-import { useAppSelector } from "../redux/store";
-import { switchChain, addChainToken } from "../redux/transferSlice";
+import { useAppDispatch, useAppSelector } from "../redux/store";
+import { switchChain, addChainToken, setFromChain } from "../redux/transferSlice";
 import { ColorThemeContext } from "../providers/ThemeProvider";
 import HistoryTransferModal from "./HistoryTransferModal";
 import PageFlipper from "../components/PageFlipper";
 import meta from "../images/meta.svg";
 import { getTokenDisplaySymbol, needToChangeTokenDisplaySymbol } from "./transfer/TransferOverview";
 import { getTokenSymbol } from "../redux/assetSlice";
+import { mergeTransactionHistory, isToBeConfirmRefund } from "../utils/mergeTransferHistory";
 import runRightIconDark from "../images/runRightDark.svg";
 import runRightIconLight from "../images/runRightLight.svg";
 import { dataClone } from "../helpers/dataClone";
 import { usePeggedPairConfig, GetPeggedMode, PeggedChainMode } from "../hooks/usePeggedPairConfig";
+import {
+  isNonEVMChain,
+  useNonEVMContext,
+  convertNonEVMAddressToEVMCompatible,
+  NonEVMMode,
+  getNonEVMMode,
+} from "../providers/NonEVMContextProvider";
+import { filteredLocalTransferHistory } from "../utils/localTransferHistoryList";
+
+export type PageTokenMap = {
+  [propName: number]: number;
+};
 
 const defaultPageSize = 5;
 
@@ -41,6 +57,51 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     alignItems: "center",
     justifyContent: "center",
     marginTop: "10px",
+  },
+  menu: {
+    width: props => (props.isMobile ? "100%" : 416),
+    height: 44,
+    background: theme.primaryUnable,
+    borderRadius: 8,
+    border: "none",
+    "& .ant-menu-item": {
+      flexGrow: 1,
+      flexBasis: 0,
+      textAlign: "center",
+      margin: "2px !important",
+      fontSize: 16,
+      borderRadius: 8,
+      top: 0,
+      lineHeight: "38px",
+      padding: props => (props.isMobile ? "0 !important" : ""),
+      "&:hover": {
+        color: theme.surfacePrimary,
+      },
+    },
+    "& .ant-menu-item::after": {
+      borderBottom: "0 !important",
+    },
+    "& .ant-menu-item div": {
+      color: theme.secondBrand,
+      fontWeight: 700,
+      fontSize: "16px",
+      "&:hover": {
+        color: theme.primaryBrand,
+      },
+    },
+    "& .ant-menu-item-selected": {
+      background: theme.primaryBrand,
+    },
+    "& .ant-menu-item-selected:hover": {
+      background: theme.primaryBrand,
+      color: "#fff !important",
+    },
+    "& .ant-menu-item-selected div": {
+      color: theme.unityWhite,
+      "&:hover": {
+        color: `${theme.unityWhite} !important`,
+      },
+    },
   },
   headerTip: {
     marginTop: 16,
@@ -222,6 +283,12 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     fontWeight: "bold",
     borderRadius: props => (props.isMobile ? 4 : 2),
     marginTop: props => (props.isMobile ? 14 : 0),
+    "&:focus, &:hover": {
+      background: theme.buttonHover,
+    },
+    "&::before": {
+      backgroundColor: `${theme.primaryBrand} !important`,
+    },
   },
   empty: {
     height: 480,
@@ -359,19 +426,25 @@ const History: FC = () => {
   const { themeType } = useContext(ColorThemeContext);
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const { transferInfo } = useAppSelector(state => state);
+  const { transferConfig, fromChain, toChain } = transferInfo;
   const classes = useStyles({ isMobile });
   const { address, chainId, provider } = useWeb3Context();
+  const { terraAddress, flowAddress } = useNonEVMContext();
   const now = new Date().getTime();
   const [nexPageToken, setNexPageToken] = useState(0);
   const [historyList, setHistoryList] = useState<TransferHistory[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [size, setSize] = useState(defaultPageSize);
-  const [pageMap, setPageMap] = useState({ 0: now });
+  const [pageMap, setPageMap] = useState<PageTokenMap>({ 0: now });
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<TransferHistory>();
   const [hisLoading, setHisLoading] = useState(false);
+  const [historyActionNum, setHistoryActionNum] = useState<number>(0);
+  const [historyPendingNum, setHistoryPendingNum] = useState<number>(0);
+  const [mergedHistoryList, setMergedHistoryList] = useState<TransferHistory[]>([]);
+  const dispatch = useAppDispatch();
 
-  const getTxStatus = async link => {
+  const getTxStatus = async (provider, link) => {
     const txid = link.split("/tx/")[1];
     if (txid) {
       const res = await provider?.getTransactionReceipt(txid);
@@ -379,25 +452,19 @@ const History: FC = () => {
     }
     return "";
   };
+
   const setPageMapJson = (cPage, stemp) => {
     const oldPageMap = dataClone(pageMap);
     oldPageMap[cPage + 1] = stemp;
     setPageMap(oldPageMap);
   };
 
-  const checkLocalHistoryList = (hisList, pMap, cPage) => {
+  const getTransactionOnchainQueryPromiseList = (provider, chainId, localStorageHistoryList: TransferHistory[]) => {
+    // eslint-disable-next-line
     const promiseList: Array<Promise<any>> = [];
-    let newList = hisList;
-    let localTransferList;
-    let noExitList;
-    let localList;
-    const localTransferListStr = localStorage.getItem("transferListJson");
-    if (localTransferListStr) {
-      localTransferList = JSON.parse(localTransferListStr)[address];
-      const newLocalTransferList: TransferHistory[] = [];
-      localTransferList?.forEach(localItem => {
-        if (localItem && localItem !== "null") {
-          newLocalTransferList.push(localItem);
+    if (localStorageHistoryList) {
+      localStorageHistoryList?.forEach(localItem => {
+        if (localItem && localItem.toString() !== "null") {
           if (
             localItem?.status === TransferHistoryStatus.TRANSFER_FAILED ||
             localItem?.txIsFailed ||
@@ -409,91 +476,61 @@ const History: FC = () => {
             });
             promiseList.push(nullPromise);
           } else {
-            const promistx = getTxStatus(localItem.src_block_tx_link); // Check local transaction status
+            const promistx = getTxStatus(provider, localItem.src_block_tx_link); // Check local transaction status
             promiseList.push(promistx);
           }
         }
       });
-      localTransferList = newLocalTransferList;
     }
-    Promise.all(promiseList).then(resList => {
-      resList?.map((pItem, i) => {
-        const localItem = localTransferList[i];
-        if (pItem) {
-          localItem.txIsFailed = Number(pItem.status) !== 1;
-          if (localItem.status === TransferHistoryStatus.TRANSFER_SUBMITTING) {
-            localItem.status = Number(pItem.status) === 1 ? localItem.status : TransferHistoryStatus.TRANSFER_FAILED;
-          }
-        }
-        return pItem;
-      });
-      localList = localTransferList ? dataClone(localTransferList) : [];
-      noExitList = localTransferList ? dataClone(localTransferList) : [];
-      hisList?.map(item => {
-        localTransferList?.map((localItem, i) => {
-          if (Number(localItem.ts) >= Number(pMap[cPage])) {
-            noExitList[i].hide = true;
-          } else if (item.transfer_id === localItem.transfer_id) {
-            noExitList[i].hide = true;
-            if (localItem.status === TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND) {
-              // If local status is CONFIRMING and gateway status is TO_BE_CONFIRMED
-              if (item.status === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED) {
-                if (!localItem.txIsFailed) {
-                  // If there is no failure for local storage, show user CONFIRMING_YOUR_REFUND status
-                  item.status = TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND;
-                }
-                item.updateTime = localItem.updateTime;
-                item.txIsFailed = localItem.txIsFailed;
-              } else {
-                localList[i].hide = true;
-              }
-            } else {
-              localList[i].hide = true;
-            }
-          }
-          return localItem;
-        });
-        return item;
-      });
-      const newNoExitList = noExitList?.filter(item => !item.hide);
-      const newLocalList = localList?.filter(item => !item.hide);
-      const newJson = { [address]: newLocalList };
-      localStorage.setItem("transferListJson", JSON.stringify(newJson));
-      newList = newNoExitList ? [...newNoExitList, ...hisList] : hisList;
-
-      newList.sort((a, b) => Number(b.ts) - Number(a.ts));
-      if (newList.length > 0) {
-        const arrList: TransferHistory[][] = _.chunk(newList, 5);
-        const nowList = arrList[0];
-        const timeStr = nowList[nowList.length - 1].ts.toString();
-        setPageMapJson(cPage, timeStr);
-        setHistoryList(nowList);
-      } else {
-        setHistoryList([]);
-      }
-      newList.sort((a, b) => Number(b.ts) - Number(a.ts));
-      if (newList.length > 0) {
-        const arrList: TransferHistory[][] = _.chunk(newList, 5);
-        const nowList = arrList[0];
-        const timeStr = nowList[nowList.length - 1].ts.toString();
-        setPageMapJson(cPage, timeStr);
-        setHistoryList(nowList);
-      } else {
-        setHistoryList([]);
-      }
-      setHisLoading(false);
-    });
+    return promiseList;
   };
 
-  const getHistoryList = async (next_page_token, pMap = pageMap, cPage = currentPage) => {
+  const getHistoryList = async next_page_token => {
     setHisLoading(true);
-    const res = await transferHistory({ addr: address, page_size: defaultPageSize, next_page_token });
+
+    const addresses = [address];
+    const localAddresses = [address];
+
+    if (flowAddress.length > 0) {
+      const flowEVMCompatibleAddress = await convertNonEVMAddressToEVMCompatible(flowAddress, NonEVMMode.flowTest);
+      addresses.push(flowEVMCompatibleAddress);
+      localAddresses.push(flowAddress);
+    }
+
+    if (terraAddress.length > 0) {
+      const terraEVMCompatibleAddress = await convertNonEVMAddressToEVMCompatible(terraAddress, NonEVMMode.terraTest);
+      addresses.push(terraEVMCompatibleAddress);
+      localAddresses.push(terraAddress);
+    }
+
+    const res = await transferHistory({ acct_addr: addresses, page_size: defaultPageSize, next_page_token });
     if (res) {
       setSize(res?.current_size);
-      const newList = res.history;
-      checkLocalHistoryList(newList, pMap, cPage);
+      const localHistoryList = filteredLocalTransferHistory(localAddresses);
+      const allItemTxQueryPromise = getTransactionOnchainQueryPromiseList(provider, chainId, localHistoryList);
+      Promise.all(allItemTxQueryPromise).then(onChainResult => {
+        const mergedHistoryResult = mergeTransactionHistory({
+          pageToken: pageMap[currentPage],
+          historyList: res.history,
+          localHistoryList: localHistoryList,
+          pageSize: 5,
+          address: address,
+          onChainResult: onChainResult,
+        });
+        setHistoryActionNum(mergedHistoryResult.historyActionNum);
+        setHistoryPendingNum(mergedHistoryResult.historyPendingNum);
+        setMergedHistoryList(mergedHistoryResult.mergedHistoryList);
+        setHisLoading(false);
+      });
     }
   };
+
+  useEffect(() => {
+    if (mergedHistoryList && mergedHistoryList.length > 0) {
+      const renewPageToken = mergedHistoryList[mergedHistoryList.length - 1].ts.toString();
+      setPageMapJson(currentPage, renewPageToken);
+    }
+  }, [mergedHistoryList]);
 
   useEffect(() => {
     setNexPageToken(now);
@@ -501,7 +538,7 @@ const History: FC = () => {
     setPageMap(newpMap);
     setCurrentPage(0);
     if (!showModal) {
-      getHistoryList(now.toString(), newpMap, 0);
+      getHistoryList(now.toString());
     }
   }, [showModal]);
 
@@ -516,10 +553,10 @@ const History: FC = () => {
   };
 
   const clearHistoryLocalData = item => {
-    const transferListStr = localStorage.getItem("transferListJson");
+    const transferListStr = localStorage.getItem(storageConstants.KEY_TRANSFER_LIST_JSON);
     let localList;
     if (transferListStr) {
-      const transferList = JSON.parse(transferListStr)[address];
+      const transferList = JSON.parse(transferListStr);
       localList = transferList ? dataClone(transferList) : [];
       transferList?.map(async (localItem, i) => {
         if (item.transfer_id === localItem.transfer_id) {
@@ -528,10 +565,11 @@ const History: FC = () => {
         return localItem;
       });
     }
-    const newJson = { [address]: localList };
-    localStorage.setItem("transferListJson", JSON.stringify(newJson));
+
+    localStorage.setItem(storageConstants.KEY_TRANSFER_LIST_JSON, JSON.stringify(localList));
     reloadHistoryList();
   };
+
   const onPageChange = page => {
     const oldPageMap = dataClone(pageMap);
     if (page === 0) {
@@ -747,6 +785,10 @@ const History: FC = () => {
         lab = <div className={classes.waring}>Refund to be confirmed</div>;
         break;
       case TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND:
+        if (isToBeConfirmRefund(item)) {
+          lab = <div className={classes.waring}>Refund to be confirmed</div>;
+          break;
+        }
         lab = (
           <Tooltip
             overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
@@ -853,15 +895,11 @@ const History: FC = () => {
 
   const btnChange = item => {
     let btntext;
-    switch (item.status) {
-      case TransferHistoryStatus.TRANSFER_TO_BE_REFUNDED:
-        btntext = "Request Refund ";
-        break;
-      case TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED:
-        btntext = "Confirm Refund";
-        break;
-      default:
-        break;
+
+    if (isToBeConfirmRefund(item)) {
+      btntext = "Confirm Refund";
+    } else if (item.status === TransferHistoryStatus.TRANSFER_TO_BE_REFUNDED) {
+      btntext = "Request Refund";
     }
     if (btntext) {
       return (
@@ -923,7 +961,14 @@ const History: FC = () => {
     if (chainId === toChainId) {
       addChainToken(addtoken);
     } else {
-      switchChain(toChainId, addtoken);
+      switchChain(toChainId, addtoken, (chainId: number) => {
+        const chain = transferConfig.chains.find(chainInfo => {
+          return chainInfo.id === chainId;
+        });
+        if (chain !== undefined) {
+          dispatch(setFromChain(chain));
+        }
+      });
     }
   };
 
@@ -947,20 +992,20 @@ const History: FC = () => {
           <div className={themeType === "dark" ? classes.spinblur : classes.whiteSpinblur}>
             <Spin spinning={hisLoading}>
               <div>
-                {historyList.length > 0 ? (
+                {mergedHistoryList.length > 0 ? (
                   <div>
-                    {historyList?.map(item => {
+                    {mergedHistoryList?.map(item => {
                       const sendAmountWithDecimal = formatDecimal(
                         item.src_send_info.amount,
                         item.src_send_info.token?.decimal,
                       )
-                        .split(",")
+                        ?.split(",")
                         .join("");
                       const receivedAmountWithDecimal = formatDecimal(
                         item?.dst_received_info.amount,
                         item?.dst_received_info?.token?.decimal,
                       )
-                        .split(",")
+                        ?.split(",")
                         .join("");
 
                       const showSupport =
@@ -996,7 +1041,6 @@ const History: FC = () => {
 
                       if (peggedMode !== PeggedChainMode.Off) {
                         shouldDisplayMetaMaskIcon = true;
-                        srcChainSymbol = item?.src_send_info?.token.symbol;
                       }
 
                       if (item?.dst_received_info?.chain?.id === 56 && item?.src_send_info?.token.symbol === "BNB") {
@@ -1014,8 +1058,44 @@ const History: FC = () => {
                         shouldDisplayMetaMaskIcon = false;
                       }
 
-                      if (!window.ethereum.isMetaMask) {
+                      if (item?.dst_received_info.chain.id === 336 && item?.src_send_info?.token.symbol === "SDN") {
                         shouldDisplayMetaMaskIcon = false;
+                      }
+
+                      if (item?.dst_received_info.chain.id === 137 && item?.src_send_info?.token.symbol === "MATIC") {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
+
+                      if (item?.dst_received_info.chain.id === 57 && item?.src_send_info?.token.symbol === "SYS") {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
+
+                      if (item?.dst_received_info.chain.id === 592 && item?.src_send_info?.token.symbol === "ASTR") {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
+
+                      try {
+                        if (!window.ethereum.isMetaMask) {
+                          shouldDisplayMetaMaskIcon = false;
+                        }
+                      } catch (e) {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
+
+                      if (isNonEVMChain(item?.dst_received_info.chain.id ?? 0)) {
+                        shouldDisplayMetaMaskIcon = false;
+                      }
+
+                      const srcChainEVMMode = getNonEVMMode(item.src_send_info.chain.id);
+                      let srcBlockTxLink = item.src_block_tx_link;
+                      if (srcChainEVMMode === NonEVMMode.terraMainnet || srcChainEVMMode === NonEVMMode.terraTest) {
+                        srcBlockTxLink = srcBlockTxLink.replace("0x", "");
+                      }
+
+                      const dstChainEVMMode = getNonEVMMode(item.dst_received_info.chain.id);
+                      let dstBlockTxLink = item.dst_block_tx_link;
+                      if (dstChainEVMMode === NonEVMMode.terraMainnet || dstChainEVMMode === NonEVMMode.terraTest) {
+                        dstBlockTxLink = dstBlockTxLink.replace("0x", "");
                       }
 
                       return (
@@ -1029,12 +1109,40 @@ const History: FC = () => {
                                 <div className={classes.chaindes}>
                                   <a
                                     className={classes.chainName}
-                                    href={item.src_block_tx_link}
+                                    href={srcBlockTxLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                   >
                                     {item.src_send_info.chain.name} <LinkOutlined className={classes.linkIcon} />
                                   </a>
+
+                                  <div className={classes.reducetxnum}>
+                                    - {sendAmountWithDecimal} {srcChainSymbol}
+                                  </div>
+                                </div>
+                              </div>
+                              <img
+                                src={themeType === "dark" ? runRightIconDark : runRightIconLight}
+                                alt=""
+                                className={classes.turnRight}
+                              />
+                              <div className={classes.itemtitle}>
+                                <div>
+                                  <img src={item?.dst_received_info.chain.icon} alt="" className={classes.txIcon} />
+                                </div>
+                                <div className={classes.chaindes}>
+                                  {dstBlockTxLink ? (
+                                    <a
+                                      className={classes.linktitle}
+                                      href={dstBlockTxLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      {item?.dst_received_info.chain.name} <LinkOutlined className={classes.linkIcon} />
+                                    </a>
+                                  ) : (
+                                    <div className={classes.linktitle}> {item?.dst_received_info.chain.name}</div>
+                                  )}
 
                                   <div className={classes.reducetxnum}>
                                     - {sendAmountWithDecimal} {srcChainSymbol}

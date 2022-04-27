@@ -6,6 +6,8 @@ import { useAppDispatch, useAppSelector } from "../redux/store";
 import { ModalName, openModal } from "../redux/modalSlice";
 import { Theme } from "../theme/theme";
 import { alpha2Hex } from "../helpers/alpha2Hex";
+import { useWalletConnectionContext } from "../providers/WalletConnectionContextProvider";
+import { useNonEVMContext, isNonEVMChain, getNonEVMMode, NonEVMMode } from "../providers/NonEVMContextProvider";
 
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
   addressBtn: {
@@ -30,7 +32,7 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
       },
     },
     "&:hover": {
-      background: theme.primaryBrand,
+      background: theme.buttonHover,
       color: theme.unityWhite,
       "& .ant-typography": {
         color: theme.unityWhite,
@@ -60,8 +62,11 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
       color: theme.surfacePrimary,
     },
     "&:hover": {
-      background: theme.primaryBrand,
+      background: theme.buttonHover,
       color: theme.unityWhite,
+    },
+    "&::before": {
+      backgroundColor: `${theme.primaryBrand} !important`,
     },
   },
   dropDownMenu: {
@@ -93,18 +98,37 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
 
 export default function Account(): JSX.Element {
   const { isMobile } = useAppSelector(state => state.windowWidth);
+  const { fromChain } = useAppSelector(state => state.transferInfo);
   const classes = useStyles({ isMobile });
-  const { address, signer, logoutOfWeb3Modal } = useWeb3Context();
+  const { logoutOfWeb3Modal } = useWeb3Context();
+  const { logoutNonEVMModal, terraConnected } = useNonEVMContext();
+  const { connected, walletAddress, walletConnectionButtonTitle } = useWalletConnectionContext();
   const dispatch = useAppDispatch();
 
-  const showProviderModal = useCallback(() => {
-    dispatch(openModal(ModalName.provider));
-  }, [dispatch]);
+  const showWalletConnectionProviderModal = useCallback(() => {
+    const nonEVMMode = getNonEVMMode(fromChain?.id ?? 0);
+    if (nonEVMMode === NonEVMMode.terraMainnet || nonEVMMode === NonEVMMode.terraTest) {
+      dispatch(openModal(ModalName.terraProvider));
+    } else if (nonEVMMode === NonEVMMode.flowMainnet || nonEVMMode === NonEVMMode.flowTest) {
+      dispatch(openModal(ModalName.flowProvider));
+    } else {
+      dispatch(openModal(ModalName.provider));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, fromChain, terraConnected]);
 
-  if (signer) {
+  const walletConnectionLogout = () => {
+    if (isNonEVMChain(fromChain?.id ?? 0)) {
+      logoutNonEVMModal();
+    } else {
+      logoutOfWeb3Modal();
+    }
+  };
+
+  if (connected) {
     const menu = (
       <Menu className={classes.dropDownMenu}>
-        <Menu.Item className={classes.logoutBtn} key="logout" onClick={logoutOfWeb3Modal}>
+        <Menu.Item className={classes.logoutBtn} key="logout" onClick={walletConnectionLogout}>
           Logout
         </Menu.Item>
       </Menu>
@@ -113,7 +137,9 @@ export default function Account(): JSX.Element {
     return (
       <Dropdown overlay={menu} trigger={["click", "hover"]}>
         <Button className={classes.addressBtn} type="ghost">
-          <Typography.Text ellipsis={{ suffix: address.slice(-4) }}>{address.substr(0, 6) + "..."}</Typography.Text>
+          <Typography.Text ellipsis={{ suffix: walletAddress.slice(-4) }}>
+            {walletAddress.substr(0, 6) + "..."}
+          </Typography.Text>
           <span className={classes.indicator} />
         </Button>
       </Dropdown>
@@ -125,8 +151,8 @@ export default function Account(): JSX.Element {
   }
   return (
     <>
-      <Button type="primary" className={classes.connectBtn} onClick={showProviderModal}>
-        Connect Wallet
+      <Button type="primary" className={classes.connectBtn} onClick={showWalletConnectionProviderModal}>
+        {walletConnectionButtonTitle}
       </Button>
     </>
   );

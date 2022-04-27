@@ -3,6 +3,7 @@ import { ChangeEvent, FC } from "react";
 import { createUseStyles } from "react-jss";
 import { Theme } from "../theme";
 import { useAppSelector } from "../redux/store";
+import { validFloatRegex } from "../constants/regex";
 
 export interface ITokenInputChangeEvent {
   value: string;
@@ -11,11 +12,11 @@ export interface ITokenInputChangeEvent {
 
 interface IProps {
   value: string;
+  placeholderText?: string;
   disabled: boolean;
   onChange: (e: ITokenInputChangeEvent) => void;
 }
 
-const validFloatRegex = /([0-9]*[.])?[0-9]/;
 const useStyles = createUseStyles((theme: Theme) => ({
   actionInput: {
     fontSize: "20px",
@@ -28,9 +29,10 @@ const useStyles = createUseStyles((theme: Theme) => ({
     color: theme.surfacePrimary,
   },
 }));
+
 const TokenInput: FC<IProps> = props => {
   const classes = useStyles();
-  const { value, onChange } = props;
+  const { value, placeholderText = "", onChange } = props;
   const { windowWidth } = useAppSelector(state => state);
   const { isMobile } = windowWidth;
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -50,11 +52,15 @@ const TokenInput: FC<IProps> = props => {
       size="small"
       value={value}
       onChange={handleChange}
-      placeholder="0.0"
+      placeholder={placeholderText}
       disabled={props?.disabled}
       style={{ paddingLeft: 0, float: "left" }}
     />
   );
+};
+
+TokenInput.defaultProps = {
+  placeholderText: "0.0",
 };
 
 export default TokenInput;

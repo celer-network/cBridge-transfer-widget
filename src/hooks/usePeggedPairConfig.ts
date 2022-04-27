@@ -1,7 +1,13 @@
 /* eslint-disable camelcase */
 import { useEffect, useState } from "react";
 import { PeggedPairConfig } from "../constants/type";
-import { setOTContractAddr, setPTContractAddr } from "../redux/globalInfoSlice";
+import { isNonEVMChain } from "../providers/NonEVMContextProvider";
+import {
+  setOTContractAddr,
+  setPTContractAddr,
+  setOTContractAddrV2,
+  setPTContractAddrV2,
+} from "../redux/globalInfoSlice";
 import { useAppDispatch, useAppSelector } from "../redux/store";
 
 // eslint-disable-next-line no-shadow
@@ -51,6 +57,26 @@ export class PeggedPair {
 
     if (peggedTokens && peggedTokens.length > 0 && peggedTokens[0].canonical_token_contract_addr.length > 0) {
       return peggedTokens[0].canonical_token_contract_addr;
+    }
+
+    if (isNonEVMChain(fromChainId)) {
+      const nonEVMDeposit = peggedPairs?.find(peggedPairConfig => {
+        return peggedPairConfig.org_chain_id === fromChainId && peggedPairConfig.org_token.token.symbol === tokenSymbol;
+      });
+
+      if (nonEVMDeposit) {
+        return nonEVMDeposit.pegged_token.token.address;
+      }
+
+      const nonEVMBurn = peggedPairs?.find(peggedPairConfig => {
+        return (
+          peggedPairConfig.pegged_chain_id === fromChainId && peggedPairConfig.pegged_token.token.symbol === tokenSymbol
+        );
+      });
+
+      if (nonEVMBurn) {
+        return nonEVMBurn.org_token.token.address;
+      }
     }
 
     return originalAddress;
@@ -160,11 +186,43 @@ export const getPeggedPairConfigs = (pegged_pair_configs, fromChain, toChain, se
       e.org_token.token.symbol === selectedToken?.token.symbol,
   );
   if (depositConfigs.length > 0) {
-    dispatch(setOTContractAddr(depositConfigs[0].pegged_deposit_contract_addr));
+    if (isNonEVMChain(depositConfigs[0].pegged_chain_id)) {
+      /// Deposit EVM(org) ===> Non EVM(peg)
+      if (depositConfigs[0].vault_version > 0) {
+        dispatch(setOTContractAddrV2(depositConfigs[0].pegged_deposit_contract_addr));
+      } else {
+        dispatch(setOTContractAddr(depositConfigs[0].pegged_deposit_contract_addr));
+      }
+    } else if (!isNonEVMChain(depositConfigs[0].org_chain_id)) {
+      /// Deposit EVM(org) ===> EVM(peg)
+      if (depositConfigs[0].vault_version > 0) {
+        dispatch(setOTContractAddrV2(depositConfigs[0].pegged_deposit_contract_addr));
+      } else {
+        dispatch(setOTContractAddr(depositConfigs[0].pegged_deposit_contract_addr));
+      }
+    } else {
+      /// Deposit Non EVM(org) ===> EVM(peg)
+    }
     return new PeggedPair(PeggedChainMode.Deposit, depositConfigs[0]);
   }
   if (burnConfigs.length > 0) {
-    dispatch(setPTContractAddr(burnConfigs[0].pegged_burn_contract_addr));
+    if (isNonEVMChain(burnConfigs[0].org_chain_id)) {
+      /// Burn EVM(peg) ===> NonEVM(org)
+      if (burnConfigs[0].bridge_version > 0) {
+        dispatch(setPTContractAddrV2(burnConfigs[0].pegged_burn_contract_addr));
+      } else {
+        dispatch(setPTContractAddr(burnConfigs[0].pegged_burn_contract_addr));
+      }
+    } else if (!isNonEVMChain(burnConfigs[0].pegged_chain_id)) {
+      /// Burn EVM(peg) ===> EVM(org)
+      if (burnConfigs[0].bridge_version > 0) {
+        dispatch(setPTContractAddrV2(burnConfigs[0].pegged_burn_contract_addr));
+      } else {
+        dispatch(setPTContractAddr(burnConfigs[0].pegged_burn_contract_addr));
+      }
+    } else {
+      /// Burn NonEVM(peg) ===> EVM(org)
+    }
     if (burnConfigs[0].canonical_token_contract_addr.length > 0) {
       return new PeggedPair(PeggedChainMode.BurnThenSwap, burnConfigs[0]);
     }

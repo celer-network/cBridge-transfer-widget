@@ -18,7 +18,7 @@ export function formatBalance(balance: string | number, sep = "", keepDecimals =
   if (decimalPart) {
     let keptDecimals = decimalPart;
     if (decimalPart.length > keepDecimals) {
-      const keptDecimalsArr = decimalPart.slice(0, keepDecimals + 1).split("");
+      const keptDecimalsArr = decimalPart.slice(0, keepDecimals + 1)?.split("");
       if (keptDecimalsArr[keptDecimals.length - 1] > "4") {
         keptDecimalsArr[keptDecimals.length - 2] += 1;
       }
@@ -44,7 +44,7 @@ export function formatDecimal(
 
   const dot = numstr.split(".")[1];
   if (dot === "0" || dot === "00") {
-    return numstr.split(".")[0];
+    return numstr?.split(".")[0];
   }
 
   return numstr;
@@ -61,7 +61,6 @@ export function formatMula(num: string | number, symbol: string): string {
 export function formatUSD(num: string | number): string {
   return formatMula(num, "$ ");
 }
-
 
 export function formatUSDT(num: string | number): string {
   return formatMula(num, "$");

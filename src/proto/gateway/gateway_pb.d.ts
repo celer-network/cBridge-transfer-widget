@@ -8,9 +8,96 @@ import * as sgn_common_v1_common_pb from "../sgn/common/v1/common_pb";
 import * as sgn_farming_v1_farming_pb from "../sgn/farming/v1/farming_pb";
 import * as sgn_distribution_v1_distribution_pb from "../sgn/distribution/v1/distribution_pb";
 import * as sgn_pegbridge_v1_pegbridge_pb from "../sgn/pegbridge/v1/pegbridge_pb";
+import * as sgn_message_v1_query_pb from "../sgn/message/v1/query_pb";
 import * as sgn_pegbridge_v1_tx_pb from "../sgn/pegbridge/v1/tx_pb";
 import * as cosmos_base_v1beta1_coin_pb from "../cosmos/base/v1beta1/coin_pb";
 import * as sgn_health_v1_health_pb from "../sgn/health/v1/health_pb";
+
+export class InitPegRefundRequest extends jspb.Message {
+  getRefId(): Uint8Array | string;
+  getRefId_asU8(): Uint8Array;
+  getRefId_asB64(): string;
+  setRefId(value: Uint8Array | string): InitPegRefundRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InitPegRefundRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: InitPegRefundRequest): InitPegRefundRequest.AsObject;
+  static serializeBinaryToWriter(message: InitPegRefundRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InitPegRefundRequest;
+  static deserializeBinaryFromReader(message: InitPegRefundRequest, reader: jspb.BinaryReader): InitPegRefundRequest;
+}
+
+export namespace InitPegRefundRequest {
+  export type AsObject = {
+    refId: Uint8Array | string;
+  };
+}
+
+export class InitPegRefundResponse extends jspb.Message {
+  getErr(): ErrMsg | undefined;
+  setErr(value?: ErrMsg): InitPegRefundResponse;
+  hasErr(): boolean;
+  clearErr(): InitPegRefundResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InitPegRefundResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: InitPegRefundResponse): InitPegRefundResponse.AsObject;
+  static serializeBinaryToWriter(message: InitPegRefundResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InitPegRefundResponse;
+  static deserializeBinaryFromReader(message: InitPegRefundResponse, reader: jspb.BinaryReader): InitPegRefundResponse;
+}
+
+export namespace InitPegRefundResponse {
+  export type AsObject = {
+    err?: ErrMsg.AsObject;
+  };
+}
+
+export class InitWithdrawRequest extends jspb.Message {
+  getWithdrawReq(): Uint8Array | string;
+  getWithdrawReq_asU8(): Uint8Array;
+  getWithdrawReq_asB64(): string;
+  setWithdrawReq(value: Uint8Array | string): InitWithdrawRequest;
+
+  getSig(): Uint8Array | string;
+  getSig_asU8(): Uint8Array;
+  getSig_asB64(): string;
+  setSig(value: Uint8Array | string): InitWithdrawRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InitWithdrawRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: InitWithdrawRequest): InitWithdrawRequest.AsObject;
+  static serializeBinaryToWriter(message: InitWithdrawRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InitWithdrawRequest;
+  static deserializeBinaryFromReader(message: InitWithdrawRequest, reader: jspb.BinaryReader): InitWithdrawRequest;
+}
+
+export namespace InitWithdrawRequest {
+  export type AsObject = {
+    withdrawReq: Uint8Array | string;
+    sig: Uint8Array | string;
+  };
+}
+
+export class InitWithdrawResponse extends jspb.Message {
+  getErr(): ErrMsg | undefined;
+  setErr(value?: ErrMsg): InitWithdrawResponse;
+  hasErr(): boolean;
+  clearErr(): InitWithdrawResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InitWithdrawResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: InitWithdrawResponse): InitWithdrawResponse.AsObject;
+  static serializeBinaryToWriter(message: InitWithdrawResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InitWithdrawResponse;
+  static deserializeBinaryFromReader(message: InitWithdrawResponse, reader: jspb.BinaryReader): InitWithdrawResponse;
+}
+
+export namespace InitWithdrawResponse {
+  export type AsObject = {
+    err?: ErrMsg.AsObject;
+  };
+}
 
 export class GetUsrBalanceRequest extends jspb.Message {
   getSig(): Uint8Array | string;
@@ -707,6 +794,9 @@ export class EstimateAmtResponse extends jspb.Message {
   getEstimatedReceiveAmt(): string;
   setEstimatedReceiveAmt(value: string): EstimateAmtResponse;
 
+  getDropGasAmt(): string;
+  setDropGasAmt(value: string): EstimateAmtResponse;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EstimateAmtResponse.AsObject;
   static toObject(includeInstance: boolean, msg: EstimateAmtResponse): EstimateAmtResponse.AsObject;
@@ -725,6 +815,7 @@ export namespace EstimateAmtResponse {
     slippageTolerance: number;
     maxSlippage: number;
     estimatedReceiveAmt: string;
+    dropGasAmt: string;
   };
 }
 
@@ -1822,6 +1913,367 @@ export namespace GetTotalLiquidityProviderTokenBalanceResponse {
   export type AsObject = {
     err?: ErrMsg.AsObject;
     totalLiqMap: Array<[number, string]>;
+  };
+}
+
+export class GetAbnormalStatusInfoRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetAbnormalStatusInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetAbnormalStatusInfoRequest): GetAbnormalStatusInfoRequest.AsObject;
+  static serializeBinaryToWriter(message: GetAbnormalStatusInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetAbnormalStatusInfoRequest;
+  static deserializeBinaryFromReader(
+    message: GetAbnormalStatusInfoRequest,
+    reader: jspb.BinaryReader,
+  ): GetAbnormalStatusInfoRequest;
+}
+
+export namespace GetAbnormalStatusInfoRequest {
+  export type AsObject = {};
+}
+
+export class GetAbnormalStatusInfoResponse extends jspb.Message {
+  getInfoList(): Array<AbnormalStatusInfo>;
+  setInfoList(value: Array<AbnormalStatusInfo>): GetAbnormalStatusInfoResponse;
+  clearInfoList(): GetAbnormalStatusInfoResponse;
+  addInfo(value?: AbnormalStatusInfo, index?: number): AbnormalStatusInfo;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetAbnormalStatusInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetAbnormalStatusInfoResponse): GetAbnormalStatusInfoResponse.AsObject;
+  static serializeBinaryToWriter(message: GetAbnormalStatusInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetAbnormalStatusInfoResponse;
+  static deserializeBinaryFromReader(
+    message: GetAbnormalStatusInfoResponse,
+    reader: jspb.BinaryReader,
+  ): GetAbnormalStatusInfoResponse;
+}
+
+export namespace GetAbnormalStatusInfoResponse {
+  export type AsObject = {
+    infoList: Array<AbnormalStatusInfo.AsObject>;
+  };
+}
+
+export class GetAllLPInfoRequest extends jspb.Message {
+  getUsrAddressList(): Array<string>;
+  setUsrAddressList(value: Array<string>): GetAllLPInfoRequest;
+  clearUsrAddressList(): GetAllLPInfoRequest;
+  addUsrAddress(value: string, index?: number): GetAllLPInfoRequest;
+
+  getActionTypeList(): Array<LpActionType>;
+  setActionTypeList(value: Array<LpActionType>): GetAllLPInfoRequest;
+  clearActionTypeList(): GetAllLPInfoRequest;
+  addActionType(value: LpActionType, index?: number): GetAllLPInfoRequest;
+
+  getChainIdList(): Array<number>;
+  setChainIdList(value: Array<number>): GetAllLPInfoRequest;
+  clearChainIdList(): GetAllLPInfoRequest;
+  addChainId(value: number, index?: number): GetAllLPInfoRequest;
+
+  getTokenSymbolList(): Array<string>;
+  setTokenSymbolList(value: Array<string>): GetAllLPInfoRequest;
+  clearTokenSymbolList(): GetAllLPInfoRequest;
+  addTokenSymbol(value: string, index?: number): GetAllLPInfoRequest;
+
+  getBeginTime(): number;
+  setBeginTime(value: number): GetAllLPInfoRequest;
+
+  getEndTime(): number;
+  setEndTime(value: number): GetAllLPInfoRequest;
+
+  getNextPageToken(): number;
+  setNextPageToken(value: number): GetAllLPInfoRequest;
+
+  getSigAddr(): string;
+  setSigAddr(value: string): GetAllLPInfoRequest;
+
+  getSig(): Uint8Array | string;
+  getSig_asU8(): Uint8Array;
+  getSig_asB64(): string;
+  setSig(value: Uint8Array | string): GetAllLPInfoRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetAllLPInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetAllLPInfoRequest): GetAllLPInfoRequest.AsObject;
+  static serializeBinaryToWriter(message: GetAllLPInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetAllLPInfoRequest;
+  static deserializeBinaryFromReader(message: GetAllLPInfoRequest, reader: jspb.BinaryReader): GetAllLPInfoRequest;
+}
+
+export namespace GetAllLPInfoRequest {
+  export type AsObject = {
+    usrAddressList: Array<string>;
+    actionTypeList: Array<LpActionType>;
+    chainIdList: Array<number>;
+    tokenSymbolList: Array<string>;
+    beginTime: number;
+    endTime: number;
+    nextPageToken: number;
+    sigAddr: string;
+    sig: Uint8Array | string;
+  };
+}
+
+export class GetAllLPInfoResponse extends jspb.Message {
+  getErr(): ErrMsg | undefined;
+  setErr(value?: ErrMsg): GetAllLPInfoResponse;
+  hasErr(): boolean;
+  clearErr(): GetAllLPInfoResponse;
+
+  getOperationList(): Array<LPOperations>;
+  setOperationList(value: Array<LPOperations>): GetAllLPInfoResponse;
+  clearOperationList(): GetAllLPInfoResponse;
+  addOperation(value?: LPOperations, index?: number): LPOperations;
+
+  getNextPageToken(): number;
+  setNextPageToken(value: number): GetAllLPInfoResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetAllLPInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetAllLPInfoResponse): GetAllLPInfoResponse.AsObject;
+  static serializeBinaryToWriter(message: GetAllLPInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetAllLPInfoResponse;
+  static deserializeBinaryFromReader(message: GetAllLPInfoResponse, reader: jspb.BinaryReader): GetAllLPInfoResponse;
+}
+
+export namespace GetAllLPInfoResponse {
+  export type AsObject = {
+    err?: ErrMsg.AsObject;
+    operationList: Array<LPOperations.AsObject>;
+    nextPageToken: number;
+  };
+}
+
+export class LPOperations extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): LPOperations;
+
+  getAction(): LpActionType;
+  setAction(value: LpActionType): LPOperations;
+
+  getChainId(): number;
+  setChainId(value: number): LPOperations;
+
+  getTokenSymbol(): string;
+  setTokenSymbol(value: string): LPOperations;
+
+  getAmount(): number;
+  setAmount(value: number): LPOperations;
+
+  getTimestamp(): number;
+  setTimestamp(value: number): LPOperations;
+
+  getTxLink(): string;
+  setTxLink(value: string): LPOperations;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LPOperations.AsObject;
+  static toObject(includeInstance: boolean, msg: LPOperations): LPOperations.AsObject;
+  static serializeBinaryToWriter(message: LPOperations, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LPOperations;
+  static deserializeBinaryFromReader(message: LPOperations, reader: jspb.BinaryReader): LPOperations;
+}
+
+export namespace LPOperations {
+  export type AsObject = {
+    address: string;
+    action: LpActionType;
+    chainId: number;
+    tokenSymbol: string;
+    amount: number;
+    timestamp: number;
+    txLink: string;
+  };
+}
+
+export class GetAllTXInfoRequest extends jspb.Message {
+  getUsrAddressList(): Array<string>;
+  setUsrAddressList(value: Array<string>): GetAllTXInfoRequest;
+  clearUsrAddressList(): GetAllTXInfoRequest;
+  addUsrAddress(value: string, index?: number): GetAllTXInfoRequest;
+
+  getSrcChainIdList(): Array<number>;
+  setSrcChainIdList(value: Array<number>): GetAllTXInfoRequest;
+  clearSrcChainIdList(): GetAllTXInfoRequest;
+  addSrcChainId(value: number, index?: number): GetAllTXInfoRequest;
+
+  getDstChainIdList(): Array<number>;
+  setDstChainIdList(value: Array<number>): GetAllTXInfoRequest;
+  clearDstChainIdList(): GetAllTXInfoRequest;
+  addDstChainId(value: number, index?: number): GetAllTXInfoRequest;
+
+  getTokenSymbolList(): Array<string>;
+  setTokenSymbolList(value: Array<string>): GetAllTXInfoRequest;
+  clearTokenSymbolList(): GetAllTXInfoRequest;
+  addTokenSymbol(value: string, index?: number): GetAllTXInfoRequest;
+
+  getBeginTime(): number;
+  setBeginTime(value: number): GetAllTXInfoRequest;
+
+  getEndTime(): number;
+  setEndTime(value: number): GetAllTXInfoRequest;
+
+  getNextPageToken(): number;
+  setNextPageToken(value: number): GetAllTXInfoRequest;
+
+  getSigAddr(): string;
+  setSigAddr(value: string): GetAllTXInfoRequest;
+
+  getSig(): Uint8Array | string;
+  getSig_asU8(): Uint8Array;
+  getSig_asB64(): string;
+  setSig(value: Uint8Array | string): GetAllTXInfoRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetAllTXInfoRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetAllTXInfoRequest): GetAllTXInfoRequest.AsObject;
+  static serializeBinaryToWriter(message: GetAllTXInfoRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetAllTXInfoRequest;
+  static deserializeBinaryFromReader(message: GetAllTXInfoRequest, reader: jspb.BinaryReader): GetAllTXInfoRequest;
+}
+
+export namespace GetAllTXInfoRequest {
+  export type AsObject = {
+    usrAddressList: Array<string>;
+    srcChainIdList: Array<number>;
+    dstChainIdList: Array<number>;
+    tokenSymbolList: Array<string>;
+    beginTime: number;
+    endTime: number;
+    nextPageToken: number;
+    sigAddr: string;
+    sig: Uint8Array | string;
+  };
+}
+
+export class GetAllTXInfoResponse extends jspb.Message {
+  getErr(): ErrMsg | undefined;
+  setErr(value?: ErrMsg): GetAllTXInfoResponse;
+  hasErr(): boolean;
+  clearErr(): GetAllTXInfoResponse;
+
+  getOperationList(): Array<TXOperations>;
+  setOperationList(value: Array<TXOperations>): GetAllTXInfoResponse;
+  clearOperationList(): GetAllTXInfoResponse;
+  addOperation(value?: TXOperations, index?: number): TXOperations;
+
+  getNextPageToken(): number;
+  setNextPageToken(value: number): GetAllTXInfoResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetAllTXInfoResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetAllTXInfoResponse): GetAllTXInfoResponse.AsObject;
+  static serializeBinaryToWriter(message: GetAllTXInfoResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetAllTXInfoResponse;
+  static deserializeBinaryFromReader(message: GetAllTXInfoResponse, reader: jspb.BinaryReader): GetAllTXInfoResponse;
+}
+
+export namespace GetAllTXInfoResponse {
+  export type AsObject = {
+    err?: ErrMsg.AsObject;
+    operationList: Array<TXOperations.AsObject>;
+    nextPageToken: number;
+  };
+}
+
+export class TXOperations extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): TXOperations;
+
+  getSrcChainId(): number;
+  setSrcChainId(value: number): TXOperations;
+
+  getDstChainId(): number;
+  setDstChainId(value: number): TXOperations;
+
+  getTokenSymbol(): string;
+  setTokenSymbol(value: string): TXOperations;
+
+  getSendAmount(): number;
+  setSendAmount(value: number): TXOperations;
+
+  getRecievedAmount(): number;
+  setRecievedAmount(value: number): TXOperations;
+
+  getBaseFee(): number;
+  setBaseFee(value: number): TXOperations;
+
+  getLiqFee(): number;
+  setLiqFee(value: number): TXOperations;
+
+  getPrice(): number;
+  setPrice(value: number): TXOperations;
+
+  getTimestamp(): number;
+  setTimestamp(value: number): TXOperations;
+
+  getSrcTxLink(): string;
+  setSrcTxLink(value: string): TXOperations;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TXOperations.AsObject;
+  static toObject(includeInstance: boolean, msg: TXOperations): TXOperations.AsObject;
+  static serializeBinaryToWriter(message: TXOperations, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TXOperations;
+  static deserializeBinaryFromReader(message: TXOperations, reader: jspb.BinaryReader): TXOperations;
+}
+
+export namespace TXOperations {
+  export type AsObject = {
+    address: string;
+    srcChainId: number;
+    dstChainId: number;
+    tokenSymbol: string;
+    sendAmount: number;
+    recievedAmount: number;
+    baseFee: number;
+    liqFee: number;
+    price: number;
+    timestamp: number;
+    srcTxLink: string;
+  };
+}
+
+export class AbnormalStatusInfo extends jspb.Message {
+  getType(): string;
+  setType(value: string): AbnormalStatusInfo;
+
+  getChainId(): number;
+  setChainId(value: number): AbnormalStatusInfo;
+
+  getDstChainId(): number;
+  setDstChainId(value: number): AbnormalStatusInfo;
+
+  getTxHash(): string;
+  setTxHash(value: string): AbnormalStatusInfo;
+
+  getTime(): string;
+  setTime(value: string): AbnormalStatusInfo;
+
+  getPeggedInfo(): string;
+  setPeggedInfo(value: string): AbnormalStatusInfo;
+
+  getSrcTransferId(): string;
+  setSrcTransferId(value: string): AbnormalStatusInfo;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): AbnormalStatusInfo.AsObject;
+  static toObject(includeInstance: boolean, msg: AbnormalStatusInfo): AbnormalStatusInfo.AsObject;
+  static serializeBinaryToWriter(message: AbnormalStatusInfo, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): AbnormalStatusInfo;
+  static deserializeBinaryFromReader(message: AbnormalStatusInfo, reader: jspb.BinaryReader): AbnormalStatusInfo;
+}
+
+export namespace AbnormalStatusInfo {
+  export type AsObject = {
+    type: string;
+    chainId: number;
+    dstChainId: number;
+    txHash: string;
+    time: string;
+    peggedInfo: string;
+    srcTransferId: string;
   };
 }
 
@@ -3141,7 +3593,7 @@ export class GetCurrentBlockNumberByNodeResponse extends jspb.Message {
   hasErr(): boolean;
   clearErr(): GetCurrentBlockNumberByNodeResponse;
 
-  getReportsMap(): jspb.Map<string, sgn_health_v1_health_pb.CurrentBlockNumberReport>;
+  getReportsMap(): jspb.Map<string, sgn_health_v1_health_pb.SgnAnalyticsReport>;
   clearReportsMap(): GetCurrentBlockNumberByNodeResponse;
 
   getProblematicAddrsList(): Array<string>;
@@ -3166,7 +3618,7 @@ export class GetCurrentBlockNumberByNodeResponse extends jspb.Message {
 export namespace GetCurrentBlockNumberByNodeResponse {
   export type AsObject = {
     err?: ErrMsg.AsObject;
-    reportsMap: Array<[string, sgn_health_v1_health_pb.CurrentBlockNumberReport.AsObject]>;
+    reportsMap: Array<[string, sgn_health_v1_health_pb.SgnAnalyticsReport.AsObject]>;
     problematicAddrsList: Array<string>;
   };
 }
@@ -3239,6 +3691,12 @@ export enum WithdrawMethodType {
   WD_METHOD_TYPE_ONE_RM = 1,
   WD_METHOD_TYPE_ALL_IN_ONE = 2,
   WD_METHOD_TYPE_STAKING_CLAIM = 3,
+}
+export enum LpActionType {
+  LAT_UNKNOWN = 0,
+  LAT_ADD = 1,
+  LAT_REMOVE = 2,
+  LAT_AGGREGATE_REMOVE = 3,
 }
 export enum ErrCode {
   ERROR_CODE_UNDEFINED = 0,

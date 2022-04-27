@@ -3,6 +3,7 @@
 /* eslint-disable camelcase */
 
 // import { Bytes } from "ethers";
+import { BigNumber } from "ethers";
 import { MapLike } from "typescript";
 
 interface ErrMsg {
@@ -36,6 +37,8 @@ interface PeggedPairConfig {
   pegged_deposit_contract_addr: string;
   pegged_burn_contract_addr: string;
   canonical_token_contract_addr: string;
+  vault_version: number;
+  bridge_version: number;
 }
 
 interface Token {
@@ -113,19 +116,23 @@ interface WithdrawDetail {
 interface TransferHistoryRequest {
   next_page_token: string; // for first page, it's ""
   page_size: number;
-  addr: string;
+  acct_addr: string[];
 }
 
 interface TransferHistory {
   transfer_id: string;
   src_send_info: TransferInfo;
   dst_received_info: TransferInfo;
+  srcAddress: string;
+  dstAddress: string;
   ts: number;
   src_block_tx_link: string;
   dst_block_tx_link: string;
   status: TransferHistoryStatus;
   updateTime?: number;
   txIsFailed?: boolean;
+  nonce: number;
+  isLocal?: boolean;
 }
 
 export enum TransferHistoryStatus {
@@ -173,6 +180,89 @@ interface Signature {
   sig_bytes: string;
 }
 
+interface FlowDepositParameters {
+  safeBoxContractAddress: string;
+  storagePath: string;
+  amount: string;
+  flowAddress: string; /// Flow wallet address
+  mintChainId: string;
+  evmMintAddress: string; /// EVM wallet address
+  nonce: string;
+  tokenAddress: string;
+}
+
+interface FlowDepositResponse {
+  flowTransanctionId: string; // flow transaction hash
+  transferId: string; // auto generated transfer id
+}
+
+interface FlowBurnParameters {
+  pegBridgeAddress: string;
+  storagePath: string;
+  amount: string;
+  flowAddress: string; /// Flow wallet address
+  withdrawChainId: string;
+  evmWithdrawAddress: string; /// EVM wallet address
+  nonce: string;
+  tokenAddress: string;
+}
+
+interface FlowBurnResponse {
+  flowTransanctionId: string; // flow transaction hash
+  transferId: string; // auto generated transfer id
+}
+
+interface FlowDepositTokenConfig {
+  minDepo: number;
+  maxDepo: number;
+  cap: number;
+  delayThreshold: number;
+}
+
+interface FlowBurnTokenConfig {
+  minBurn: number;
+  maxBurn: number;
+  cap: number;
+  delayThreshold: number;
+}
+
+interface FlowTokenPathConfigs {
+  FtConfigs: Array<FlowTokenPathConfig>;
+}
+interface FlowTokenPathConfig {
+  TokenName: string;
+  FullAddress: string;
+  TokenAddress: string;
+  StoragePath: string;
+  BalancePath: string;
+  ReceiverPath: string;
+  Symbol: string;
+}
+
+interface CoMinterCap {
+  minterCap: BigNumber;
+  minterSupply: BigNumber;
+}
+
+interface BurnConfig {
+  chain_id: number;
+  token: TokenInfo;
+  burn_contract_addr: string;
+  canonical_token_contract_addr: string;
+  burn_contract_version: number;
+}
+
+/// burn_config_as_org.bridge_version === 2
+/// burn_config_as_dst.bridge_version is not required
+/// If the bridge_version of burnConfig1 and burnConfig2 are 2,
+/// There should be two MultiBurnPairConfigs
+/// 1: burnConfig1 ----> burnConfig2
+/// 2: burnConfig2 ----> burnConfig1
+interface MultiBurnPairConfig {
+  burn_config_as_org: BurnConfig; /// Could be used only as from chain
+  burn_config_as_dst: BurnConfig; /// Could be used only as to chain
+}
+
 export type {
   Chain,
   Token,
@@ -192,4 +282,15 @@ export type {
   ErrMsg,
   Signature,
   PeggedPairConfig,
+  FlowDepositParameters,
+  FlowDepositResponse,
+  FlowBurnParameters,
+  FlowBurnResponse,
+  FlowDepositTokenConfig,
+  FlowBurnTokenConfig,
+  FlowTokenPathConfigs,
+  FlowTokenPathConfig,
+  CoMinterCap,
+  BurnConfig,
+  MultiBurnPairConfig,
 };

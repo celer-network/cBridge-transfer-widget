@@ -2,8 +2,9 @@ import { Input, Modal, Spin } from "antd";
 import { FC, useState, useEffect } from "react";
 import { createUseStyles } from "react-jss";
 import { useAsync } from "react-use";
+import { formatDecimalPart } from "celer-web-utils/lib/format";
+
 import { useWeb3Context } from "../../providers/Web3ContextProvider";
-import { useContractsContext } from "../../providers/ContractsContextProvider";
 import { useAppSelector } from "../../redux/store";
 import { Theme } from "../../theme";
 import TokenItem from "./TokenItem";
@@ -15,6 +16,13 @@ import { ERC20__factory } from "../../typechain/typechain/factories/ERC20__facto
 import { formatDecimal } from "../../helpers/format";
 import { useTransferSupportedTokenList } from "../../hooks/transferSupportedInfoList";
 import ringBell from "../../images/ringBell.svg";
+import { getNonEVMMode, NonEVMMode, useNonEVMContext } from "../../providers/NonEVMContextProvider";
+import { checkTokenBalanceForFlowAccount } from "../../redux/NonEVMAPIs/flowAPIs";
+import {
+  terraGeneralTokenBalance,
+  terraNativeBalances,
+  terraNativeTokenSymbolMapping,
+} from "../../redux/NonEVMAPIs/terraAPIs";
 
 /* eslint-disable camelcase */
 
@@ -160,13 +168,10 @@ interface IProps {
 }
 
 const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
-  const {
-    contracts: { bridge },
-  } = useContractsContext();
   const { provider, address, chainId } = useWeb3Context();
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const classes = useStyles({ isMobile });
-  const { fromChain, toChain, transferConfig } = useAppSelector(state => state.transferInfo);
+  const { fromChain, toChain, transferConfig, flowTokenPathConfigs } = useAppSelector(state => state.transferInfo);
 
   const transferSupportedTokenList = useTransferSupportedTokenList();
 
@@ -181,11 +186,113 @@ const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
 
   const [loading, setLoading] = useState(false);
 
+  const { nonEVMAddress, nonEVMMode, flowConnected } = useNonEVMContext();
+
   const sortExclusiveTokenSymbols = ["USDT", "USDC", "ETH", "WETH"];
 
   // 获取token列表的balance
   useAsync(async () => {
-    if (fromChain?.id !== chainId) {
+    const fromChainNonEVMMode = getNonEVMMode(fromChain?.id ?? 0);
+    if (fromChainNonEVMMode === NonEVMMode.terraMainnet || fromChainNonEVMMode === NonEVMMode.terraTest) {
+      const promiseList: Array<Promise<TokenInfo>> = [];
+      if (!nonEVMAddress) {
+        const balanceList = transferSupportedTokenList.map(tokenInfo => {
+          return {
+            ...tokenInfo,
+            balance: "--",
+          };
+        });
+        setTokenListWithBalance(balanceList);
+        return;
+      }
+
+      const terraNativeTokens = transferSupportedTokenList.filter(tokenInfo => {
+        return terraNativeTokenSymbolMapping(tokenInfo.token.symbol).length > 0;
+      });
+
+      const terraGeneralTokens = transferSupportedTokenList.filter(tokenInfo => {
+        return terraNativeTokenSymbolMapping(tokenInfo.token.symbol).length === 0;
+      });
+
+      setLoading(true);
+
+      terraGeneralTokens.forEach(tokenInfo => {
+        const getTerraGeneralTokenBalancePromise = terraGeneralTokenBalance(nonEVMAddress, tokenInfo.token.address)
+          .then(balance => {
+            return {
+              ...tokenInfo,
+              balance: formatDecimal(balance.toString(), tokenInfo.token.decimal),
+            };
+          })
+          .catch(_ => {
+            return {
+              ...tokenInfo,
+              balance: "--",
+            };
+          });
+        promiseList.push(getTerraGeneralTokenBalancePromise);
+      });
+
+      await terraNativeBalances(nonEVMAddress).then(coins => {
+        terraNativeTokens.forEach(tokenInfo => {
+          const denom = terraNativeTokenSymbolMapping(tokenInfo.token.symbol);
+          const coin = coins.get(denom);
+          if (coin) {
+            const balance = formatDecimalPart(`${Number(coin.amount) / 1000000}`, 6, "floor", true);
+            console.log("balance", denom, balance);
+            promiseList.push(Promise.resolve({ ...tokenInfo, balance }));
+          } else {
+            promiseList.push(Promise.resolve({ ...tokenInfo, balance: "--" }));
+          }
+        });
+      });
+
+      const balanceList = await Promise.all(promiseList);
+      setLoading(false);
+      setTokenListWithBalance(balanceList);
+    } else if (fromChainNonEVMMode === NonEVMMode.flowTest || fromChainNonEVMMode === NonEVMMode.flowMainnet) {
+      if (!nonEVMAddress) {
+        const balanceList = transferSupportedTokenList.map(tokenInfo => {
+          return {
+            ...tokenInfo,
+            balance: "--",
+          };
+        });
+        setTokenListWithBalance(balanceList);
+        return;
+      }
+
+      const promiseList: Array<Promise<TokenInfo>> = [];
+      transferSupportedTokenList.forEach(tokenInfo => {
+        if (!nonEVMAddress) {
+          return;
+        }
+
+        const flowTokenPath = flowTokenPathConfigs.find(config => {
+          return config.Symbol === tokenInfo.token.symbol;
+        });
+
+        const getFlowBalancePromise = checkTokenBalanceForFlowAccount(nonEVMAddress, flowTokenPath?.BalancePath ?? "")
+          .then(balance => {
+            return {
+              ...tokenInfo,
+              balance: formatDecimalPart(`${balance}`, 6, "floor", true),
+            };
+          })
+          .catch(_ => {
+            return {
+              ...tokenInfo,
+              balance: "--",
+            };
+          });
+        promiseList.push(getFlowBalancePromise);
+      });
+
+      setLoading(true);
+      const balanceList = await Promise.all(promiseList);
+      setLoading(false);
+      setTokenListWithBalance(balanceList);
+    } else if (fromChain?.id !== chainId) {
       const balanceList = transferSupportedTokenList.map(item => {
         return {
           ...item,
@@ -195,7 +302,14 @@ const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
       setTokenListWithBalance(balanceList);
     } else if (typeof provider !== "undefined" && ERC20__factory && address) {
       const signer = await ensureSigner(provider);
-      if (!signer || !bridge) {
+      if (!signer) {
+        const balanceList = transferSupportedTokenList.map(item => {
+          return {
+            ...item,
+            balance: "--",
+          };
+        });
+        setTokenListWithBalance(balanceList);
         return;
       }
 
@@ -220,6 +334,12 @@ const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
             } else if (fromChain?.id === 43114 && tokenInfo.token.symbol === "AVAX") {
               isNativeToken = true;
             } else if (fromChain.id === 250 && tokenInfo.token.symbol === "FTM") {
+              isNativeToken = true;
+            } else if ((fromChain.id === 137 || fromChain.id === 80001) && tokenInfo.token.symbol === "MATIC") {
+              isNativeToken = true;
+            } else if (fromChain.id === 57 && tokenInfo.token.symbol === "SYS") {
+              isNativeToken = true;
+            } else if (fromChain.id === 592 && tokenInfo.token.symbol === "ASTR") {
               isNativeToken = true;
             }
 
@@ -280,7 +400,7 @@ const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
       setLoading(false);
       setTokenListWithBalance(balanceList);
     }
-  }, [transferSupportedTokenList, address, provider, pegConfig]);
+  }, [transferSupportedTokenList, address, provider, pegConfig, nonEVMMode, flowConnected, nonEVMAddress]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
@@ -336,7 +456,7 @@ const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
       const targetToken = highPriorityTokenList.find(
         item => item.token.symbol === symbol || item.token.display_symbol === symbol,
       );
-      if (targetToken) {
+      if (targetToken && !sortedHighPriorityTokenList.includes(targetToken)) {
         sortedHighPriorityTokenList.push(targetToken);
       }
     });

@@ -8,6 +8,9 @@ import { useWeb3Context } from "../providers/Web3ContextProvider";
 import ActionTitle from "./common/ActionTitle";
 import { Theme } from "../theme/theme";
 import { useAppSelector } from "../redux/store";
+import cloverLogo from "../providers/logos/clover.svg";
+import dcentLogo from "../providers/logos/dcent.webp";
+import { storageConstants } from "../constants/const";
 
 const { Text } = Typography;
 
@@ -226,15 +229,31 @@ export default function ProviderModal({ visible, onCancel }: ProviderModalProps)
               <Provider provider={injected.METAMASK} onClick={handleSelectProvider} />
               <Provider provider={injected.COINBASE} onClick={handleSelectProvider} />
               <Provider provider="WalletConnect" onClick={handleSelectWalletConnectProvider} />
+              <Provider
+                provider={{
+                  name: "Clover",
+                  logo: cloverLogo,
+                }}
+                onClick={() => {
+                  localStorage.setItem(storageConstants.KEY_IS_CLOVER_WALLET, "true");
+                  handleSelectProvider();
+                }}
+              />
               {isMobile ? (
                 <>
                   <Provider provider={injected.IMTOKEN} onClick={handleSelectProvider} />
-                  <Provider provider={injected.COINBASE} onClick={handleSelectProvider} />
                   <Provider provider={injected.MATHWALLET} onClick={handleSelectProvider} />
                   <Provider provider={injected.TOKENPOCKET} onClick={handleSelectProvider} />
                   <Provider provider={injected.ONTOWALLET} onClick={handleSelectProvider} />
                   <Provider provider={injected.COIN98WALLET} onClick={handleSelectProvider} />
                   <Provider provider={injected.GOPOCKET} onClick={handleSelectProvider} />
+                  <Provider
+                    provider={{
+                      name: "D'CENT Wallet",
+                      logo: dcentLogo,
+                    }}
+                    onClick={handleSelectProvider}
+                  />
                 </>
               ) : null}
             </div>

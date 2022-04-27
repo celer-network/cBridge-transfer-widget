@@ -10,6 +10,8 @@ import { useAppSelector } from "../../redux/store";
 import { Theme } from "../../theme";
 import { getTokenSymbolWithPeggedMode, getTokenListSymbol } from "../../redux/assetSlice";
 import { PeggedChainMode, usePeggedPairConfig } from "../../hooks/usePeggedPairConfig";
+import { EstimateAmtResponse } from "../../proto/gateway/gateway_pb";
+import { useMultiBurnConfig } from "../../hooks/useMultiBurnConfig";
 
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
   box: {
@@ -18,7 +20,7 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     justifyContent: "flex-start",
     alignContent: "center",
     gap: 6,
-    width: props => (props.isMobile ? "calc(100% - 32px)" : 578),
+    width: props => (props.isMobile ? "calc(100% - 32px)" : 496),
     marginTop: props => (props.isMobile ? 28 : 0),
     borderRadius: props => (props.isMobile ? 16 : "0px 0px 16px 16px"),
     border: `1px solid ${theme.primaryBorder}`,
@@ -70,6 +72,7 @@ type IProps = {
   transferConfig: GetTransferConfigsResponse;
   isBigAmountDelayed: boolean;
   delayMinutes: string;
+  estimateAmtInfoInState: EstimateAmtResponse.AsObject | null;
 };
 
 function TransferOverview({
@@ -83,9 +86,11 @@ function TransferOverview({
   transferConfig,
   isBigAmountDelayed,
   delayMinutes,
+  estimateAmtInfoInState,
 }: IProps) {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const pegConfig = usePeggedPairConfig();
+  const { multiBurnConfig } = useMultiBurnConfig();
   const styles = useStyles({ isMobile });
   const getTokenByChainAndTokenSymbol = (chainId, tokenSymbol) => {
     return transferConfig?.chain_token[chainId]?.token.find(tokenInfo => tokenInfo?.token?.symbol === tokenSymbol);
@@ -110,11 +115,16 @@ function TransferOverview({
   const totalFee = (Number(baseTgas) + Number(percTgas)).toString() || "0";
 
   const toChainInConfig = transferConfig.chains.find(it => it.id === toChain?.id);
-  const arrivalGasTokenAmount = BigNumber.from(toChainInConfig?.drop_gas_amt ?? "0");
+  // const arrivalGasTokenAmount = BigNumber.from(toChainInConfig?.drop_gas_amt ?? "0");
+  const dropGasAmt =
+    estimateAmtInfoInState?.dropGasAmt && estimateAmtInfoInState?.dropGasAmt.length > 0
+      ? estimateAmtInfoInState?.dropGasAmt
+      : "0";
+  const arrivalGasTokenAmount = BigNumber.from(dropGasAmt);
   const arrivalGasTokenDecimal =
     getTokenByChainAndTokenSymbol(toChainInConfig?.id ?? 0, toChainInConfig?.gas_token_symbol)?.token.decimal ?? 18;
   const arrivalGasTokenAmountValue = formatUnits(arrivalGasTokenAmount, arrivalGasTokenDecimal);
-  const arrivalGasTokenAmountDisplay = formatDecimalPart(arrivalGasTokenAmountValue, 6, "round", true);
+  const arrivalGasTokenAmountDisplay = formatDecimalPart(arrivalGasTokenAmountValue || "0", 6, "round", true);
   const arrivalGasTokenSymbol = toChainInConfig?.gas_token_symbol;
 
   return (
@@ -129,7 +139,7 @@ function TransferOverview({
               1{" "}
               {selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token?.symbol, fromChain?.id)}{" "}
               on <img className={styles.iconImg} src={fromChain?.icon} alt="" />{" "}
-              {pegConfig.mode === PeggedChainMode.Off ? "≈" : "="} {bridgeRate}{" "}
+              {pegConfig.mode === PeggedChainMode.Off && multiBurnConfig === undefined ? "≈" : "="} {bridgeRate}{" "}
               {getTokenDisplaySymbol(selectedToken?.token, fromChain, toChain, transferConfig.pegged_pair_configs)} on{" "}
               <img className={styles.iconImg} src={toChain?.icon} alt="" />
             </>
@@ -143,22 +153,24 @@ function TransferOverview({
             title={
               <div className={styles.tooltipContent} style={{ whiteSpace: "pre-line" }}>
                 <span style={{ fontWeight: 700 }}>The Base Fee</span>
-                {`: ${formatDecimalPart(baseTgas, 8, "round", true)} ${getTokenDisplaySymbol(
+                {`: ${formatDecimalPart(baseTgas || "0", 8, "round", true)} ${getTokenDisplaySymbol(
                   selectedToken?.token,
                   fromChain,
                   toChain,
                   transferConfig.pegged_pair_configs,
                 )}\n`}
                 <span style={{ fontWeight: 700 }}>
-                  {pegConfig.mode === PeggedChainMode.Off ? "The Liquidity Fee" : "The Bridge Fee"}
+                  {pegConfig.mode === PeggedChainMode.Off && multiBurnConfig === undefined
+                    ? "The Liquidity Fee"
+                    : "The Bridge Fee"}
                 </span>
-                {`: ${formatDecimalPart(percTgas, 8, "round", true)} ${getTokenDisplaySymbol(
+                {`: ${formatDecimalPart(percTgas || "0", 8, "round", true)} ${getTokenDisplaySymbol(
                   selectedToken?.token,
                   fromChain,
                   toChain,
                   transferConfig.pegged_pair_configs,
                 )}\n\nBase Fee is used to cover the gas cost for sending your transfer on the destination chain.\n\n`}
-                {pegConfig.mode === PeggedChainMode.Off
+                {pegConfig.mode === PeggedChainMode.Off && multiBurnConfig === undefined
                   ? "Liquidity Fee is paid to cBridge LPs and Celer SGN stakers as economic incentives."
                   : "Bridge Fee is paid to Celer SGN as economic incentives for guarding the security of cBridge."}
               </div>
@@ -172,11 +184,11 @@ function TransferOverview({
           </Tooltip>
         </div>
         <span className={styles.content}>
-          {formatDecimalPart(totalFee, 8, "round", true)}{" "}
+          {formatDecimalPart(totalFee || "0", 8, "round", true)}{" "}
           {getTokenDisplaySymbol(selectedToken?.token, fromChain, toChain, transferConfig.pegged_pair_configs)}
         </span>
       </div>
-      {pegConfig.mode === PeggedChainMode.Off ? (
+      {pegConfig.mode === PeggedChainMode.Off && useMultiBurnConfig === undefined ? (
         <div className={styles.item}>
           <div>
             <span className={styles.title}>Minimum Received</span>

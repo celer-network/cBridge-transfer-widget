@@ -13,7 +13,7 @@ import { useContractsContext } from "../providers/ContractsContextProvider";
 import { useWeb3Context } from "../providers/Web3ContextProvider";
 
 import { getTransferStatus, withdrawLiquidity } from "../redux/gateway";
-import { switchChain } from "../redux/transferSlice";
+import { switchChain, setFromChain } from "../redux/transferSlice";
 import { useAppSelector, useAppDispatch } from "../redux/store";
 import { GetPeggedMode, PeggedChainMode, getPeggedPairConfigs } from "../hooks/usePeggedPairConfig";
 
@@ -30,6 +30,11 @@ import {
 import { WebClient } from "../proto/gateway/GatewayServiceClientPb";
 
 import { formatBlockExplorerUrlWithTxHash } from "../utils/formatUrl";
+import { storageConstants } from "../constants/const";
+import { isToBeConfirmRefund } from "../utils/mergeTransferHistory";
+import { getNonEVMMode, NonEVMMode, useNonEVMContext } from "../providers/NonEVMContextProvider";
+import { submitFlowRefundRequest } from "../redux/NonEVMAPIs/flowAPIs";
+import { getNetworkById } from "../constants/network";
 
 /* eslint-disable */
 /* eslint-disable camelcase */
@@ -57,8 +62,15 @@ const useStyles = createUseStyles((theme: Theme) => ({
     lineHeight: "42px",
     background: theme.primaryBrand,
     borderRadius: 16,
+    border: "none",
     fontSize: 18,
     fontWeight: 700,
+    "&:focus, &:hover": {
+      background: theme.buttonHover,
+    },
+    "&::before": {
+      backgroundColor: `${theme.primaryBrand} !important`,
+    },
   },
   modalTopIcon: {
     fontSize: 16,
@@ -115,12 +127,14 @@ const useStyles = createUseStyles((theme: Theme) => ({
 const HistoryTransferModal = ({ visible, onCancel, record }) => {
   const classes = useStyles();
   const {
-    contracts: { bridge, originalTokenVault },
+    contracts: { bridge, originalTokenVault, originalTokenVaultV2 },
     transactor,
   } = useContractsContext();
   const { signer, chainId, address } = useWeb3Context();
+  const { flowConnected, loadNonEVMModal } = useNonEVMContext();
   const dispatch = useAppDispatch();
   const { windowWidth, transferInfo } = useAppSelector(state => state);
+  const { transferConfig } = transferInfo;
   const { isMobile } = windowWidth;
   const [loading, setLoading] = useState(false);
   const [transfState, setTransfState] = useState(record?.status);
@@ -139,6 +153,7 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
     { token: record.src_send_info.token },
     dispatch,
   );
+  const srcSendChainNonEVMMode = getNonEVMMode(record?.src_send_info?.chain.id ?? 0);
 
   useEffect(() => {
     setTransfState(record?.status);
@@ -178,7 +193,10 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
     return estimateResult;
   };
   const requestRefund = async () => {
-    if (!bridge || !signer) {
+    if (!bridge && srcSendChainNonEVMMode === NonEVMMode.off) {
+      return;
+    }
+    if (!signer) {
       return;
     }
     setLoading(true);
@@ -242,6 +260,91 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
     }
   };
 
+  const confirmFlowRefund = async () => {
+    let nowWithdrawDetail = withdrawDetail;
+    if (!nowWithdrawDetail) {
+      const res = await getTransferStatus({
+        transfer_id: record.transfer_id,
+      });
+      setTransferStatusInfo(res);
+      const { wd_onchain, sorted_sigs, signers, powers } = res;
+      nowWithdrawDetail = {
+        _wdmsg: wd_onchain,
+        _sigs: sorted_sigs,
+        _signers: signers,
+        _powers: powers,
+      };
+    }
+    setLoading(true);
+    const { _wdmsg, _sigs } = nowWithdrawDetail;
+    const wdmsg = base64.decode(_wdmsg);
+    const sigs = _sigs.map(item => {
+      return base64.decode(item);
+    });
+
+    console.log("record", record);
+
+    const depositContractAddress =
+      transferInfo.transferConfig.pegged_pair_configs.find(peggedPairConfig => {
+        return (
+          peggedPairConfig.org_chain_id === record?.src_send_info?.chain?.id &&
+          peggedPairConfig.org_token.token.symbol === record.src_send_info.token.symbol
+        );
+      })?.pegged_deposit_contract_addr ?? "";
+
+    const txHash = await submitFlowRefundRequest(
+      depositContractAddress,
+      record.src_send_info.token.address,
+      wdmsg,
+      sigs,
+    );
+
+    setLoading(false);
+    console.log("txHash", txHash);
+
+    if (txHash.length > 0) {
+      const transferJson: TransferHistory = {
+        dst_block_tx_link: record.dst_block_tx_link,
+        src_send_info: record.src_send_info,
+        src_block_tx_link: `${getNetworkById(record.src_send_info.chain.id).blockExplorerUrl}/transaction/${txHash}`,
+        srcAddress: address,
+        dstAddress: address,
+        dst_received_info: record.dst_received_info,
+        status: TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND,
+        transfer_id: record.transfer_id,
+        nonce: record.nonce,
+        ts: record.ts,
+        isLocal: true,
+        updateTime: new Date().getTime(),
+        txIsFailed: false,
+      };
+      const localTransferListJsonStr = localStorage.getItem(storageConstants.KEY_TRANSFER_LIST_JSON);
+      let localTransferList: TransferHistory[] = [];
+      if (localTransferListJsonStr) {
+        localTransferList = JSON.parse(localTransferListJsonStr) || [];
+      }
+      let isHave = false;
+      localTransferList.map(item => {
+        if (item.transfer_id === record.transfer_id) {
+          isHave = true;
+          item.updateTime = new Date().getTime();
+          item.txIsFailed = false;
+          item.src_block_tx_link = `${
+            getNetworkById(record.src_send_info.chain.id).blockExplorerUrl
+          }/transaction/${txHash}`;
+        }
+        return item;
+      });
+
+      if (!isHave) {
+        localTransferList.unshift(transferJson);
+      }
+      localStorage.setItem(storageConstants.KEY_TRANSFER_LIST_JSON, JSON.stringify(localTransferList));
+      setLoading(false);
+      setTransfState(TransferHistoryStatus.TRANSFER_REFUNDED);
+    }
+  };
+
   const confirmRefund = async () => {
     if (!transactor || !bridge) {
       return;
@@ -276,8 +379,15 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
       return BigNumber.from(decodeNum);
     });
     const executor = () => {
-      if (peggedMode === PeggedChainMode.Deposit && originalTokenVault) {
-        return transactor(originalTokenVault.withdraw(wdmsg, sigs, signers, powers));
+      // if (peggedMode === PeggedChainMode.Burn && peggedTokenBridge) {
+      //   return transactor(peggedTokenBridge.mint(wdmsg, sigs, signers, powers));
+      // } else
+      if (peggedMode === PeggedChainMode.Deposit) {
+        if (originalTokenVaultV2) {
+          return transactor(originalTokenVaultV2.withdraw(wdmsg, sigs, signers, powers));
+        } else if (originalTokenVault) {
+          return transactor(originalTokenVault.withdraw(wdmsg, sigs, signers, powers));
+        }
       }
 
       return transactor(bridge.withdraw(wdmsg, sigs, signers, powers));
@@ -287,13 +397,15 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
       setLoading(false);
     });
     if (res) {
-      const transferJson = {
+      const transferJson: TransferHistory = {
         dst_block_tx_link: record.dst_block_tx_link,
         src_send_info: record.src_send_info,
         src_block_tx_link: formatBlockExplorerUrlWithTxHash({
           chainId: record.src_send_info.chain.id,
           txHash: res.hash,
         }),
+        srcAddress: address,
+        dstAddress: address,
         dst_received_info: record.dst_received_info,
         status: TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND,
         transfer_id: record.transfer_id,
@@ -303,10 +415,10 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
         updateTime: new Date().getTime(),
         txIsFailed: false,
       };
-      const localTransferListJsonStr = localStorage.getItem("transferListJson");
+      const localTransferListJsonStr = localStorage.getItem(storageConstants.KEY_TRANSFER_LIST_JSON);
       let localTransferList: TransferHistory[] = [];
       if (localTransferListJsonStr) {
-        localTransferList = JSON.parse(localTransferListJsonStr)[address] || [];
+        localTransferList = JSON.parse(localTransferListJsonStr) || [];
       }
       let isHave = false;
       localTransferList.map(item => {
@@ -325,14 +437,13 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
       if (!isHave) {
         localTransferList.unshift(transferJson);
       }
-      const newJson = { [address]: localTransferList };
-      localStorage.setItem("transferListJson", JSON.stringify(newJson));
+      localStorage.setItem(storageConstants.KEY_TRANSFER_LIST_JSON, JSON.stringify(localTransferList));
       setLoading(false);
       setTransfState(TransferHistoryStatus.TRANSFER_REFUNDED);
     }
   };
 
-  if (record?.src_send_info?.chain.id !== chainId) {
+  if (srcSendChainNonEVMMode === NonEVMMode.off && record?.src_send_info?.chain.id !== chainId) {
     content = (
       <div>
         <div style={{ textAlign: "center" }}>
@@ -351,7 +462,47 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
           loading={loading}
           onClick={() => {
             if (!isMobile) {
-              switchChain(record?.src_send_info?.chain.id, "");
+              switchChain(record?.src_send_info?.chain.id, "", (chainId: number) => {
+                const chain = transferConfig.chains.find(chainInfo => {
+                  return chainInfo.id === chainId;
+                });
+                if (chain !== undefined) {
+                  dispatch(setFromChain(chain));
+                }
+              });
+            } else {
+              onCancel();
+            }
+          }}
+          className={classes.button}
+        >
+          OK
+        </Button>
+      </div>
+    );
+  } else if (
+    (srcSendChainNonEVMMode === NonEVMMode.flowTest || srcSendChainNonEVMMode === NonEVMMode.flowMainnet) &&
+    !flowConnected
+  ) {
+    content = (
+      <div>
+        <div style={{ textAlign: "center" }}>
+          <WarningFilled style={{ fontSize: 50, color: "#ffaa00", marginTop: 40 }} />
+        </div>
+        <div className={classes.modaldes}>
+          Please connect <div className={classes.yellowText}>{record?.src_send_info?.chain.name} </div> before{" "}
+          {transfState === TransferHistoryStatus.TRANSFER_TO_BE_REFUNDED
+            ? "requesting a refund."
+            : "confirming liquidity removal."}
+        </div>
+        <Button
+          type="primary"
+          size="large"
+          block
+          loading={loading}
+          onClick={() => {
+            if (!isMobile) {
+              loadNonEVMModal(NonEVMMode.flowTest);
             } else {
               onCancel();
             }
@@ -401,28 +552,6 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
         </div>
       </>
     );
-  } else if (transfState === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED) {
-    content = (
-      <>
-        <div className={classes.modalTop}>
-          <div className={classes.modaldes} style={{ marginTop: 70 }}>
-            Click the “Confirm Refund” button to get your refund.
-          </div>
-        </div>
-        <Button
-          type="primary"
-          size="large"
-          block
-          loading={loading}
-          onClick={() => {
-            confirmRefund();
-          }}
-          className={classes.button}
-        >
-          Confirm Refund
-        </Button>
-      </>
-    );
   } else if (transfState === TransferHistoryStatus.TRANSFER_REFUNDED) {
     content = (
       <>
@@ -443,6 +572,35 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
           className={classes.button}
         >
           OK
+        </Button>
+      </>
+    );
+  } else if (transfState === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED || isToBeConfirmRefund(record)) {
+    content = (
+      <>
+        <div className={classes.modalTop}>
+          <div className={classes.modaldes} style={{ marginTop: 70 }}>
+            Click the "Confirm Refund" button to get your refund.
+          </div>
+        </div>
+        <Button
+          type="primary"
+          size="large"
+          block
+          loading={loading}
+          onClick={() => {
+            if (srcSendChainNonEVMMode === NonEVMMode.off) {
+              confirmRefund();
+            } else if (
+              srcSendChainNonEVMMode === NonEVMMode.flowMainnet ||
+              srcSendChainNonEVMMode === NonEVMMode.flowTest
+            ) {
+              confirmFlowRefund();
+            }
+          }}
+          className={classes.button}
+        >
+          Confirm Refund
         </Button>
       </>
     );

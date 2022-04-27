@@ -34,6 +34,14 @@ export const useNativeETHToken = (srcChain: Chain | undefined, tokenInfo: TokenI
       nativeETHToken = true;
     } else if (srcChain.id === 250 && tokenInfo.token.symbol === "FTM") {
       nativeETHToken = true;
+    } else if (srcChain.id === 336 && tokenInfo.token.symbol === "SDN") {
+      nativeETHToken = true;
+    } else if ((srcChain.id === 137 || srcChain.id === 80001) && tokenInfo.token.symbol === "MATIC") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 57 && tokenInfo.token.symbol === "SYS") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 592 && tokenInfo.token.symbol === "ASTR") {
+      nativeETHToken = true;
     }
 
     setIsNativeToken(nativeETHToken);

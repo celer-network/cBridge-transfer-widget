@@ -11,15 +11,21 @@ import { Pool } from "../typechain/typechain/Pool";
 import { Pool__factory } from "../typechain/typechain/factories/Pool__factory";
 import { PeggedTokenBridge } from "../typechain/typechain/PeggedTokenBridge";
 import { PeggedTokenBridge__factory } from "../typechain/typechain/factories/PeggedTokenBridge__factory";
+import { PeggedTokenBridgeV2 } from "../typechain/typechain/PeggedTokenBridgeV2";
+import { PeggedTokenBridgeV2__factory } from "../typechain/typechain/factories/PeggedTokenBridgeV2__factory";
 import { OriginalTokenVault } from "../typechain/typechain/OriginalTokenVault";
 import { OriginalTokenVault__factory } from "../typechain/typechain/factories/OriginalTokenVault__factory";
+import { OriginalTokenVaultV2 } from "../typechain/typechain/OriginalTokenVaultV2";
+import { OriginalTokenVaultV2__factory } from "../typechain/typechain/factories/OriginalTokenVaultV2__factory";
 
 export type BridgeContracts = {
   bridge: Bridge | undefined;
   dstbridge: Bridge | undefined;
   pool: Pool | undefined;
   originalTokenVault: OriginalTokenVault | undefined;
+  originalTokenVaultV2: OriginalTokenVaultV2 | undefined;
   peggedTokenBridge: PeggedTokenBridge | undefined;
+  peggedTokenBridgeV2: PeggedTokenBridgeV2 | undefined;
 };
 
 export type BridgeContractFactoryClasses = {
@@ -31,7 +37,9 @@ export const bridgeContractFactories: BridgeContractFactoryClasses = {
   dstbridge: Bridge__factory,
   pool: Pool__factory,
   originalTokenVault: OriginalTokenVault__factory,
+  originalTokenVaultV2: OriginalTokenVaultV2__factory,
   peggedTokenBridge: PeggedTokenBridge__factory,
+  peggedTokenBridgeV2: PeggedTokenBridgeV2__factory,
 };
 
 export const bridgeContracts: BridgeContracts = {
@@ -39,7 +47,9 @@ export const bridgeContracts: BridgeContracts = {
   dstbridge: undefined,
   pool: undefined,
   originalTokenVault: undefined,
+  originalTokenVaultV2: undefined,
   peggedTokenBridge: undefined,
+  peggedTokenBridgeV2: undefined,
 };
 
 function loadContract(

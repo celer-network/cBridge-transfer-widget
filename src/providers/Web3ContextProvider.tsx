@@ -6,8 +6,11 @@ import Web3Modal from "@celer-network/web3modal";
 import { JsonRpcProvider, JsonRpcSigner, Web3Provider } from "@ethersproject/providers"; // InfuraProvider,
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { getNetworkById, CHAIN_LIST } from "../constants/network"; // INFURA_ID
+import { storageConstants } from "../constants/const";
 
 const targetNetworkId = Number(process.env.REACT_APP_NETWORK_ID) || 3;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export const rpcUrls = () => {
   const rpcMap = {};
@@ -134,6 +137,11 @@ export const Web3ContextProvider = ({ children }: Web3ContextProviderProps): JSX
   const loadWeb3Modal = useCallback(async (providerName: string, catchMethod?: () => void) => {
     setConnecting(true);
     setConnectName(providerName);
+    const cachedIsClover = localStorage.getItem(storageConstants.KEY_IS_CLOVER_WALLET) === "true";
+    if (cachedIsClover) {
+      await sleep(500);
+    }
+
     const connection = await web3Modal.connectTo(providerName).catch(() => setConnecting(false));
     if (!connection) {
       if (catchMethod) {
@@ -152,8 +160,10 @@ export const Web3ContextProvider = ({ children }: Web3ContextProviderProps): JSX
     setProvider(newProvider);
     const newSigner = newProvider.getSigner();
     setSigner(newSigner);
-    setAddress(await newSigner.getAddress());
-    localStorage.setItem("web3providerName", providerName);
+
+    const walletAddress = await newSigner.getAddress();
+    setAddress(walletAddress);
+    localStorage.setItem(storageConstants.KEY_WEB3_PROVIDER_NAME, providerName);
   }, []);
 
   const logoutOfWeb3Modal = useCallback(async () => {
@@ -161,7 +171,8 @@ export const Web3ContextProvider = ({ children }: Web3ContextProviderProps): JSX
       web3Connection.close();
     }
     web3Modal.clearCachedProvider();
-    localStorage.setItem("tabkey", "transfer");
+    localStorage.setItem(storageConstants.KEY_TAB_KEY, "transfer");
+    localStorage.removeItem(storageConstants.KEY_IS_CLOVER_WALLET);
     window.location.reload();
   }, [web3Connection]);
 

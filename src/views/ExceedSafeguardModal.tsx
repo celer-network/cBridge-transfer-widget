@@ -25,6 +25,12 @@ const useStyles = createUseStyles((theme: Theme) => ({
     borderRadius: 16,
     background: theme.primaryBrand,
     border: 0,
+    "&:focus, &:hover": {
+      background: theme.buttonHover,
+    },
+    "&::before": {
+      backgroundColor: `${theme.primaryBrand} !important`,
+    },
   },
 }));
 

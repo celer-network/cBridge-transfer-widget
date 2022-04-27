@@ -8,10 +8,13 @@ import Transfer from "./Transfer";
 import HistoryModal from "./HistoryModal";
 import Header from "../components/Header";
 import { useAppDispatch, useAppSelector } from "../redux/store";
-import { closeModal, ModalName } from "../redux/modalSlice";
+import { closeModal, ModalName, openModal } from "../redux/modalSlice";
 import ProviderModal from "../components/ProviderModal";
+import FlowProviderModal from "../components/nonEVM/FlowProviderModal";
 import ChainList from "../components/ChainList";
 import { useWeb3Context } from "../providers/Web3ContextProvider";
+import { filteredLocalTransferHistory } from "../utils/localTransferHistoryList";
+
 import {
   setCBridgeAddresses,
   setCBridgeDesAddresses,
@@ -30,14 +33,25 @@ import {
   setGetConfigsFinish,
   addChainToken,
   setTotalActionNum,
-  setTotalPaddingNum,
+  setTotalPendingNum,
   setRefreshTransferAndLiquidity,
+  setFlowTokenPathConfigs,
 } from "../redux/transferSlice";
 import { setConfig } from "../redux/configSlice";
 import { Chain, TransferHistoryStatus, TokenInfo, TransferHistory } from "../constants/type";
 import { CHAIN_LIST, getNetworkById } from "../constants/network";
-import { dataClone } from "../helpers/dataClone";
+import { mergeTransactionHistory } from "../utils/mergeTransferHistory";
 import { useTransferSupportedChainList, useTransferSupportedTokenList } from "../hooks/transferSupportedInfoList";
+import { storageConstants } from "../constants/const";
+import {
+  NonEVMMode,
+  useNonEVMContext,
+  getNonEVMMode,
+  isNonEVMChain,
+  convertNonEVMAddressToEVMCompatible,
+} from "../providers/NonEVMContextProvider";
+import TerraProviderModal from "../components/nonEVM/TerraProviderModal";
+import { getFlowTokenPathConfigs } from "../redux/NonEVMAPIs/flowAPIs";
 
 /* eslint-disable */
 /* eslint-disable camelcase */
@@ -195,7 +209,7 @@ function FooterContent() {
   }
   return (
     <div className={classes.footerContainer}>
-      <div className={classes.footerText}>Powered by Celer cBridge</div>
+      <div className={classes.footerText}>Powered by Celer Network</div>
       <div className={classes.footerContainerEnd}>
         {/* eslint-disable-next-line */}
         <label style={{ cursor: "pointer" }} onClick={() => window.open("https://form.typeform.com/to/Q4LMjUaK")}>
@@ -212,76 +226,134 @@ function CBridgeTransferHome(): JSX.Element {
   const classes = useStyles({ isMobile });
   const history = useHistory();
   const { chainId, address, provider } = useWeb3Context();
+  const { flowConnected, nonEVMAddress, nonEVMMode, terraConnected, flowAddress, terraAddress } = useNonEVMContext();
   const { modal, transferInfo } = useAppSelector(state => state);
-  const { showProviderModal, showHistoryModal } = modal;
+  const { showProviderModal, showHistoryModal, showFlowProviderModal, showTerraProviderModal } = modal;
   const { transferConfig, isChainShow, chainSource, fromChain, toChain, refreshHistory, refreshTransferAndLiquidity } =
     transferInfo;
   const { chains, chain_token } = transferConfig;
-  const [historyTitleNum, setHistoryTitleNum] = useState(0);
-  const [historyPaddingNum, setHistoryPaddingNum] = useState(0);
   const transferSupportedChainList = useTransferSupportedChainList(true);
   const transferSupportedTokenList = useTransferSupportedTokenList();
   const dispatch = useAppDispatch();
+  const [historyActionNum, setHistoryActionNum] = useState<number>(0);
+  const [historyPendingNum, setHistoryPendingNum] = useState<number>(0);
 
   const handleCloseProviderModal = () => {
     dispatch(closeModal(ModalName.provider));
   };
   const handleCloseHistoryModal = () => {
     dispatch(setRefreshTransferAndLiquidity(!refreshTransferAndLiquidity));
-    refreshHistoryList();
+    refreshTransferAndLPHistory();
     dispatch(closeModal(ModalName.history));
   };
+  const handleCloseFlowProviderModal = () => {
+    dispatch(closeModal(ModalName.flowProvider));
+  };
+  const handleCloseTerraProviderModal = () => {
+    dispatch(closeModal(ModalName.terraProvider));
+  };
+
+  const getHistoryOnchainQueryPromiseList = (provider, chainId, localStorageHistoryList: TransferHistory[]) => {
+    // eslint-disable-next-line
+    const promiseList: Array<Promise<any>> = [];
+    if (localStorageHistoryList) {
+      localStorageHistoryList?.forEach(localItem => {
+        if (localItem && localItem.toString() !== "null") {
+          if (
+            localItem?.status === TransferHistoryStatus.TRANSFER_FAILED ||
+            localItem?.txIsFailed ||
+            Number(localItem.src_send_info.chain.id) !== Number(chainId)
+          ) {
+            // Failed transactions filter
+            const nullPromise = new Promise(resolve => {
+              resolve(0);
+            });
+            promiseList.push(nullPromise);
+          } else {
+            const promistx = getTxStatus(provider, localItem.src_block_tx_link); // Check local transaction status
+            promiseList.push(promistx);
+          }
+        }
+      });
+    }
+    return promiseList;
+  };
+
+  const getTxStatus = async (provider, link) => {
+    const txid = link.split("/tx/")[1];
+    if (txid) {
+      const res = await provider?.getTransactionReceipt(txid);
+      return res;
+    }
+    return "";
+  };
+
   useEffect(() => {
-    const clearTag = localStorage.getItem("clearTag");
-    if (clearTag !== "clear") {
+    const clearTag = localStorage.getItem(storageConstants.KEY_CLEAR_TAG);
+    if (clearTag !== "clearForTransferHistoryIteration") {
       localStorage.clear();
     }
-    localStorage.setItem("clearTag", "clear");
-    const localeToAddTokenStr = localStorage.getItem("ToAddToken");
-    if (localeToAddTokenStr) {
+    localStorage.setItem(storageConstants.KEY_CLEAR_TAG, "clearForTransferHistoryIteration");
+    const localeToAddTokenStr = localStorage.getItem(storageConstants.KEY_TO_ADD_TOKEN);
+    if (localeToAddTokenStr && provider) {
       const localeToAddToken = JSON.parse(localeToAddTokenStr).atoken;
       addChainToken(localeToAddToken);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [provider]);
 
   useAsync(async () => {
-    const txHistoryList = await checkTransferHistory({ addr: address, page_size: 5, next_page_token: "" });
+    const addresses = [address];
+    if (!fromChain) {
+      return;
+    }
+    if (isNonEVMChain(fromChain?.id ?? 0) || isNonEVMChain(toChain?.id ?? 0)) {
+      if (flowAddress.length > 0) {
+        const flowEVMCompatibleAddress = await convertNonEVMAddressToEVMCompatible(flowAddress, nonEVMMode);
+        addresses.push(flowEVMCompatibleAddress);
+      }
+      if (terraAddress.length > 0) {
+        const terraEVMCompatibleAddress = await convertNonEVMAddressToEVMCompatible(terraAddress, nonEVMMode);
+        addresses.push(terraEVMCompatibleAddress);
+      }
+    } else if (!address) {
+      return;
+    }
+    const txHistoryList = await checkTransferHistory({ acct_addr: addresses, page_size: 5, next_page_token: "" });
     if (txHistoryList?.history?.length > 0) {
       dispatch(setIsHistoryNotEmpty());
     }
-  }, [address, dispatch]);
+  }, [address, fromChain?.id]);
 
   useEffect(() => {
+    refreshTransferAndLPHistory();
+    clearInterval(inter);
+    inter = setInterval(() => {
+      refreshTransferAndLPHistory();
+    }, 60000);
+
     document.addEventListener("visibilitychange", _ => {
       // console.log(document.visibilityState);
       if (document.visibilityState === "hidden") {
         clearInterval(inter);
       } else if (document.visibilityState === "visible") {
-        if (address) {
-          refreshHistoryList();
-          clearInterval(inter);
-          inter = setInterval(() => {
-            refreshHistoryList();
-          }, 60000);
-        }
+        refreshTransferAndLPHistory();
+        clearInterval(inter);
+        inter = setInterval(() => {
+          refreshTransferAndLPHistory();
+        }, 60000);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, refreshHistory]);
-  const refreshHistoryList = () => {
-    gethistoryList();
-  };
-  useEffect(() => {
+  }, [address, refreshHistory, nonEVMAddress]);
+
+  const refreshTransferAndLPHistory = () => {
     if (address) {
-      refreshHistoryList();
-      clearInterval(inter);
-      inter = setInterval(() => {
-        refreshHistoryList();
-      }, 60000);
+      getHistoryList();
+    } else if (nonEVMAddress.length > 0) {
+      getHistoryList();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, refreshHistory]);
+  };
 
   useEffect(() => {
     if (toChain && toChain !== undefined && transferSupportedChainList.length > 0) {
@@ -298,7 +370,7 @@ function CBridgeTransferHome(): JSX.Element {
   }, [transferSupportedChainList]);
 
   useEffect(() => {
-    const cacheTokenSymbol = localStorage.getItem("selectedTokenSymbol");
+    const cacheTokenSymbol = localStorage.getItem(storageConstants.KEY_SELECTED_TOKEN_SYMBOL);
 
     if (fromChain && fromChain !== undefined && toChain && toChain !== undefined) {
       if (transferSupportedTokenList.length > 0) {
@@ -316,122 +388,53 @@ function CBridgeTransferHome(): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transferSupportedTokenList]);
 
-  const getTxStatus = async link => {
-    const txid = link.split("/tx/")[1];
-    if (txid) {
-      const res = await provider?.getTransactionReceipt(txid);
-      return res;
-    }
-    return "";
-  };
-  const gethistoryList = async () => {
-    let paddigNum = 0;
-    let num = 0;
-    const res = await transferHistory({ addr: address, page_size: 50, next_page_token: "" });
-    if (res) {
-      const hisList = res.history;
-      let newList = hisList;
-      let localTransferList;
-      let noExitList;
-      const promiseList: Array<Promise<any>> = [];
-      const localTransferListStr = localStorage.getItem("transferListJson");
-      if (localTransferListStr) {
-        localTransferList = JSON.parse(localTransferListStr)[address];
-        const newLocalTransferList: TransferHistory[] = [];
-        localTransferList?.forEach(localItem => {
-          if (localItem && localItem !== "null") {
-            newLocalTransferList.push(localItem);
-            if (
-              localItem?.status === TransferHistoryStatus.TRANSFER_FAILED ||
-              localItem?.txIsFailed ||
-              Number(localItem.src_send_info.chain.id) !== Number(chainId)
-            ) {
-              // Failed transactions filter
-              const nullPromise = new Promise(resolve => {
-                resolve(0);
-              });
-              promiseList.push(nullPromise);
-            } else {
-              const promistx = getTxStatus(localItem.src_block_tx_link); // check local status
-              promiseList.push(promistx);
-            }
-          }
-        });
-        localTransferList = newLocalTransferList;
-      }
-      Promise.all(promiseList).then(resList => {
-        resList?.map((pItem, i) => {
-          const localItem = localTransferList[i];
-          if (pItem) {
-            localItem.txIsFailed = Number(pItem.status) !== 1;
-            if (localItem.status === TransferHistoryStatus.TRANSFER_SUBMITTING) {
-              localItem.status = Number(pItem.status) === 1 ? localItem.status : TransferHistoryStatus.TRANSFER_FAILED;
-            } else if (localItem.status === TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND) {
-              localItem.status =
-                Number(pItem.status) === 1 ? localItem.status : TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED;
-            }
-          }
-          return pItem;
-        });
-        noExitList = localTransferList ? dataClone(localTransferList) : [];
-        hisList?.map(item => {
-          localTransferList?.map((localItem, i) => {
-            if (Number(localItem.ts) < Number(hisList[hisList.length - 1].ts)) {
-              noExitList[i].hide = true;
-            } else if (item.transfer_id === localItem.transfer_id) {
-              noExitList[i].hide = true;
-              if (localItem.status === TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND) {
-                // If local status is CONFIRMING and gateway status is TO_BE_CONFIRMED
-                if (item.status === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED) {
-                  if (!localItem.txIsFailed) {
-                    // If there is no failure inside local storage, show user CONFIRMING_YOUR_REFUND status
-                    item.status = TransferHistoryStatus.TRANSFER_CONFIRMING_YOUR_REFUND;
-                  }
-                  item.updateTime = localItem.updateTime;
-                  item.txIsFailed = localItem.txIsFailed;
-                }
-              }
-            }
-            return localItem;
-          });
-          return item;
-        });
-        const newNoExitList = noExitList?.filter(item => !item.hide);
-        newList = newNoExitList ? [...newNoExitList, ...hisList] : hisList;
+  const getHistoryList = async () => {
+    const addresses = [address];
 
-        newList?.map(item => {
-          if (
-            item.status === TransferHistoryStatus.TRANSFER_TO_BE_REFUNDED ||
-            item.status === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED
-          ) {
-            num += 1;
-          }
-          if (
-            item.status !== TransferHistoryStatus.TRANSFER_UNKNOWN &&
-            item.status !== TransferHistoryStatus.TRANSFER_FAILED &&
-            item.status !== TransferHistoryStatus.TRANSFER_REFUNDED &&
-            item.status !== TransferHistoryStatus.TRANSFER_COMPLETED
-          ) {
-            paddigNum += 1;
-          }
-          return item;
+    if (isNonEVMChain(fromChain?.id ?? 0) || isNonEVMChain(toChain?.id ?? 0)) {
+      if (flowAddress.length > 0) {
+        const flowEVMCompatibleAddress = await convertNonEVMAddressToEVMCompatible(flowAddress, NonEVMMode.flowTest);
+        addresses.push(flowEVMCompatibleAddress);
+      }
+
+      if (terraAddress.length > 0) {
+        const terraEVMCompatibleAddress = await convertNonEVMAddressToEVMCompatible(terraAddress, NonEVMMode.terraTest);
+        addresses.push(terraEVMCompatibleAddress);
+      }
+    }
+
+    const res = await transferHistory({ acct_addr: addresses, page_size: 50, next_page_token: "" });
+    if (res) {
+      const localHistoryList = filteredLocalTransferHistory([address, nonEVMAddress]);
+      const allItemTxQueryPromise = getHistoryOnchainQueryPromiseList(provider, chainId, localHistoryList);
+      Promise.all(allItemTxQueryPromise).then(onChainResult => {
+        const historyMergeResult = mergeTransactionHistory({
+          pageToken: new Date().getTime(),
+          historyList: res.history,
+          localHistoryList: localHistoryList,
+          pageSize: 50,
+          address: address,
+          onChainResult: onChainResult,
         });
-        setHistoryTitleNum(num);
-        setHistoryPaddingNum(paddigNum);
+
+        if (historyMergeResult) {
+          setHistoryActionNum(historyMergeResult.historyActionNum);
+          setHistoryPendingNum(historyMergeResult.historyPendingNum);
+        }
       });
     }
   };
 
   useEffect(() => {
-    dispatch(setTotalActionNum(historyTitleNum));
-    dispatch(setTotalPaddingNum(historyPaddingNum));
+    dispatch(setTotalActionNum(historyActionNum));
+    dispatch(setTotalPendingNum(historyPendingNum));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyTitleNum, historyPaddingNum]);
+  }, [historyActionNum, historyPendingNum]);
 
   useEffect(() => {
     if (chainId) {
       const chainName = getNetworkById(chainId).name;
-      localStorage.setItem("chainName", chainName);
+      localStorage.setItem(storageConstants.KEY_CHAIN_NAME, chainName);
     }
   }, [chainId]);
 
@@ -461,8 +464,8 @@ function CBridgeTransferHome(): JSX.Element {
   const setDefaultInfo = useCallback(
     (chains, chain_token, chainId) => {
       if (chains.length > 1) {
-        const cacheFromChainId = localStorage.getItem("fromChainId");
-        const cacheToChainId = localStorage.getItem("toChainId");
+        const cacheFromChainId = localStorage.getItem(storageConstants.KEY_FROM_CHAIN_ID);
+        const cacheToChainId = localStorage.getItem(storageConstants.KEY_TO_CHAIN_ID);
         const dataInfo = getDefaultData(chains, cacheFromChainId, cacheToChainId); // get info by id
         const { sourceChain, destinChain } = dataInfo;
         const cacheFromChain = sourceChain;
@@ -474,13 +477,33 @@ function CBridgeTransferHome(): JSX.Element {
           const sourceChainId = Number(getQueryString("sourceChainId"));
           const destinationChainId = Number(getQueryString("destinationChainId"));
           const tokenSymbol = getQueryString("tokenSymbol");
-          localStorage.setItem("fromChainId", sourceChainId.toString() || "");
-          localStorage.setItem("toChainId", destinationChainId.toString() || "");
-          localStorage.setItem("selectedTokenSymbol", tokenSymbol || "");
-          localStorage.setItem("sourceFromUrl", "1");
+          localStorage.setItem(storageConstants.KEY_FROM_CHAIN_ID, sourceChainId.toString() || "");
+          localStorage.setItem(storageConstants.KEY_TO_CHAIN_ID, destinationChainId.toString() || "");
+          localStorage.setItem(storageConstants.KEY_SELECTED_TOKEN_SYMBOL, tokenSymbol || "");
+          localStorage.setItem(storageConstants.KEY_SOURCE_FROM_URL, "1");
+
           history.push("/transfer");
+
+          // Prepare chain info when user enters with specific url
+          if (cacheFromChain) {
+            defaultFromChain = cacheFromChain;
+          } else {
+            defaultFromChain = chains[0];
+          }
+          if (cacheToChain) {
+            defaultToChain = cacheToChain;
+          } else {
+            const nonDefaultFromChains = chains.filter(chainInfo => {
+              return chainInfo.id !== defaultFromChain.id;
+            });
+            if (nonDefaultFromChains.length > 0) {
+              defaultToChain = nonDefaultFromChains[0];
+            } else {
+              defaultToChain = chains[1];
+            }
+          }
         } else if (!history.location.search && chainId) {
-          const isSourceFromUrl = localStorage.getItem("sourceFromUrl");
+          const isSourceFromUrl = localStorage.getItem(storageConstants.KEY_SOURCE_FROM_URL);
           const chainInfo = chains.filter(item => Number(item.id) === chainId);
           // Find from chain
           if (isSourceFromUrl === "1") {
@@ -513,6 +536,11 @@ function CBridgeTransferHome(): JSX.Element {
                 }
               }
             }
+
+            /// Non-EVM chain should not be influenced by web3 chainId change
+            if (getNonEVMMode(sourceChain.id) !== NonEVMMode.off) {
+              defaultFromChain = sourceChain;
+            }
           }
 
           // Find to chain
@@ -521,12 +549,16 @@ function CBridgeTransferHome(): JSX.Element {
             defaultToChain = cacheToChain;
             const newLocalToCahinInfo = chains.filter(item => Number(item.id) === defaultToChain.id);
             if (newLocalToCahinInfo.length > 0 && isSourceFromUrl !== "1") {
-              if (Number(defaultToChain.id) === Number(chainId) && cacheFromChain) {
+              if (
+                Number(defaultToChain.id) === Number(chainId) &&
+                cacheFromChain &&
+                !isNonEVMChain(cacheFromChain.id)
+              ) {
                 defaultToChain = cacheFromChain;
               }
             }
           }
-          localStorage.setItem("sourceFromUrl", "0");
+          localStorage.setItem(storageConstants.KEY_SOURCE_FROM_URL, "0");
         } else {
           // Display from chain and source chain without wallet connection
           if (cacheFromChain) {
@@ -537,7 +569,14 @@ function CBridgeTransferHome(): JSX.Element {
           if (cacheToChain) {
             defaultToChain = cacheToChain;
           } else {
-            defaultToChain = chains[1];
+            const nonDefaultFromChains = chains.filter(chainInfo => {
+              return chainInfo.id !== defaultFromChain.id;
+            });
+            if (nonDefaultFromChains.length > 0) {
+              defaultToChain = nonDefaultFromChains[0];
+            } else {
+              defaultToChain = chains[1];
+            }
           }
         }
         // Find token
@@ -545,8 +584,16 @@ function CBridgeTransferHome(): JSX.Element {
           const defalutTokenList = chain_token[defaultFromChain.id]?.token;
           dispatch(setFromChain(defaultFromChain));
           dispatch(setToChain(defaultToChain));
-          dispatch(setCBridgeDesAddresses(defaultToChain?.contract_addr));
-          dispatch(setCBridgeAddresses(defaultFromChain?.contract_addr));
+          if (!isNonEVMChain(defaultToChain?.id)) {
+            dispatch(setCBridgeDesAddresses(defaultToChain?.contract_addr));
+          } else {
+            dispatch(setCBridgeDesAddresses(""));
+          }
+          if (!isNonEVMChain(defaultFromChain?.id)) {
+            dispatch(setCBridgeAddresses(defaultFromChain?.contract_addr));
+          } else {
+            dispatch(setCBridgeAddresses(""));
+          }
           dispatch(setTokenList(defalutTokenList));
         }
       }
@@ -558,23 +605,81 @@ function CBridgeTransferHome(): JSX.Element {
     if (chainSource === "from") {
       if (id !== chainId) {
         switchMethod(id, "");
+      } else if (id !== fromChain?.id) {
+        /// Scenario:
+        /// Flow as source chain
+        /// MetaMask connect evm chain A
+        /// User wants to use evm chain A as source chain
+        const chain = transferConfig.chains.find(chainInfo => {
+          return chainInfo.id === id;
+        });
+        if (chain !== undefined) {
+          dispatch(setFromChain(chain));
+        }
       }
     } else if (chainSource === "to") {
       setToChainMethod(id);
     } else if (chainSource === "wallet") {
       if (id !== chainId) {
         switchMethod(id, "");
+      } else if (id !== fromChain?.id) {
+        /// Scenario:
+        /// Flow as source chain
+        /// MetaMask connect evm chain A
+        /// User wants to use evm chain A as source chain
+        const chain = transferConfig.chains.find(chainInfo => {
+          return chainInfo.id === id;
+        });
+        if (chain !== undefined) {
+          dispatch(setFromChain(chain));
+        }
       }
     }
     dispatch(setIsChainShow(false));
   };
 
   const switchMethod = (paramChainId, paramToken) => {
-    switchChain(paramChainId, paramToken);
+    const nonEVMMode = getNonEVMMode(paramChainId);
+
+    if (nonEVMMode === NonEVMMode.flowMainnet || nonEVMMode === NonEVMMode.flowTest) {
+      if (flowConnected) {
+        const chain = transferConfig.chains.find(chainInfo => {
+          return chainInfo.id === paramChainId;
+        });
+        if (chain !== undefined) {
+          dispatch(setFromChain(chain));
+        }
+      } else {
+        dispatch(openModal(ModalName.flowProvider));
+      }
+      return;
+    } else if (nonEVMMode === NonEVMMode.terraMainnet || nonEVMMode === NonEVMMode.terraTest) {
+      if (terraConnected) {
+        const chain = transferConfig.chains.find(chainInfo => {
+          return chainInfo.id === paramChainId;
+        });
+        if (chain !== undefined) {
+          dispatch(setFromChain(chain));
+        }
+      } else {
+        dispatch(openModal(ModalName.terraProvider));
+      }
+      return;
+    }
+
+    switchChain(paramChainId, paramToken, (targetFromChainId: number) => {
+      const chain = transferConfig.chains.find(chainInfo => {
+        return chainInfo.id === targetFromChainId;
+      });
+      if (chain !== undefined) {
+        dispatch(setFromChain(chain));
+      }
+    });
+
     const newTokenList: TokenInfo[] = chain_token[chainId]?.token;
     dispatch(setTokenList(newTokenList));
     if (newTokenList) {
-      const cacheTokensymbol = localStorage.getItem("selectedTokenSymbol");
+      const cacheTokensymbol = localStorage.getItem(storageConstants.KEY_SELECTED_TOKEN_SYMBOL);
       const cacheTokenList = newTokenList.filter(item => item.token.symbol === cacheTokensymbol);
       if (cacheTokenList.length > 0) {
         dispatch(setSelectedToken(cacheTokenList[0]));
@@ -601,7 +706,9 @@ function CBridgeTransferHome(): JSX.Element {
    */
 
   useEffect(() => {
-    getTransferConfigs().then(res => {
+    Promise.all([getTransferConfigs(), getFlowTokenPathConfigs()]).then(values => {
+      const res = values[0];
+      const flowTokenPath = values[1];
       if (res) {
         const { chains, chain_token, farming_reward_contract_addr, pegged_pair_configs } = res;
         const localChains = CHAIN_LIST;
@@ -609,6 +716,11 @@ function CBridgeTransferHome(): JSX.Element {
           const filterLocalChains = localChains.filter(localChainItem => localChainItem.chainId === item.id);
           return filterLocalChains.length > 0;
         });
+
+        if (flowTokenPath) {
+          const { FtConfigs } = flowTokenPath;
+          dispatch(setFlowTokenPathConfigs(FtConfigs));
+        }
 
         dispatch(
           setTransferConfig({
@@ -643,7 +755,7 @@ function CBridgeTransferHome(): JSX.Element {
         message.error("Interface error !");
       }
     });
-  }, [dispatch, setDefaultInfo]);
+  }, []);
   return (
     <div className={classes.app}>
       <Layout className={classes.layout}>
@@ -666,6 +778,8 @@ function CBridgeTransferHome(): JSX.Element {
       )}
       <HistoryModal visible={showHistoryModal} onCancel={handleCloseHistoryModal} />
       <ProviderModal visible={showProviderModal} onCancel={handleCloseProviderModal} />
+      <FlowProviderModal visible={showFlowProviderModal} onCancel={handleCloseFlowProviderModal} />
+      <TerraProviderModal visible={showTerraProviderModal} onCancel={handleCloseTerraProviderModal} />
     </div>
   );
 }

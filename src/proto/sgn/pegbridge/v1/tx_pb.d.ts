@@ -1,7 +1,6 @@
-import * as jspb from 'google-protobuf'
+import * as jspb from "google-protobuf";
 
-import * as gogoproto_gogo_pb from '../../../gogoproto/gogo_pb';
-
+import * as gogoproto_gogo_pb from "../../../gogoproto/gogo_pb";
 
 export class MsgSignMint extends jspb.Message {
   getMintId(): string;
@@ -25,10 +24,10 @@ export class MsgSignMint extends jspb.Message {
 
 export namespace MsgSignMint {
   export type AsObject = {
-    mintId: string,
-    sender: string,
-    signature: Uint8Array | string,
-  }
+    mintId: string;
+    sender: string;
+    signature: Uint8Array | string;
+  };
 }
 
 export class MsgSignMintResponse extends jspb.Message {
@@ -41,8 +40,7 @@ export class MsgSignMintResponse extends jspb.Message {
 }
 
 export namespace MsgSignMintResponse {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class MsgSignWithdraw extends jspb.Message {
@@ -67,10 +65,10 @@ export class MsgSignWithdraw extends jspb.Message {
 
 export namespace MsgSignWithdraw {
   export type AsObject = {
-    withdrawId: string,
-    sender: string,
-    signature: Uint8Array | string,
-  }
+    withdrawId: string;
+    sender: string;
+    signature: Uint8Array | string;
+  };
 }
 
 export class MsgSignWithdrawResponse extends jspb.Message {
@@ -79,12 +77,14 @@ export class MsgSignWithdrawResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: MsgSignWithdrawResponse): MsgSignWithdrawResponse.AsObject;
   static serializeBinaryToWriter(message: MsgSignWithdrawResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): MsgSignWithdrawResponse;
-  static deserializeBinaryFromReader(message: MsgSignWithdrawResponse, reader: jspb.BinaryReader): MsgSignWithdrawResponse;
+  static deserializeBinaryFromReader(
+    message: MsgSignWithdrawResponse,
+    reader: jspb.BinaryReader,
+  ): MsgSignWithdrawResponse;
 }
 
 export namespace MsgSignWithdrawResponse {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class MsgTriggerSignMint extends jspb.Message {
@@ -104,9 +104,9 @@ export class MsgTriggerSignMint extends jspb.Message {
 
 export namespace MsgTriggerSignMint {
   export type AsObject = {
-    mintId: string,
-    sender: string,
-  }
+    mintId: string;
+    sender: string;
+  };
 }
 
 export class MsgTriggerSignMintResponse extends jspb.Message {
@@ -115,12 +115,14 @@ export class MsgTriggerSignMintResponse extends jspb.Message {
   static toObject(includeInstance: boolean, msg: MsgTriggerSignMintResponse): MsgTriggerSignMintResponse.AsObject;
   static serializeBinaryToWriter(message: MsgTriggerSignMintResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): MsgTriggerSignMintResponse;
-  static deserializeBinaryFromReader(message: MsgTriggerSignMintResponse, reader: jspb.BinaryReader): MsgTriggerSignMintResponse;
+  static deserializeBinaryFromReader(
+    message: MsgTriggerSignMintResponse,
+    reader: jspb.BinaryReader,
+  ): MsgTriggerSignMintResponse;
 }
 
 export namespace MsgTriggerSignMintResponse {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class MsgTriggerSignWithdraw extends jspb.Message {
@@ -135,28 +137,36 @@ export class MsgTriggerSignWithdraw extends jspb.Message {
   static toObject(includeInstance: boolean, msg: MsgTriggerSignWithdraw): MsgTriggerSignWithdraw.AsObject;
   static serializeBinaryToWriter(message: MsgTriggerSignWithdraw, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): MsgTriggerSignWithdraw;
-  static deserializeBinaryFromReader(message: MsgTriggerSignWithdraw, reader: jspb.BinaryReader): MsgTriggerSignWithdraw;
+  static deserializeBinaryFromReader(
+    message: MsgTriggerSignWithdraw,
+    reader: jspb.BinaryReader,
+  ): MsgTriggerSignWithdraw;
 }
 
 export namespace MsgTriggerSignWithdraw {
   export type AsObject = {
-    withdrawId: string,
-    sender: string,
-  }
+    withdrawId: string;
+    sender: string;
+  };
 }
 
 export class MsgTriggerSignWithdrawResponse extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): MsgTriggerSignWithdrawResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: MsgTriggerSignWithdrawResponse): MsgTriggerSignWithdrawResponse.AsObject;
+  static toObject(
+    includeInstance: boolean,
+    msg: MsgTriggerSignWithdrawResponse,
+  ): MsgTriggerSignWithdrawResponse.AsObject;
   static serializeBinaryToWriter(message: MsgTriggerSignWithdrawResponse, writer: jspb.BinaryWriter): void;
   static deserializeBinary(bytes: Uint8Array): MsgTriggerSignWithdrawResponse;
-  static deserializeBinaryFromReader(message: MsgTriggerSignWithdrawResponse, reader: jspb.BinaryReader): MsgTriggerSignWithdrawResponse;
+  static deserializeBinaryFromReader(
+    message: MsgTriggerSignWithdrawResponse,
+    reader: jspb.BinaryReader,
+  ): MsgTriggerSignWithdrawResponse;
 }
 
 export namespace MsgTriggerSignWithdrawResponse {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
 export class MsgClaimFee extends jspb.Message {
@@ -180,6 +190,9 @@ export class MsgClaimFee extends jspb.Message {
   getSender(): string;
   setSender(value: string): MsgClaimFee;
 
+  getIsValidator(): boolean;
+  setIsValidator(value: boolean): MsgClaimFee;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): MsgClaimFee.AsObject;
   static toObject(includeInstance: boolean, msg: MsgClaimFee): MsgClaimFee.AsObject;
@@ -190,13 +203,14 @@ export class MsgClaimFee extends jspb.Message {
 
 export namespace MsgClaimFee {
   export type AsObject = {
-    delegatorAddress: string,
-    chainId: number,
-    tokenAddress: string,
-    nonce: number,
-    signature: Uint8Array | string,
-    sender: string,
-  }
+    delegatorAddress: string;
+    chainId: number;
+    tokenAddress: string;
+    nonce: number;
+    signature: Uint8Array | string;
+    sender: string;
+    isValidator: boolean;
+  };
 }
 
 export class MsgClaimFeeResponse extends jspb.Message {
@@ -209,7 +223,43 @@ export class MsgClaimFeeResponse extends jspb.Message {
 }
 
 export namespace MsgClaimFeeResponse {
-  export type AsObject = {
-  }
+  export type AsObject = {};
 }
 
+export class MsgClaimRefund extends jspb.Message {
+  getRefId(): string;
+  setRefId(value: string): MsgClaimRefund;
+
+  getSender(): string;
+  setSender(value: string): MsgClaimRefund;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MsgClaimRefund.AsObject;
+  static toObject(includeInstance: boolean, msg: MsgClaimRefund): MsgClaimRefund.AsObject;
+  static serializeBinaryToWriter(message: MsgClaimRefund, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MsgClaimRefund;
+  static deserializeBinaryFromReader(message: MsgClaimRefund, reader: jspb.BinaryReader): MsgClaimRefund;
+}
+
+export namespace MsgClaimRefund {
+  export type AsObject = {
+    refId: string;
+    sender: string;
+  };
+}
+
+export class MsgClaimRefundResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): MsgClaimRefundResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: MsgClaimRefundResponse): MsgClaimRefundResponse.AsObject;
+  static serializeBinaryToWriter(message: MsgClaimRefundResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): MsgClaimRefundResponse;
+  static deserializeBinaryFromReader(
+    message: MsgClaimRefundResponse,
+    reader: jspb.BinaryReader,
+  ): MsgClaimRefundResponse;
+}
+
+export namespace MsgClaimRefundResponse {
+  export type AsObject = {};
+}
