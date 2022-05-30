@@ -10,19 +10,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "id",
-        type: "uint256",
-      },
-    ],
-    name: "burn",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "address",
         name: "to",
         type: "address",
@@ -38,7 +25,20 @@ const _abi = [
         type: "string",
       },
     ],
-    name: "mint",
+    name: "bridgeMint",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "burn",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

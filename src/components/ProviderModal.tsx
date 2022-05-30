@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Avatar, Button, Modal, Space, Spin, Typography } from "antd";
+import { Avatar, Button, Checkbox, Modal, Space, Spin, Typography } from "antd";
 import classNames from "classnames";
 import { createUseStyles } from "react-jss";
 import { injected } from "@celer-network/web3modal";
@@ -117,11 +117,34 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     color: theme.unityWhite,
     borderRadius: 16,
   },
+  primaryBtn: {
+    marginTop: 16,
+    width: "100%",
+    height: 56,
+    // lineHeight: "56px",
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 16,
+    background: theme.primaryBrand,
+    color: theme.unityWhite,
+    borderRadius: 16,
+    border: "none",
+  },
+  checkBoxText: {
+    color: theme.secondBrand,
+    fontSize: 12,
+    fontWeight: 600,
+  },
 }));
 
 interface ProviderModalProps {
   visible: boolean;
   onCancel: () => void;
+}
+interface WalletConnectProviderModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onSelectWalletConnect: () => void;
 }
 
 function Provider({ provider, onClick }) {
@@ -196,20 +219,68 @@ function ConnectErrorModal({ visible, onCancel }: ProviderModalProps): JSX.Eleme
     </Modal>
   );
 }
+function WalletConnectModal({
+  visible,
+  onCancel,
+  onSelectWalletConnect,
+}: WalletConnectProviderModalProps): JSX.Element {
+  const { isMobile } = useAppSelector(state => state.windowWidth);
+  const classes = useStyles({ isMobile });
+  const [accept, setAccept] = useState(false);
+  return (
+    <Modal
+      visible={visible}
+      onCancel={onCancel}
+      className={classes.connectModal}
+      bodyStyle={{ padding: isMobile ? "0 16px 0 16px" : 24 }}
+      title={null}
+      maskClosable={false}
+      closable
+      footer={null}
+      destroyOnClose
+    >
+      <div className={classes.errorInfo}>
+        <div className={classes.errorText}>
+          Please do not use <span style={{ color: "#FFAA00" }}>multi-sig wallet</span> in cBridge, otherwise your funds
+          may be stuck.
+        </div>
+        <div style={{ width: "100%", textAlign: "center", marginTop: 40 }}>
+          <Checkbox
+            onChange={e => {
+              setAccept(e.target.checked);
+            }}
+            className={classes.checkBoxText}
+          >
+            I understand
+          </Checkbox>
+        </div>
 
+        <Button type="primary" disabled={!accept} className={classes.primaryBtn} onClick={onSelectWalletConnect}>
+          Continue
+        </Button>
+      </div>
+    </Modal>
+  );
+}
 export default function ProviderModal({ visible, onCancel }: ProviderModalProps): JSX.Element {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const classes = useStyles({ isMobile });
   const [connectErrorVisible, setConnectErroeVisible] = useState(false);
+  const [isWalletConnect, setIsWalletConnect] = useState(false);
   const { loadWeb3Modal, connecting } = useWeb3Context();
   const handleSelectProvider = async () => {
+    setIsWalletConnect(false);
     await loadWeb3Modal("injected", isMobile ? () => setConnectErroeVisible(true) : undefined);
     onCancel();
   };
-
   const handleSelectWalletConnectProvider = async () => {
     await loadWeb3Modal("walletconnect", isMobile ? () => setConnectErroeVisible(true) : undefined);
+    setIsWalletConnect(false);
     onCancel();
+  };
+  const handleSelectWalletConnect = async () => {
+    onCancel();
+    setIsWalletConnect(true);
   };
   return (
     <>
@@ -228,7 +299,7 @@ export default function ProviderModal({ visible, onCancel }: ProviderModalProps)
             <div style={{ display: "grid", gridTemplateColumns: "1fr", rowGap: 8 }}>
               <Provider provider={injected.METAMASK} onClick={handleSelectProvider} />
               <Provider provider={injected.COINBASE} onClick={handleSelectProvider} />
-              <Provider provider="WalletConnect" onClick={handleSelectWalletConnectProvider} />
+              <Provider provider="WalletConnect" onClick={handleSelectWalletConnect} />
               <Provider
                 provider={{
                   name: "Clover",
@@ -273,6 +344,15 @@ export default function ProviderModal({ visible, onCancel }: ProviderModalProps)
         </div>
       </Modal>
       <ConnectErrorModal visible={connectErrorVisible} onCancel={() => setConnectErroeVisible(!connectErrorVisible)} />
+      {isWalletConnect && (
+        <WalletConnectModal
+          visible={isWalletConnect}
+          onCancel={() => {
+            setIsWalletConnect(false);
+          }}
+          onSelectWalletConnect={handleSelectWalletConnectProvider}
+        />
+      )}
     </>
   );
 }

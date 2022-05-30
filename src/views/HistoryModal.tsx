@@ -1,4 +1,6 @@
-import { Modal } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
+import { Button, Modal } from "antd";
+import { useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useAppSelector } from "../redux/store";
 import { Theme } from "../theme";
@@ -36,16 +38,44 @@ const mobileStyles = createUseStyles((theme: Theme) => ({
     justifyContent: "center",
     background: "transparent",
   },
+  rebutton: {
+    position: "absolute",
+    top: 12,
+    right: 44,
+    zIndex: 10,
+    "&.ant-btn": {
+      boxShadow: "none",
+      border: "none",
+      background: "transparent",
+      color: theme.secondBrand,
+      opacity: 0.7,
+      "&:focus, &:hover": {
+        border: "none",
+        color: theme.surfacePrimary,
+        opacity: 0.9,
+      },
+    },
+  },
 }));
 
 const HistoryModal = ({ visible, onCancel }) => {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const styles = mobileStyles();
+  const [refreshHistory, setRefreshHistory] = useState(false);
   if (isMobile) {
     return (
       <Modal
         className={styles.modal}
-        title=""
+        title={
+          <Button
+            type="primary"
+            className={styles.rebutton}
+            onClick={() => {
+              setRefreshHistory(!refreshHistory);
+            }}
+            icon={<ReloadOutlined style={{ fontSize: 20 }} />}
+          />
+        }
         visible={visible}
         onCancel={onCancel}
         closable
@@ -53,7 +83,7 @@ const HistoryModal = ({ visible, onCancel }) => {
         destroyOnClose
       >
         <div id="modalpop">
-          <History />
+          <History refreshChanged={refreshHistory} />
         </div>
       </Modal>
     );
@@ -69,7 +99,7 @@ const HistoryModal = ({ visible, onCancel }) => {
       destroyOnClose
     >
       <div id="modalpop">
-        <History />
+        <History refreshChanged={refreshHistory} />
       </div>
     </Modal>
   );

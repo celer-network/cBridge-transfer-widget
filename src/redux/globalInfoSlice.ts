@@ -6,16 +6,6 @@ const globalInfoSlice = createSlice({
   initialState: {
     cBridgeAddresses: "",
     cBridgeDesAddresses: "",
-    faucetAddresses: {
-      3: "0x584ee85a7bb588a0143ad8d25039b58b05eea5c4",
-      5: "0x50B96c4374EFeEA0C183D06679A14e951E33B4Dd",
-      69: "0x81ECac0D6Be0550A00FF064a4f9dd2400585FE9c",
-      97: "0x265B25e22bcd7f10a5bD6E6410F10537Cc7567e8",
-      4002: "0x265B25e22bcd7f10a5bD6E6410F10537Cc7567e8",
-      43113: "0x9D233A907E065855D2A9c7d4B552ea27fB2E5a36",
-      44787: "0x841ce48F9446C8E281D3F1444cB859b4A6D0738C",
-    },
-    farmingRewardAddresses: "",
     refreshGlobalTokenBalance: false,
     isHistoryNotEmpty: false,
     oTContractAddr: "",
@@ -31,9 +21,7 @@ const globalInfoSlice = createSlice({
     setCBridgeDesAddresses: (state, { payload }: PayloadAction<string>) => {
       state.cBridgeDesAddresses = payload;
     },
-    setFarmingRewardAddresses: (state, { payload }: PayloadAction<string>) => {
-      state.farmingRewardAddresses = payload;
-    },
+
     setRefreshGlobalTokenBalance: state => {
       state.refreshGlobalTokenBalance = !state.refreshGlobalTokenBalance;
     },
@@ -60,7 +48,6 @@ const globalInfoSlice = createSlice({
 
 export const {
   setCBridgeAddresses,
-  setFarmingRewardAddresses,
   setRefreshGlobalTokenBalance,
   setCBridgeDesAddresses,
   setIsHistoryNotEmpty,

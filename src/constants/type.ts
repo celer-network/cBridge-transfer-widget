@@ -49,6 +49,20 @@ interface Token {
   display_symbol?: string; /// FOR ETH <=====> WETH
 }
 
+interface GetAdvancedInfoRequest {
+  addr: string;
+}
+
+interface GetAdvancedInfoResponse {
+  slippage_tolerance: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  err: any;
+}
+interface SetAdvancedInfoRequest {
+  addr: string;
+  slippage_tolerance: number;
+}
+
 interface ChainTokenInfo {
   token: Array<TokenInfo>;
 }
@@ -77,6 +91,17 @@ interface EstimateAmtResponse {
   err: any;
 }
 
+interface MarkTransferRequest {
+  transfer_id: string;
+  // dst_transfer_id: string;
+  src_send_info?: TransferInfo;
+  dst_min_received_info?: TransferInfo;
+  addr?: string;
+  src_tx_hash?: string;
+  type: MarkTransferTypeRequest;
+  withdraw_seq_num?: string;
+}
+
 interface GetTransferStatusRequest {
   transfer_id: string;
 }
@@ -89,6 +114,12 @@ interface GetTransferStatusResponse {
   powers: Array<string>;
   src_block_tx_link?: string;
   dst_block_tx_link?: string;
+}
+
+export enum MarkTransferTypeRequest {
+  TRANSFER_TYPE_UNKNOWN = 0,
+  TRANSFER_TYPE_SEND = 1,
+  TRANSFER_TYPE_REFUND = 2,
 }
 
 interface WithdrawLiquidityRequest {
@@ -168,6 +199,7 @@ interface TokenInfo {
   icon: string;
   max_amt: string;
   balance?: string;
+  inbound_lmt?: string;
 }
 
 interface ErrMsg {
@@ -178,6 +210,28 @@ interface ErrMsg {
 interface Signature {
   signer: string;
   sig_bytes: string;
+}
+
+export enum UnlockRewardType {
+  SWITCH_CHAIN,
+  UNLUCK,
+  UNLUCKED_TOO_FREQUENTLY,
+  UNLUCKING,
+  UNLUCK_SUCCESSED,
+}
+
+export enum ClaimRewardType {
+  CLAIMING,
+  COMPLETED,
+}
+
+export enum ClaimType {
+  SWITCH_CHAIN,
+  UNLUCKED_TOO_FREQUENTLY,
+  UNLUCKING,
+  UNLUCK_SUCCESSED,
+  CLAIMING,
+  COMPLETED,
 }
 
 interface FlowDepositParameters {
@@ -263,12 +317,100 @@ interface MultiBurnPairConfig {
   burn_config_as_dst: BurnConfig; /// Could be used only as to chain
 }
 
+interface S3NFTToken {
+  chainid: number;
+  addr: string;
+}
+
+interface S3NFTConfig {
+  name: string;
+  symbol: string;
+  url: string;
+  orig: S3NFTToken;
+  pegs: S3NFTToken[];
+}
+
+interface NFTItem {
+  name: string;
+  img: string;
+  tokenName: string;
+  nftId: number;
+  address: string;
+  isNativeNft: boolean;
+}
+
+interface S3NFTConfigChain {
+  chainid: number;
+  addr: string;
+}
+
+interface NFTChain {
+  chainid: number;
+  name: string;
+  addr: string;
+  icon: string;
+}
+
+interface NFTHistory {
+  // second
+  createdAt: number;
+  srcChid: number;
+  dstChid: number;
+  sender: string;
+  receiver: string;
+  srcNft: string;
+  dstNft: string;
+  tokID: string;
+  srcTx: string;
+  dstTx: string;
+  status: number;
+  txIsFailed: boolean;
+}
+
+interface NFTHistoryRequest {
+  pageSize: number;
+  nextPageToken: string;
+}
+
+interface NFTHistoryResponse {
+  history: NFTHistory[];
+  nextPageToken: number;
+  pageSize: number;
+}
+
+export enum NFTBridgeStatus {
+  NFT_BRIDEGE_SUBMITTING,
+  NFT_BRIDEGE_WAITING_FOR_SGN,
+  NFT_BRIDEGE_WAITING_DST_MINT,
+  NFT_BRIDEGE_COMPLETE,
+  NFT_BRIDGE_FAILED,
+}
+
+export enum NFTBridgeMode {
+  UNDEFINED,
+  PEGGED, // orig chain lock, dst chain mint
+  BURN, // back to orig chain
+  NATIVE, // token contract cross chain
+  NON_ORIG_BURN, // remote mint on peg chains
+}
+
+interface ERC721TokenUriMetadata {
+  image: string;
+  description: string;
+  name: string;
+}
+
 export type {
+  //   LPHistoryStatus,
   Chain,
   Token,
+  GetAdvancedInfoRequest,
+  GetAdvancedInfoResponse,
+  SetAdvancedInfoRequest,
   GetTransferConfigsResponse,
   EstimateAmtRequest,
   EstimateAmtResponse,
+  MarkTransferRequest,
   GetTransferStatusRequest,
   GetTransferStatusResponse,
   WithdrawLiquidityRequest,
@@ -293,4 +435,13 @@ export type {
   CoMinterCap,
   BurnConfig,
   MultiBurnPairConfig,
+  S3NFTConfig,
+  S3NFTToken,
+  NFTItem,
+  NFTChain,
+  S3NFTConfigChain,
+  NFTHistory,
+  NFTHistoryRequest,
+  NFTHistoryResponse,
+  ERC721TokenUriMetadata,
 };

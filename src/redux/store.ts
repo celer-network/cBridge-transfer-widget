@@ -10,6 +10,7 @@ import tokenToggleSlice from "./tokenToggleSlice";
 import transferSlice from "./transferSlice";
 import windowWidthSlice from "./windowWidthSlice";
 import configSlice from "./configSlice";
+import rewardSectionSlice from "./rewardSectionSlice";
 
 const rootReducer = combineReducers({
   modal: modalSlice,
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   tokenToggle: tokenToggleSlice,
   windowWidth: windowWidthSlice,
   config: configSlice,
+  rewardSection: rewardSectionSlice,
 });
 
 const migrations = {

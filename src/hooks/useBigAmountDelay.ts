@@ -140,19 +140,23 @@ export const useBigAmountDelay = (
       if (!tokenAddress || !isHex(tokenAddress)) {
         return;
       }
-      const period = await bridge.delayPeriod();
-      const thresholds = await bridge.delayThresholds(tokenAddress);
-      const info: BigAmountDelayInfo = {
-        rpcUrl,
-        contractAddress,
-        tokenAddress,
-        period: period.toHexString(),
-        thresholds: thresholds.toHexString(),
-      };
-      setValues(info, tokenValue);
-      if (!bigAmountDelayInfos.includes(info)) {
-        const newBigAmountDelayInfos = [...bigAmountDelayInfos, info];
-        dispatch(setBigAmountDelayInfos(newBigAmountDelayInfos));
+      try {
+        const period = await bridge.delayPeriod();
+        const thresholds = await bridge.delayThresholds(tokenAddress);
+        const info: BigAmountDelayInfo = {
+          rpcUrl,
+          contractAddress,
+          tokenAddress,
+          period: period.toHexString(),
+          thresholds: thresholds.toHexString(),
+        };
+        setValues(info, tokenValue);
+        if (!bigAmountDelayInfos.includes(info)) {
+          const newBigAmountDelayInfos = [...bigAmountDelayInfos, info];
+          dispatch(setBigAmountDelayInfos(newBigAmountDelayInfos));
+        }
+      } catch (e) {
+        console.error(e);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps

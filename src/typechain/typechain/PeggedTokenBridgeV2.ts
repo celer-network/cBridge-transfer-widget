@@ -24,6 +24,7 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
     "addPauser(address)": FunctionFragment;
     "burn(address,uint256,uint64,address,uint64)": FunctionFragment;
     "burnFrom(address,uint256,uint64,address,uint64)": FunctionFragment;
+    "decreaseSupply(address,uint256)": FunctionFragment;
     "delayPeriod()": FunctionFragment;
     "delayThresholds(address)": FunctionFragment;
     "delayedTransfers(bytes32)": FunctionFragment;
@@ -32,6 +33,7 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
     "epochVolumes(address)": FunctionFragment;
     "executeDelayedTransfer(bytes32)": FunctionFragment;
     "governors(address)": FunctionFragment;
+    "increaseSupply(address,uint256)": FunctionFragment;
     "isGovernor(address)": FunctionFragment;
     "isPauser(address)": FunctionFragment;
     "lastOpTimestamps(address)": FunctionFragment;
@@ -46,7 +48,6 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
     "removeGovernor(address)": FunctionFragment;
     "removePauser(address)": FunctionFragment;
     "renounceGovernor()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
     "renouncePauser()": FunctionFragment;
     "setDelayPeriod(uint256)": FunctionFragment;
     "setDelayThresholds(address[],uint256[])": FunctionFragment;
@@ -54,7 +55,9 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
     "setEpochVolumeCaps(address[],uint256[])": FunctionFragment;
     "setMaxBurn(address[],uint256[])": FunctionFragment;
     "setMinBurn(address[],uint256[])": FunctionFragment;
+    "setSupply(address,uint256)": FunctionFragment;
     "sigsVerifier()": FunctionFragment;
+    "supplies(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "unpause()": FunctionFragment;
   };
@@ -69,6 +72,7 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
     functionFragment: "burnFrom",
     values: [string, BigNumberish, BigNumberish, string, BigNumberish],
   ): string;
+  encodeFunctionData(functionFragment: "decreaseSupply", values: [string, BigNumberish]): string;
   encodeFunctionData(functionFragment: "delayPeriod", values?: undefined): string;
   encodeFunctionData(functionFragment: "delayThresholds", values: [string]): string;
   encodeFunctionData(functionFragment: "delayedTransfers", values: [BytesLike]): string;
@@ -77,6 +81,7 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
   encodeFunctionData(functionFragment: "epochVolumes", values: [string]): string;
   encodeFunctionData(functionFragment: "executeDelayedTransfer", values: [BytesLike]): string;
   encodeFunctionData(functionFragment: "governors", values: [string]): string;
+  encodeFunctionData(functionFragment: "increaseSupply", values: [string, BigNumberish]): string;
   encodeFunctionData(functionFragment: "isGovernor", values: [string]): string;
   encodeFunctionData(functionFragment: "isPauser", values: [string]): string;
   encodeFunctionData(functionFragment: "lastOpTimestamps", values: [string]): string;
@@ -91,7 +96,6 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
   encodeFunctionData(functionFragment: "removeGovernor", values: [string]): string;
   encodeFunctionData(functionFragment: "removePauser", values: [string]): string;
   encodeFunctionData(functionFragment: "renounceGovernor", values?: undefined): string;
-  encodeFunctionData(functionFragment: "renounceOwnership", values?: undefined): string;
   encodeFunctionData(functionFragment: "renouncePauser", values?: undefined): string;
   encodeFunctionData(functionFragment: "setDelayPeriod", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "setDelayThresholds", values: [string[], BigNumberish[]]): string;
@@ -99,7 +103,9 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
   encodeFunctionData(functionFragment: "setEpochVolumeCaps", values: [string[], BigNumberish[]]): string;
   encodeFunctionData(functionFragment: "setMaxBurn", values: [string[], BigNumberish[]]): string;
   encodeFunctionData(functionFragment: "setMinBurn", values: [string[], BigNumberish[]]): string;
+  encodeFunctionData(functionFragment: "setSupply", values: [string, BigNumberish]): string;
   encodeFunctionData(functionFragment: "sigsVerifier", values?: undefined): string;
+  encodeFunctionData(functionFragment: "supplies", values: [string]): string;
   encodeFunctionData(functionFragment: "transferOwnership", values: [string]): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
 
@@ -107,6 +113,7 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "addPauser", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burnFrom", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "decreaseSupply", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "delayPeriod", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "delayThresholds", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "delayedTransfers", data: BytesLike): Result;
@@ -115,6 +122,7 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "epochVolumes", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "executeDelayedTransfer", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "governors", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "increaseSupply", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isGovernor", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isPauser", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "lastOpTimestamps", data: BytesLike): Result;
@@ -129,7 +137,6 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "removeGovernor", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "removePauser", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "renounceGovernor", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "renounceOwnership", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "renouncePauser", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setDelayPeriod", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setDelayThresholds", data: BytesLike): Result;
@@ -137,7 +144,9 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "setEpochVolumeCaps", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setMaxBurn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setMinBurn", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setSupply", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sigsVerifier", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "supplies", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
 
@@ -158,6 +167,7 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
     "Paused(address)": EventFragment;
     "PauserAdded(address)": EventFragment;
     "PauserRemoved(address)": EventFragment;
+    "SupplyUpdated(address,uint256)": EventFragment;
     "Unpaused(address)": EventFragment;
   };
 
@@ -177,6 +187,7 @@ export interface PeggedTokenBridgeV2Interface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PauserAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PauserRemoved"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SupplyUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
@@ -269,6 +280,10 @@ export type PauserRemovedEvent = TypedEvent<[string], { account: string }>;
 
 export type PauserRemovedEventFilter = TypedEventFilter<PauserRemovedEvent>;
 
+export type SupplyUpdatedEvent = TypedEvent<[string, BigNumber], { token: string; supply: BigNumber }>;
+
+export type SupplyUpdatedEventFilter = TypedEventFilter<SupplyUpdatedEvent>;
+
 export type UnpausedEvent = TypedEvent<[string], { account: string }>;
 
 export type UnpausedEventFilter = TypedEventFilter<UnpausedEvent>;
@@ -325,6 +340,12 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
+    decreaseSupply(
+      _token: string,
+      _delta: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
     delayPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     delayThresholds(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -353,6 +374,12 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
     ): Promise<ContractTransaction>;
 
     governors(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    increaseSupply(
+      _token: string,
+      _delta: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
 
     isGovernor(_account: string, overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -394,8 +421,6 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
 
     renounceGovernor(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
-    renounceOwnership(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
-
     renouncePauser(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
     setDelayPeriod(
@@ -432,7 +457,15 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
+    setSupply(
+      _token: string,
+      _supply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
     sigsVerifier(overrides?: CallOverrides): Promise<[string]>;
+
+    supplies(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transferOwnership(
       newOwner: string,
@@ -467,6 +500,12 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
+  decreaseSupply(
+    _token: string,
+    _delta: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
   delayPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
   delayThresholds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -495,6 +534,12 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
   ): Promise<ContractTransaction>;
 
   governors(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  increaseSupply(
+    _token: string,
+    _delta: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
 
   isGovernor(_account: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -536,8 +581,6 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
 
   renounceGovernor(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
-  renounceOwnership(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
-
   renouncePauser(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
   setDelayPeriod(
@@ -574,7 +617,15 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
+  setSupply(
+    _token: string,
+    _supply: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
   sigsVerifier(overrides?: CallOverrides): Promise<string>;
+
+  supplies(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   transferOwnership(
     newOwner: string,
@@ -606,6 +657,8 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<string>;
 
+    decreaseSupply(_token: string, _delta: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
     delayPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     delayThresholds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -631,6 +684,8 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
     executeDelayedTransfer(id: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     governors(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    increaseSupply(_token: string, _delta: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     isGovernor(_account: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -666,8 +721,6 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
 
     renounceGovernor(overrides?: CallOverrides): Promise<void>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
     renouncePauser(overrides?: CallOverrides): Promise<void>;
 
     setDelayPeriod(_period: BigNumberish, overrides?: CallOverrides): Promise<void>;
@@ -682,7 +735,11 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
 
     setMinBurn(_tokens: string[], _amounts: BigNumberish[], overrides?: CallOverrides): Promise<void>;
 
+    setSupply(_token: string, _supply: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
     sigsVerifier(overrides?: CallOverrides): Promise<string>;
+
+    supplies(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(newOwner: string, overrides?: CallOverrides): Promise<void>;
 
@@ -783,6 +840,9 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
     "PauserRemoved(address)"(account?: null): PauserRemovedEventFilter;
     PauserRemoved(account?: null): PauserRemovedEventFilter;
 
+    "SupplyUpdated(address,uint256)"(token?: null, supply?: null): SupplyUpdatedEventFilter;
+    SupplyUpdated(token?: null, supply?: null): SupplyUpdatedEventFilter;
+
     "Unpaused(address)"(account?: null): UnpausedEventFilter;
     Unpaused(account?: null): UnpausedEventFilter;
   };
@@ -810,6 +870,12 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
+    decreaseSupply(
+      _token: string,
+      _delta: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
     delayPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     delayThresholds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -828,6 +894,12 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
     ): Promise<BigNumber>;
 
     governors(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    increaseSupply(
+      _token: string,
+      _delta: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
 
     isGovernor(_account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -862,8 +934,6 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
     removePauser(account: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
     renounceGovernor(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
-
-    renounceOwnership(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
     renouncePauser(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
@@ -901,7 +971,15 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
+    setSupply(
+      _token: string,
+      _supply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
     sigsVerifier(overrides?: CallOverrides): Promise<BigNumber>;
+
+    supplies(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
@@ -940,6 +1018,12 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
+    decreaseSupply(
+      _token: string,
+      _delta: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
     delayPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     delayThresholds(arg0: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -958,6 +1042,12 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     governors(arg0: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    increaseSupply(
+      _token: string,
+      _delta: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
 
     isGovernor(_account: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -999,8 +1089,6 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
 
     renounceGovernor(overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
 
-    renounceOwnership(overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
-
     renouncePauser(overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
 
     setDelayPeriod(
@@ -1037,7 +1125,15 @@ export interface PeggedTokenBridgeV2 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
+    setSupply(
+      _token: string,
+      _supply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
     sigsVerifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    supplies(arg0: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

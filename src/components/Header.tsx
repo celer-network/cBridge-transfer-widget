@@ -1,24 +1,28 @@
 import { createUseStyles } from "react-jss";
-import { useContext } from "react";
+import { useContext, useState, useCallback } from "react";
 import { LoadingOutlined } from "@ant-design/icons";
-import { PageHeader } from "antd";
 import { ColorThemeContext } from "../providers/ThemeProvider";
 import { useAppDispatch, useAppSelector } from "../redux/store";
-import { openModal, ModalName } from "../redux/modalSlice";
+import { openModal, ModalName, closeModal } from "../redux/modalSlice";
 import { setIsChainShow, setChainSource } from "../redux/transferSlice";
 import { useWeb3Context } from "../providers/Web3ContextProvider";
 import { Theme } from "../theme/theme";
 import Account from "./Account";
+import cBrdige2Logo from "../images/favicon.png";
+import cBrdige2Light from "../images/cBrdigeLight.svg";
+import cBrdige2Dark from "../images/cBrdigeDark.svg";
 import homeHistoryIcon from "../images/homehistory.svg";
 import lightHomeHistory from "../images/lightHomeHistory.svg";
 import unicorn from "../images/unicorn.png";
 import dark from "../images/dark.svg";
 import light from "../images/light.svg";
+
+import MenuModal from "./MenuModal";
 import { getNetworkById } from "../constants/network";
+import ViewTab from "../components/ViewTab";
 import { useNonEVMContext } from "../providers/NonEVMContextProvider";
+import { FeatureSupported, getSupportedFeatures } from "../utils/featureSupported";
 /* eslint-disable*/
-import cBrdige2Light from "../images/cBrdigeLight.png";
-import cBrdige2Dark from "../images/cBrdigeDark.png";
 
 const useStyles = createUseStyles((theme: Theme) => ({
   header: {
@@ -190,7 +194,6 @@ const useStyles = createUseStyles((theme: Theme) => ({
     width: "100%",
   },
   headerLeft: {
-    // width: "calc(50vw - 208px)",
     display: "flex",
     justifyContent: "start",
     alignItems: "center",
@@ -202,7 +205,6 @@ const useStyles = createUseStyles((theme: Theme) => ({
     height: 45,
   },
   headerRight: {
-    // width: "calc(50vw - 208px)",
     display: "flex",
     justifyContent: "end",
     alignItems: "center",
@@ -275,9 +277,6 @@ const useStyles = createUseStyles((theme: Theme) => ({
     "&::before": {
       backgroundColor: `${theme.primaryBrand} !important`,
     },
-  },
-  logoWrapper: {
-    cursor: "pointer",
   },
 }));
 
@@ -381,16 +380,17 @@ function HistoryButton({ totalActionNum, totalPendingNum, onClick }: HistoryButt
 export default function Header(): JSX.Element {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const classes = useStyles();
+  const [sGNModalState, setSGNModalState] = useState(false);
   const { themeType, toggleTheme } = useContext(ColorThemeContext);
   const { network, signer, chainId } = useWeb3Context();
   const { nonEVMConnected } = useNonEVMContext();
   const dispatch = useAppDispatch();
-  const { totalActionNum, totalPaddingNum, fromChain, transferConfig, tokenList, selectedToken } = useAppSelector(
-    state => state.transferInfo,
-  );
+  const { totalActionNum, totalPaddingNum, fromChain, tokenList } = useAppSelector(state => state.transferInfo);
 
-  const bigLogoUrl = themeType === "dark" ? cBrdige2Dark : cBrdige2Light;
+  const logoUrl = cBrdige2Logo;
+  const biglogoUrl = themeType === "dark" ? cBrdige2Light : cBrdige2Dark;
   const toggleIconUrl = themeType === "dark" ? light : dark;
+  const shouldShowViewTab = getSupportedFeatures() === FeatureSupported.BOTH;
 
   const showChain = type => {
     dispatch(setChainSource(type));
@@ -444,18 +444,28 @@ export default function Header(): JSX.Element {
     return content;
   };
 
+  const { modal } = useAppSelector(state => state);
+  const { showMenuModal } = modal;
+  const handleShowMenuModal = useCallback(() => {
+    dispatch(openModal(ModalName.menu));
+  }, [dispatch]);
+  const handleCloseMenuModal = () => {
+    dispatch(closeModal(ModalName.menu));
+  };
   if (isMobile) {
     return (
       <div className={classes.mobilePageHeaderWrapper}>
         <div className={classes.mobileLogoWrapper}>
-          <PageHeader
-            title={
-              <div>
-                <img src={bigLogoUrl} height="26px" className="biglogoImg" alt="cBridge" />
-              </div>
-            }
-            style={{ paddingRight: 0 }}
+          <img
+            onClick={() => {
+              window.location.reload();
+            }}
+            src={biglogoUrl}
+            height="26px"
+            alt="cBridge"
+            style={{ position: "absolute", left: 15, marginBottom: 2 }}
           />
+
           <div className={classes.mobileHeaderPanel} style={{ flex: "1 0 auto" }}>
             <div style={{ marginRight: 2 }}>
               {signer && (
@@ -474,6 +484,13 @@ export default function Header(): JSX.Element {
             </div>
           </div>
         </div>
+
+        {shouldShowViewTab && (
+          <div className={classes.mobileViewTab}>
+            <ViewTab />
+          </div>
+        )}
+        <MenuModal visible={showMenuModal} onCancel={handleCloseMenuModal} />
       </div>
     );
   }
@@ -481,20 +498,24 @@ export default function Header(): JSX.Element {
   return (
     <div className={classes.header}>
       <div className={classes.hleft}>
-        <div className={classes.headerLeft}>
-          <PageHeader
-            title={
-              <div>
-                <img src={bigLogoUrl} height="26px" className="biglogoImg" alt="cBridge" />
-              </div>
-            }
-            style={{ paddingRight: 0 }}
+        <div className={classes.mobileLogoWrapper}>
+          <img
+            src={biglogoUrl}
+            height="26px"
+            alt="cBridge"
+            style={{ position: "absolute", left: 15, marginBottom: 2 }}
           />
         </div>
+
+        {shouldShowViewTab && (
+          <div className="tabBody">
+            <ViewTab />
+          </div>
+        )}
       </div>
 
       <div className={classes.headerRight}>
-        {(signer || nonEVMConnected) && (
+        <div>
           <div
             className={totalActionNum || totalPaddingNum ? classes.activeChainLocale : classes.chainLocale}
             onClick={() => {
@@ -503,7 +524,7 @@ export default function Header(): JSX.Element {
           >
             <div className={classes.historyText}>{getstatusText()}</div>
           </div>
-        )}
+        </div>
         {(signer || nonEVMConnected) && (
           <div
             className="chainLocale"
@@ -524,16 +545,14 @@ export default function Header(): JSX.Element {
             />
             <div className="chinName">
               <span style={{ maxLines: 1, whiteSpace: "nowrap" }}>
-                {getNetworkById(fromChain?.id ?? chainId).name !== "--"
-                  ? getNetworkById(fromChain?.id ?? chainId).name
+                {getNetworkById(fromChain?.id ?? chainId)?.name !== "--"
+                  ? getNetworkById(fromChain?.id ?? chainId)?.name
                   : network}
               </span>
             </div>
           </div>
         )}
-
         <Account />
-
         <div className={classes.themeIcon} onClick={toggleTheme}>
           <div style={{ width: 20, height: 20 }}>
             <img src={toggleIconUrl} style={{ width: "100%", height: "100%" }} alt="protocol icon" />
