@@ -5,6 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import classNames from "classnames";
 import { Theme } from "../theme";
 import { useAppSelector } from "../redux/store";
+import { FeatureSupported, getSupportedFeatures } from "../utils/featureSupported";
 
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
   flexCenter: {
@@ -94,14 +95,18 @@ const ViewTab: FC = () => {
   return (
     <div className={classes.flexCenter}>
       {isMobile ? <div className={classes.mobileTopDeco} /> : null}
-      <Menu className={classNames(classes.menu, classes.menuLogout)} selectedKeys={[route]} mode="horizontal">
-        <Menu.Item key="transfer">
-          <Link to="/transfer">Transfer</Link>
-        </Menu.Item>
-        <Menu.Item key="nft" style={{ width: 108 }}>
-          <Link to="/nft">NFT</Link>
-        </Menu.Item>
-      </Menu>
+      {
+        (getSupportedFeatures() === FeatureSupported.BOTH && (
+          <Menu className={classNames(classes.menu, classes.menuLogout)} selectedKeys={[route]} mode="horizontal">
+            <Menu.Item key="transfer">
+              <Link to="/transfer">Transfer</Link>
+            </Menu.Item>
+            <Menu.Item key="nft" style={{ width: 108 }}>
+              <Link to="/nft">NFT</Link>
+            </Menu.Item>
+          </Menu>
+        ))
+      }
     </div>
   );
 };

@@ -966,17 +966,21 @@ const Transfer: FC = () => {
             <WarningFilled style={{ fontSize: 20, marginRight: 5, color: "#ff8f00" }} />
             <span style={{ color: "#17171A", marginTop: 3 }}>
               You must switch to{" "}
-              <a
-                href="#aaa"
-                style={{ fontWeight: "bold" }}
-                onClick={() => {
-                  switchChain(fromChain.id, selectedToken, (targetFromChainId: number) => {
-                    console.log(`switched chain to ${targetFromChainId}`);
-                  });
-                }}
-              >
-                {fromChain?.name}{" "}
-              </a>
+              {isMobile ? (
+                <span style={{ fontWeight: "bold" }}>{fromChain?.name} </span>
+              ) : (
+                <a
+                  href="#aaa"
+                  style={{ fontWeight: "bold" }}
+                  onClick={() => {
+                    switchChain(fromChain.id, selectedToken, (targetFromChainId: number) => {
+                      console.log(`switched chain to ${targetFromChainId}`);
+                    });
+                  }}
+                >
+                  {fromChain?.name}{" "}
+                </a>
+              )}
               to begin the transfer.
             </span>
           </div>

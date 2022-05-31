@@ -281,6 +281,7 @@ function CBridgeTransferHome(): JSX.Element {
   const [nftPendingNum, setNftPendingNum] = useState<number>(0);
   const [transferConfigsResponse, setTransferConfigsResponse] = useState<GetTransferConfigsResponse>();
   const [chainList, setChainList] = useState<Chain[]>([]);
+  const featureSupported = getSupportedFeatures()
 
   const handleCloseProviderModal = () => {
     dispatch(closeModal(ModalName.provider));
@@ -499,6 +500,10 @@ function CBridgeTransferHome(): JSX.Element {
   };
 
   const getNFTHistoryList = async () => {
+    if (featureSupported !== FeatureSupported.BOTH && featureSupported !== FeatureSupported.NFT) {
+      return 
+    } 
+
     const res = await nftHistory(address, { nextPageToken: "", pageSize: 50 });
     if (res && res.history) {
       let localNftList;
@@ -524,8 +529,31 @@ function CBridgeTransferHome(): JSX.Element {
   };
 
   useEffect(() => {
-    const totalnum = historyActionNum + nftActionNum;
-    const totalpaddingnum = historyPendingNum + nftPendingNum;
+    let totalnum: number = 0
+    let totalpaddingnum: number = 0
+    switch (featureSupported) {
+      case FeatureSupported.BOTH: {
+        totalnum = historyActionNum + nftActionNum;
+        totalpaddingnum = historyPendingNum + nftPendingNum;
+        break
+      }
+      case FeatureSupported.TRANSFER: {
+        totalnum = historyActionNum;
+        totalpaddingnum = historyPendingNum;
+        break
+      }
+      case FeatureSupported.NFT: {
+        totalnum = nftActionNum;
+        totalpaddingnum = nftPendingNum;
+        break
+      }
+      default: {
+        totalnum = historyActionNum + nftActionNum;
+        totalpaddingnum = historyPendingNum + nftPendingNum;
+        break
+      }
+    }
+
     dispatch(setTotalActionNum(totalnum));
     dispatch(setTotalPendingNum(totalpaddingnum));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -852,7 +880,7 @@ function CBridgeTransferHome(): JSX.Element {
   }, []);
 
   const getViewTabs = (): JSX.Element => {
-    switch (getSupportedFeatures()) {
+    switch (featureSupported) {
       case FeatureSupported.BOTH: {
         return (
           <Switch>

@@ -47,6 +47,7 @@ import { filteredLocalTransferHistory } from "../utils/localTransferHistoryList"
 
 import { mergeNFTHistory } from "../utils/mergeNFTHistory";
 import { NFTHistoryItem } from "./NFTHistoryItem";
+import { FeatureSupported, getSupportedFeatures } from "../utils/featureSupported";
 
 export type PageTokenMap = {
   [propName: number]: number;
@@ -428,7 +429,8 @@ const History = (props: IProps): JSX.Element => {
   const { transferInfo } = useAppSelector(state => state);
   const { transferConfig, fromChain, toChain } = transferInfo;
   const classes = useStyles({ isMobile });
-  const [historykey, setHistorykey] = useState("transfer_history");
+  const featureSupported = getSupportedFeatures()
+  const [historykey, setHistorykey] = useState(featureSupported === FeatureSupported.NFT ? "nft_history" : "transfer_history");
   const { address, chainId, provider } = useWeb3Context();
   const { terraAddress, flowAddress } = useNonEVMContext();
   const now = new Date().getTime();
@@ -581,6 +583,10 @@ const History = (props: IProps): JSX.Element => {
   };
 
   const getNFTHistoryList = async (nextPage, isAutoRefresh = false) => {
+    if (featureSupported !== FeatureSupported.BOTH && featureSupported !== FeatureSupported.NFT) {
+      return
+    }
+
     if (!isAutoRefresh) {
       setNFTLoading(true);
     }
@@ -710,6 +716,21 @@ const History = (props: IProps): JSX.Element => {
       if (nftPriority > max) {
         key = "nft_history";
       }
+
+      switch (featureSupported) {
+        case FeatureSupported.NFT: {
+          key = "nft_history";
+          break
+        }
+        case FeatureSupported.TRANSFER: {
+          key = "transfer_history";
+          break
+        }
+        default: {
+          break
+        }
+      }
+      
       setHistorykey(key);
     },
     [
@@ -1262,7 +1283,7 @@ const History = (props: IProps): JSX.Element => {
                     shouldDisplayMetaMaskIcon = false;
                   }
 
-                  if (item?.dst_received_info.chain.id === 16350 && item?.src_send_info?.token.symbol === "BANANA") {
+                  if (item?.dst_received_info.chain.id === 16350 && item?.src_send_info?.token.symbol === "PEEL") {
                     shouldDisplayMetaMaskIcon = false;
                   }
 
@@ -1458,10 +1479,10 @@ const History = (props: IProps): JSX.Element => {
     );
   }
 
-  return (
-    <div className={isMobile ? classes.mobileHistoryBody : classes.historyBody}>
-      <div>
-        <div className={classes.flexCenter}>
+  const prepareMenuItems = (): JSX.Element => {
+    switch (featureSupported) {
+      case FeatureSupported.BOTH: {
+        return (
           <Menu
             className={classes.menu}
             selectedKeys={[historykey]}
@@ -1481,7 +1502,20 @@ const History = (props: IProps): JSX.Element => {
               <div className={classes.tabtitle}>NFT</div>
             </Menu.Item>
           </Menu>
-          {isMobile ? null : (
+        )
+      }
+     default: {
+       return ( <div></div> )
+     }
+    }
+  }
+
+  return (
+    <div className={isMobile ? classes.mobileHistoryBody : classes.historyBody}>
+      <div>
+        <div className={classes.flexCenter}>
+          {prepareMenuItems()}
+          {/* {isMobile ? null : (
             <Button
               type="primary"
               className={classes.rebutton}
@@ -1490,7 +1524,7 @@ const History = (props: IProps): JSX.Element => {
               }}
               icon={<ReloadOutlined style={{ fontSize: 20 }} />}
             />
-          )}
+          )} */}
         </div>
         <div className={classes.historyList}>{historyContent}</div>
         {currentPage !== undefined ? (

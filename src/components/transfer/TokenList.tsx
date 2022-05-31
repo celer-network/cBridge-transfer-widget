@@ -398,6 +398,10 @@ const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
       return true;
     }
 
+    if(targetChainId === 16350 && tokenSymbol === "PEEL") {
+      return true;
+    }
+
     // if (targetChainId === 73771 && tokenSymbol === "TUS") {
     //         return true
     // }

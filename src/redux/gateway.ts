@@ -104,7 +104,6 @@ export const getNFTBridgeChainList = (): Promise<any> =>
   axios
     .get(`${process.env.REACT_APP_NFT_CONFIG_URL}`)
     .then(res => {
-      console.log({ res });
       return res.data;
     })
     .catch(e => {

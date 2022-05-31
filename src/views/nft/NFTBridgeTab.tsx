@@ -381,10 +381,11 @@ const NFTBridgeTab = () => {
   const [nftChainSelectorVisible, setNftChainSelectorVisible] = useState(false);
   const [nftSelectorVisible, setNftSelectorVisible] = useState(false);
   const [nftBridgeMode, setNFTBridgeMode] = useState<NFTBridgeMode>(NFTBridgeMode.UNDEFINED);
-  const [nftBrigeButtonEnable, setNFTBridgeButtonEnbale] = useState(false);
+  const [isNFTOverviewLoading, setIsNFTOverviewLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [approveLoading, setApproveLoading] = useState(false);
   const [nftApproved, setNFTApproved] = useState(false);
+  const [isAllowShowApprovalButton, setIsAllowShowApprovalButton] = useState(false);
   const [nftTokenContract, setNFTTokenContract] = useState<OrigNFT>();
   const [nativeTokenContract, setNativeTokenContract] = useState<MCNNFT>();
   const [brigeContract, setBridgeContract] = useState<NFTBridge>();
@@ -521,6 +522,7 @@ const NFTBridgeTab = () => {
 
             await approveTx.wait();
             setNFTApproved(true);
+            setIsAllowShowApprovalButton(true);
             setApproveLoading(false);
             return;
           }
@@ -536,6 +538,7 @@ const NFTBridgeTab = () => {
           await approveTx.wait();
 
           setNFTApproved(true);
+          setIsAllowShowApprovalButton(true);
           setApproveLoading(false);
         }
       } catch (e) {
@@ -770,10 +773,12 @@ const NFTBridgeTab = () => {
         setAllApproveChecked(isApprovedForAll);
         if (approved || isApprovedForAll) {
           setNFTApproved(true);
+          setIsAllowShowApprovalButton(false);
           // setButtonLoading(false);
           // setNFTBridgeButtonEnbale(true);
         } else {
           setNFTApproved(false);
+          setIsAllowShowApprovalButton(true);
         }
 
         // get totalFee
@@ -789,7 +794,7 @@ const NFTBridgeTab = () => {
         setBridgeFee(bridgeFeeTemp);
         setTotalFee(onChainTotalFee);
         setBridgeContract(srcBridgeContract);
-        setNFTBridgeButtonEnbale(true);
+        setIsNFTOverviewLoading(true);
         setButtonLoading(false);
       }
     };
@@ -797,9 +802,10 @@ const NFTBridgeTab = () => {
     prepareTask();
   }, [selectedNFT, sourceChain, dstChain, nftChains, signer, address, nftList, nftBridgeMode]);
 
-  const selectNft = nftInfo => {
+  const onNFTSelected = nftInfo => {
     setSelectedNFT(nftInfo);
     setNftSelectorVisible(false);
+    setIsNFTOverviewLoading(false);
   };
 
   const selectChain = (nftChain: NFTChain) => {
@@ -883,17 +889,21 @@ const NFTBridgeTab = () => {
           <WarningFilled style={{ fontSize: 20, marginRight: 11, color: "#ffaa00" }} />
           <span style={{ color: "#17171A" }}>
             You must switch to{" "}
-            <a
-              href="#nft"
-              onClick={() => {
-                switchChain(sourceChain?.chainid, "", targetChainId => {
-                  console.log(`switched chain to ${targetChainId}`);
-                  routeHistory.push("nft");
-                });
-              }}
-            >
-              {sourceChain?.name}{" "}
-            </a>
+            {isMobile ? (
+              <span style={{ fontWeight: "bold" }}>{sourceChain?.name} </span>
+            ) : (
+              <a
+                href="#nft"
+                onClick={() => {
+                  switchChain(sourceChain?.chainid, "", targetChainId => {
+                    console.log(`switched chain to ${targetChainId}`);
+                    routeHistory.push("nft");
+                  });
+                }}
+              >
+                {sourceChain?.name}{" "}
+              </a>
+            )}
             to bridge your NFT.
           </span>
         </div>
@@ -912,12 +922,12 @@ const NFTBridgeTab = () => {
     }
     return (
       <div className={classes.bottomButtonContainer}>
-        {nftBrigeButtonEnable && !nftApproved && nftBridgeMode !== NFTBridgeMode.NATIVE && (
+        {isAllowShowApprovalButton && isNFTOverviewLoading && nftBridgeMode !== NFTBridgeMode.NATIVE && (
           <Button
             type="primary"
             onClick={() => approve(sourceChain, selectedNFT, nftTokenContract, nftApproved)}
             className={classes.nftBtn}
-            disabled={!nftBrigeButtonEnable || !selectedNFT || nftApproved}
+            disabled={!isNFTOverviewLoading || !selectedNFT || nftApproved}
             loading={approveLoading}
           >
             <div>
@@ -957,7 +967,7 @@ const NFTBridgeTab = () => {
             )
           }
           className={classes.nftBtn}
-          disabled={!selectedNFT || !nftBrigeButtonEnable || !nftApproved}
+          disabled={!selectedNFT || !isNFTOverviewLoading || !nftApproved}
           loading={buttonLoading}
         >
           Bridge NFT
@@ -1149,7 +1159,7 @@ const NFTBridgeTab = () => {
         onCancel={() => {
           setNftSelectorVisible(false);
         }}
-        onNFTSelected={selectNft}
+        onNFTSelected={onNFTSelected}
       />
 
       <Modal
