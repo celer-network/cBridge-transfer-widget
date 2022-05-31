@@ -15,7 +15,7 @@ using local env to run the project:
 # Whitelist
 whitelisted the support chains and tokens into chains_${env}.ts file
 
-for example add USDC to BSC Testnet chain .
+for example, add USDC to BSC Testnet chain .
 
 ```
 bscTest: {
@@ -25,7 +25,7 @@ bscTest: {
     iconUrl: "./bnbchain.png",
     symbol: "BNB",
     blockExplorerUrl: "https://testnet.bscscan.com",
-    tokenSymbolList: ["USDC"],
+    tokenSymbolList: ["USDC"], // USDC token to be whitelisted
     lqMintTokenSymbolBlackList: ["USDC"], // add if the token doesn't support liquidity pool
   }
 ```
