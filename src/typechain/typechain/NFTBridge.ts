@@ -21,31 +21,45 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 export interface NFTBridgeInterface extends utils.Interface {
   contractName: "NFTBridge";
   functions: {
-    "burn(address,uint256,uint64,address,address,address,bool)": FunctionFragment;
+    "addPauser(address)": FunctionFragment;
     "claimFee()": FunctionFragment;
-    "deposit(address,uint256,uint64,address,address,address)": FunctionFragment;
+    "delOrigNFT(address)": FunctionFragment;
+    "destBridge(uint64)": FunctionFragment;
+    "destNFTAddr(address,uint64)": FunctionFragment;
     "destTxFee(uint64)": FunctionFragment;
     "executeMessage(address,uint64,bytes,address)": FunctionFragment;
     "executeMessageWithTransfer(address,address,uint256,uint64,bytes,address)": FunctionFragment;
     "executeMessageWithTransferFallback(address,address,uint256,uint64,bytes,address)": FunctionFragment;
     "executeMessageWithTransferRefund(address,uint256,bytes,address)": FunctionFragment;
+    "init(address)": FunctionFragment;
+    "isPauser(address)": FunctionFragment;
     "messageBus()": FunctionFragment;
+    "origNFT(address)": FunctionFragment;
     "owner()": FunctionFragment;
+    "pause()": FunctionFragment;
+    "paused()": FunctionFragment;
+    "pausers(address)": FunctionFragment;
+    "removePauser(address)": FunctionFragment;
+    "renouncePauser()": FunctionFragment;
+    "sendMsg(uint64,address,address,uint256,string)": FunctionFragment;
+    "sendTo(address,uint256,uint64,address)": FunctionFragment;
+    "setDestBridge(uint64,address)": FunctionFragment;
+    "setDestBridges(uint64[],address[])": FunctionFragment;
+    "setDestNFT(address,uint64,address)": FunctionFragment;
+    "setDestNFTs(address,uint64[],address[])": FunctionFragment;
     "setMessageBus(address)": FunctionFragment;
+    "setOrigNFT(address)": FunctionFragment;
     "setTxFee(uint64,uint256)": FunctionFragment;
     "totalFee(uint64,address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "unpause()": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "burn",
-    values: [string, BigNumberish, BigNumberish, string, string, string, boolean],
-  ): string;
+  encodeFunctionData(functionFragment: "addPauser", values: [string]): string;
   encodeFunctionData(functionFragment: "claimFee", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "deposit",
-    values: [string, BigNumberish, BigNumberish, string, string, string],
-  ): string;
+  encodeFunctionData(functionFragment: "delOrigNFT", values: [string]): string;
+  encodeFunctionData(functionFragment: "destBridge", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: "destNFTAddr", values: [string, BigNumberish]): string;
   encodeFunctionData(functionFragment: "destTxFee", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "executeMessage", values: [string, BigNumberish, BytesLike, string]): string;
   encodeFunctionData(
@@ -60,40 +74,102 @@ export interface NFTBridgeInterface extends utils.Interface {
     functionFragment: "executeMessageWithTransferRefund",
     values: [string, BigNumberish, BytesLike, string],
   ): string;
+  encodeFunctionData(functionFragment: "init", values: [string]): string;
+  encodeFunctionData(functionFragment: "isPauser", values: [string]): string;
   encodeFunctionData(functionFragment: "messageBus", values?: undefined): string;
+  encodeFunctionData(functionFragment: "origNFT", values: [string]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(functionFragment: "pausers", values: [string]): string;
+  encodeFunctionData(functionFragment: "removePauser", values: [string]): string;
+  encodeFunctionData(functionFragment: "renouncePauser", values?: undefined): string;
+  encodeFunctionData(functionFragment: "sendMsg", values: [BigNumberish, string, string, BigNumberish, string]): string;
+  encodeFunctionData(functionFragment: "sendTo", values: [string, BigNumberish, BigNumberish, string]): string;
+  encodeFunctionData(functionFragment: "setDestBridge", values: [BigNumberish, string]): string;
+  encodeFunctionData(functionFragment: "setDestBridges", values: [BigNumberish[], string[]]): string;
+  encodeFunctionData(functionFragment: "setDestNFT", values: [string, BigNumberish, string]): string;
+  encodeFunctionData(functionFragment: "setDestNFTs", values: [string, BigNumberish[], string[]]): string;
   encodeFunctionData(functionFragment: "setMessageBus", values: [string]): string;
+  encodeFunctionData(functionFragment: "setOrigNFT", values: [string]): string;
   encodeFunctionData(functionFragment: "setTxFee", values: [BigNumberish, BigNumberish]): string;
   encodeFunctionData(functionFragment: "totalFee", values: [BigNumberish, string, BigNumberish]): string;
   encodeFunctionData(functionFragment: "transferOwnership", values: [string]): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "addPauser", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claimFee", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "delOrigNFT", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "destBridge", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "destNFTAddr", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "destTxFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "executeMessage", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "executeMessageWithTransfer", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "executeMessageWithTransferFallback", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "executeMessageWithTransferRefund", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isPauser", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "messageBus", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "origNFT", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "pausers", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "removePauser", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "renouncePauser", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "sendMsg", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "sendTo", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setDestBridge", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setDestBridges", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setDestNFT", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setDestNFTs", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setMessageBus", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setOrigNFT", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setTxFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "totalFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transferOwnership", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
 
   events: {
+    "ExtCallErr(bytes)": EventFragment;
+    "FeeClaimed(uint256)": EventFragment;
     "MessageBusUpdated(address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "Paused(address)": EventFragment;
+    "PauserAdded(address)": EventFragment;
+    "PauserRemoved(address)": EventFragment;
     "Received(address,address,uint256,uint64)": EventFragment;
     "Sent(address,address,uint256,uint64,address,address)": EventFragment;
+    "SetDestBridge(uint64,address)": EventFragment;
+    "SetDestNFT(address,uint64,address)": EventFragment;
+    "SetOrigNFT(address,bool)": EventFragment;
+    "SetTxFee(uint64,uint256)": EventFragment;
+    "Unpaused(address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "ExtCallErr"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FeeClaimed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "MessageBusUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PauserAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PauserRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Received"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Sent"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetDestBridge"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetDestNFT"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetOrigNFT"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetTxFee"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
+
+export type ExtCallErrEvent = TypedEvent<[string], { returnData: string }>;
+
+export type ExtCallErrEventFilter = TypedEventFilter<ExtCallErrEvent>;
+
+export type FeeClaimedEvent = TypedEvent<[BigNumber], { amount: BigNumber }>;
+
+export type FeeClaimedEventFilter = TypedEventFilter<FeeClaimedEvent>;
 
 export type MessageBusUpdatedEvent = TypedEvent<[string], { messageBus: string }>;
 
@@ -102,6 +178,18 @@ export type MessageBusUpdatedEventFilter = TypedEventFilter<MessageBusUpdatedEve
 export type OwnershipTransferredEvent = TypedEvent<[string, string], { previousOwner: string; newOwner: string }>;
 
 export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>;
+
+export type PausedEvent = TypedEvent<[string], { account: string }>;
+
+export type PausedEventFilter = TypedEventFilter<PausedEvent>;
+
+export type PauserAddedEvent = TypedEvent<[string], { account: string }>;
+
+export type PauserAddedEventFilter = TypedEventFilter<PauserAddedEvent>;
+
+export type PauserRemovedEvent = TypedEvent<[string], { account: string }>;
+
+export type PauserRemovedEventFilter = TypedEventFilter<PauserRemovedEvent>;
 
 export type ReceivedEvent = TypedEvent<
   [string, string, BigNumber, BigNumber],
@@ -123,6 +211,29 @@ export type SentEvent = TypedEvent<
 >;
 
 export type SentEventFilter = TypedEventFilter<SentEvent>;
+
+export type SetDestBridgeEvent = TypedEvent<[BigNumber, string], { dstChid: BigNumber; dstNftBridge: string }>;
+
+export type SetDestBridgeEventFilter = TypedEventFilter<SetDestBridgeEvent>;
+
+export type SetDestNFTEvent = TypedEvent<
+  [string, BigNumber, string],
+  { srcNft: string; dstChid: BigNumber; dstNft: string }
+>;
+
+export type SetDestNFTEventFilter = TypedEventFilter<SetDestNFTEvent>;
+
+export type SetOrigNFTEvent = TypedEvent<[string, boolean], { nft: string; isOrig: boolean }>;
+
+export type SetOrigNFTEventFilter = TypedEventFilter<SetOrigNFTEvent>;
+
+export type SetTxFeeEvent = TypedEvent<[BigNumber, BigNumber], { chid: BigNumber; fee: BigNumber }>;
+
+export type SetTxFeeEventFilter = TypedEventFilter<SetTxFeeEvent>;
+
+export type UnpausedEvent = TypedEvent<[string], { account: string }>;
+
+export type UnpausedEventFilter = TypedEventFilter<UnpausedEvent>;
 
 export interface NFTBridge extends BaseContract {
   contractName: "NFTBridge";
@@ -148,33 +259,23 @@ export interface NFTBridge extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    burn(
-      _nft: string,
-      _id: BigNumberish,
-      _dstChid: BigNumberish,
-      _receiver: string,
-      _dstNft: string,
-      _dstBridge: string,
-      _backToOrigin: boolean,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+    addPauser(
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
     claimFee(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
-    deposit(
-      _nft: string,
-      _id: BigNumberish,
-      _dstChid: BigNumberish,
-      _receiver: string,
-      _dstNft: string,
-      _dstBridge: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
-    ): Promise<ContractTransaction>;
+    delOrigNFT(_nft: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
+    destBridge(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
+    destNFTAddr(arg0: string, arg1: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     destTxFee(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     executeMessage(
-      arg0: string,
+      sender: string,
       srcChid: BigNumberish,
       _message: BytesLike,
       arg3: string,
@@ -209,14 +310,78 @@ export interface NFTBridge extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
 
+    init(_msgBus: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
+    isPauser(account: string, overrides?: CallOverrides): Promise<[boolean]>;
+
     messageBus(overrides?: CallOverrides): Promise<[string]>;
 
+    origNFT(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    pause(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<[boolean]>;
+
+    pausers(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    removePauser(
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    renouncePauser(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
+    sendMsg(
+      _dstChid: BigNumberish,
+      _sender: string,
+      _receiver: string,
+      _id: BigNumberish,
+      _uri: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    sendTo(
+      _nft: string,
+      _id: BigNumberish,
+      _dstChid: BigNumberish,
+      _receiver: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    setDestBridge(
+      dstChid: BigNumberish,
+      dstNftBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    setDestBridges(
+      dstChid: BigNumberish[],
+      dstNftBridge: string[],
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    setDestNFT(
+      srcNft: string,
+      dstChid: BigNumberish,
+      dstNft: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
+
+    setDestNFTs(
+      srcNft: string,
+      dstChid: BigNumberish[],
+      dstNft: string[],
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<ContractTransaction>;
 
     setMessageBus(
       _messageBus: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
+
+    setOrigNFT(_nft: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
     setTxFee(
       chid: BigNumberish,
@@ -230,35 +395,24 @@ export interface NFTBridge extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<ContractTransaction>;
+
+    unpause(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
   };
 
-  burn(
-    _nft: string,
-    _id: BigNumberish,
-    _dstChid: BigNumberish,
-    _receiver: string,
-    _dstNft: string,
-    _dstBridge: string,
-    _backToOrigin: boolean,
-    overrides?: PayableOverrides & { from?: string | Promise<string> },
-  ): Promise<ContractTransaction>;
+  addPauser(account: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
   claimFee(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
-  deposit(
-    _nft: string,
-    _id: BigNumberish,
-    _dstChid: BigNumberish,
-    _receiver: string,
-    _dstNft: string,
-    _dstBridge: string,
-    overrides?: PayableOverrides & { from?: string | Promise<string> },
-  ): Promise<ContractTransaction>;
+  delOrigNFT(_nft: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
+  destBridge(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  destNFTAddr(arg0: string, arg1: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   destTxFee(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   executeMessage(
-    arg0: string,
+    sender: string,
     srcChid: BigNumberish,
     _message: BytesLike,
     arg3: string,
@@ -293,14 +447,78 @@ export interface NFTBridge extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
+  init(_msgBus: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
+  isPauser(account: string, overrides?: CallOverrides): Promise<boolean>;
+
   messageBus(overrides?: CallOverrides): Promise<string>;
 
+  origNFT(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
   owner(overrides?: CallOverrides): Promise<string>;
+
+  pause(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
+  paused(overrides?: CallOverrides): Promise<boolean>;
+
+  pausers(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  removePauser(
+    account: string,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  renouncePauser(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
+  sendMsg(
+    _dstChid: BigNumberish,
+    _sender: string,
+    _receiver: string,
+    _id: BigNumberish,
+    _uri: string,
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  sendTo(
+    _nft: string,
+    _id: BigNumberish,
+    _dstChid: BigNumberish,
+    _receiver: string,
+    overrides?: PayableOverrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  setDestBridge(
+    dstChid: BigNumberish,
+    dstNftBridge: string,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  setDestBridges(
+    dstChid: BigNumberish[],
+    dstNftBridge: string[],
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  setDestNFT(
+    srcNft: string,
+    dstChid: BigNumberish,
+    dstNft: string,
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
+
+  setDestNFTs(
+    srcNft: string,
+    dstChid: BigNumberish[],
+    dstNft: string[],
+    overrides?: Overrides & { from?: string | Promise<string> },
+  ): Promise<ContractTransaction>;
 
   setMessageBus(
     _messageBus: string,
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
+
+  setOrigNFT(_nft: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
   setTxFee(
     chid: BigNumberish,
@@ -315,34 +533,23 @@ export interface NFTBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> },
   ): Promise<ContractTransaction>;
 
+  unpause(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
+
   callStatic: {
-    burn(
-      _nft: string,
-      _id: BigNumberish,
-      _dstChid: BigNumberish,
-      _receiver: string,
-      _dstNft: string,
-      _dstBridge: string,
-      _backToOrigin: boolean,
-      overrides?: CallOverrides,
-    ): Promise<void>;
+    addPauser(account: string, overrides?: CallOverrides): Promise<void>;
 
     claimFee(overrides?: CallOverrides): Promise<void>;
 
-    deposit(
-      _nft: string,
-      _id: BigNumberish,
-      _dstChid: BigNumberish,
-      _receiver: string,
-      _dstNft: string,
-      _dstBridge: string,
-      overrides?: CallOverrides,
-    ): Promise<void>;
+    delOrigNFT(_nft: string, overrides?: CallOverrides): Promise<void>;
+
+    destBridge(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    destNFTAddr(arg0: string, arg1: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     destTxFee(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     executeMessage(
-      arg0: string,
+      sender: string,
       srcChid: BigNumberish,
       _message: BytesLike,
       arg3: string,
@@ -377,20 +584,71 @@ export interface NFTBridge extends BaseContract {
       overrides?: CallOverrides,
     ): Promise<number>;
 
+    init(_msgBus: string, overrides?: CallOverrides): Promise<void>;
+
+    isPauser(account: string, overrides?: CallOverrides): Promise<boolean>;
+
     messageBus(overrides?: CallOverrides): Promise<string>;
+
+    origNFT(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
+    pause(overrides?: CallOverrides): Promise<void>;
+
+    paused(overrides?: CallOverrides): Promise<boolean>;
+
+    pausers(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    removePauser(account: string, overrides?: CallOverrides): Promise<void>;
+
+    renouncePauser(overrides?: CallOverrides): Promise<void>;
+
+    sendMsg(
+      _dstChid: BigNumberish,
+      _sender: string,
+      _receiver: string,
+      _id: BigNumberish,
+      _uri: string,
+      overrides?: CallOverrides,
+    ): Promise<void>;
+
+    sendTo(
+      _nft: string,
+      _id: BigNumberish,
+      _dstChid: BigNumberish,
+      _receiver: string,
+      overrides?: CallOverrides,
+    ): Promise<void>;
+
+    setDestBridge(dstChid: BigNumberish, dstNftBridge: string, overrides?: CallOverrides): Promise<void>;
+
+    setDestBridges(dstChid: BigNumberish[], dstNftBridge: string[], overrides?: CallOverrides): Promise<void>;
+
+    setDestNFT(srcNft: string, dstChid: BigNumberish, dstNft: string, overrides?: CallOverrides): Promise<void>;
+
+    setDestNFTs(srcNft: string, dstChid: BigNumberish[], dstNft: string[], overrides?: CallOverrides): Promise<void>;
+
     setMessageBus(_messageBus: string, overrides?: CallOverrides): Promise<void>;
+
+    setOrigNFT(_nft: string, overrides?: CallOverrides): Promise<void>;
 
     setTxFee(chid: BigNumberish, fee: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     totalFee(_dstChid: BigNumberish, _nft: string, _id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(newOwner: string, overrides?: CallOverrides): Promise<void>;
+
+    unpause(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
+    "ExtCallErr(bytes)"(returnData?: null): ExtCallErrEventFilter;
+    ExtCallErr(returnData?: null): ExtCallErrEventFilter;
+
+    "FeeClaimed(uint256)"(amount?: null): FeeClaimedEventFilter;
+    FeeClaimed(amount?: null): FeeClaimedEventFilter;
+
     "MessageBusUpdated(address)"(messageBus?: null): MessageBusUpdatedEventFilter;
     MessageBusUpdated(messageBus?: null): MessageBusUpdatedEventFilter;
 
@@ -399,6 +657,15 @@ export interface NFTBridge extends BaseContract {
       newOwner?: string | null,
     ): OwnershipTransferredEventFilter;
     OwnershipTransferred(previousOwner?: string | null, newOwner?: string | null): OwnershipTransferredEventFilter;
+
+    "Paused(address)"(account?: null): PausedEventFilter;
+    Paused(account?: null): PausedEventFilter;
+
+    "PauserAdded(address)"(account?: null): PauserAddedEventFilter;
+    PauserAdded(account?: null): PauserAddedEventFilter;
+
+    "PauserRemoved(address)"(account?: null): PauserRemovedEventFilter;
+    PauserRemoved(account?: null): PauserRemovedEventFilter;
 
     "Received(address,address,uint256,uint64)"(
       receiver?: null,
@@ -417,36 +684,38 @@ export interface NFTBridge extends BaseContract {
       dstNft?: null,
     ): SentEventFilter;
     Sent(sender?: null, srcNft?: null, id?: null, dstChid?: null, receiver?: null, dstNft?: null): SentEventFilter;
+
+    "SetDestBridge(uint64,address)"(dstChid?: null, dstNftBridge?: null): SetDestBridgeEventFilter;
+    SetDestBridge(dstChid?: null, dstNftBridge?: null): SetDestBridgeEventFilter;
+
+    "SetDestNFT(address,uint64,address)"(srcNft?: null, dstChid?: null, dstNft?: null): SetDestNFTEventFilter;
+    SetDestNFT(srcNft?: null, dstChid?: null, dstNft?: null): SetDestNFTEventFilter;
+
+    "SetOrigNFT(address,bool)"(nft?: null, isOrig?: null): SetOrigNFTEventFilter;
+    SetOrigNFT(nft?: null, isOrig?: null): SetOrigNFTEventFilter;
+
+    "SetTxFee(uint64,uint256)"(chid?: null, fee?: null): SetTxFeeEventFilter;
+    SetTxFee(chid?: null, fee?: null): SetTxFeeEventFilter;
+
+    "Unpaused(address)"(account?: null): UnpausedEventFilter;
+    Unpaused(account?: null): UnpausedEventFilter;
   };
 
   estimateGas: {
-    burn(
-      _nft: string,
-      _id: BigNumberish,
-      _dstChid: BigNumberish,
-      _receiver: string,
-      _dstNft: string,
-      _dstBridge: string,
-      _backToOrigin: boolean,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
-    ): Promise<BigNumber>;
+    addPauser(account: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
     claimFee(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
-    deposit(
-      _nft: string,
-      _id: BigNumberish,
-      _dstChid: BigNumberish,
-      _receiver: string,
-      _dstNft: string,
-      _dstBridge: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
-    ): Promise<BigNumber>;
+    delOrigNFT(_nft: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
+
+    destBridge(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    destNFTAddr(arg0: string, arg1: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     destTxFee(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     executeMessage(
-      arg0: string,
+      sender: string,
       srcChid: BigNumberish,
       _message: BytesLike,
       arg3: string,
@@ -481,11 +750,72 @@ export interface NFTBridge extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
 
+    init(_msgBus: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
+
+    isPauser(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     messageBus(overrides?: CallOverrides): Promise<BigNumber>;
+
+    origNFT(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
+    pause(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
+
+    paused(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pausers(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    removePauser(account: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
+
+    renouncePauser(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
+
+    sendMsg(
+      _dstChid: BigNumberish,
+      _sender: string,
+      _receiver: string,
+      _id: BigNumberish,
+      _uri: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    sendTo(
+      _nft: string,
+      _id: BigNumberish,
+      _dstChid: BigNumberish,
+      _receiver: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    setDestBridge(
+      dstChid: BigNumberish,
+      dstNftBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    setDestBridges(
+      dstChid: BigNumberish[],
+      dstNftBridge: string[],
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    setDestNFT(
+      srcNft: string,
+      dstChid: BigNumberish,
+      dstNft: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
+    setDestNFTs(
+      srcNft: string,
+      dstChid: BigNumberish[],
+      dstNft: string[],
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<BigNumber>;
+
     setMessageBus(_messageBus: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
+
+    setOrigNFT(_nft: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
     setTxFee(
       chid: BigNumberish,
@@ -499,36 +829,31 @@ export interface NFTBridge extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<BigNumber>;
+
+    unpause(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    burn(
-      _nft: string,
-      _id: BigNumberish,
-      _dstChid: BigNumberish,
-      _receiver: string,
-      _dstNft: string,
-      _dstBridge: string,
-      _backToOrigin: boolean,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+    addPauser(
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
     claimFee(overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
 
-    deposit(
+    delOrigNFT(
       _nft: string,
-      _id: BigNumberish,
-      _dstChid: BigNumberish,
-      _receiver: string,
-      _dstNft: string,
-      _dstBridge: string,
-      overrides?: PayableOverrides & { from?: string | Promise<string> },
+      overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
+
+    destBridge(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    destNFTAddr(arg0: string, arg1: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     destTxFee(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     executeMessage(
-      arg0: string,
+      sender: string,
       srcChid: BigNumberish,
       _message: BytesLike,
       arg3: string,
@@ -563,12 +888,79 @@ export interface NFTBridge extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
+    init(_msgBus: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
+
+    isPauser(account: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     messageBus(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    origNFT(arg0: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    pause(overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
+
+    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pausers(arg0: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    removePauser(
+      account: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    renouncePauser(overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
+
+    sendMsg(
+      _dstChid: BigNumberish,
+      _sender: string,
+      _receiver: string,
+      _id: BigNumberish,
+      _uri: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    sendTo(
+      _nft: string,
+      _id: BigNumberish,
+      _dstChid: BigNumberish,
+      _receiver: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    setDestBridge(
+      dstChid: BigNumberish,
+      dstNftBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    setDestBridges(
+      dstChid: BigNumberish[],
+      dstNftBridge: string[],
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    setDestNFT(
+      srcNft: string,
+      dstChid: BigNumberish,
+      dstNft: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    setDestNFTs(
+      srcNft: string,
+      dstChid: BigNumberish[],
+      dstNft: string[],
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
     setMessageBus(
       _messageBus: string,
+      overrides?: Overrides & { from?: string | Promise<string> },
+    ): Promise<PopulatedTransaction>;
+
+    setOrigNFT(
+      _nft: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
 
@@ -589,5 +981,7 @@ export interface NFTBridge extends BaseContract {
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> },
     ): Promise<PopulatedTransaction>;
+
+    unpause(overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
   };
 }

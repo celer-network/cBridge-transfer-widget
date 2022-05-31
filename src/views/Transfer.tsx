@@ -1,8 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Card, Button, Avatar, Tooltip, Modal } from "antd";
 import { createUseStyles } from "react-jss";
-import { useLocation } from "react-router-dom";
-import { useToggle, useNetworkState } from "react-use";
+import { useToggle, useNetworkState, useAsync } from "react-use";
 import { formatUnits } from "@ethersproject/units";
 import { BigNumber } from "@ethersproject/bignumber";
 import { MaxUint256 } from "@ethersproject/constants";
@@ -12,6 +11,8 @@ import { deleteDecimalPart, safeParseUnits, formatDecimalPart, sub } from "celer
 import { AccAddress } from "@terra-money/terra.js";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
+import classNames from "classnames";
+import { parseUnits } from "ethers/lib/utils";
 import { ERC20 } from "../typechain/typechain/ERC20";
 import { ERC20__factory } from "../typechain/typechain/factories/ERC20__factory";
 
@@ -42,7 +43,7 @@ import {
   useNonEVMTokenBalance,
 } from "../hooks";
 import { formatDecimal } from "../helpers/format";
-import { TokenInfo } from "../constants/type";
+import { Chain, TokenInfo } from "../constants/type";
 import { getNetworkById } from "../constants/network";
 import { validFloatRegex } from "../constants/regex";
 import { Theme } from "../theme";
@@ -51,6 +52,7 @@ import ProviderModal from "../components/ProviderModal";
 import TransferModal from "../components/transfer/TransferModal";
 import TokenInput, { ITokenInputChangeEvent } from "../components/TokenInput";
 import TokenList from "../components/transfer/TokenList";
+import NonEVMChainTokenList from "../components/transfer/NonEVMChainTokenList";
 import FlowProviderModal from "../components/nonEVM/FlowProviderModal";
 
 import settingIcon from "../images/setting.svg";
@@ -59,7 +61,7 @@ import arrowDowm from "../images/arrow-D.svg";
 import RateModal from "../components/RateModal";
 import TransferOverview, { getTokenDisplaySymbol } from "./transfer/TransferOverview";
 import { WebClient } from "../proto/gateway/GatewayServiceClientPb";
-import { EstimateAmtRequest, ErrCode } from "../proto/gateway/gateway_pb";
+import { EstimateAmtRequest, ErrCode, GetTokenBoundRequest } from "../proto/gateway/gateway_pb";
 import { minimum, maximum } from "../helpers/calculation";
 import { getTokenSymbol, getTokenListSymbol } from "../redux/assetSlice";
 import { PeggedChainMode, usePeggedPairConfig, GetPeggedMode } from "../hooks/usePeggedPairConfig";
@@ -93,6 +95,10 @@ import { useConfigContext } from "../providers/ConfigContextProvider";
 import { useCoMinterCaps } from "../hooks/useCoMinterCaps";
 import { coMinterChains } from "../constants/const";
 import { useMultiBurnConfig } from "../hooks/useMultiBurnConfig";
+import { getTokenBound } from "../redux/gateway";
+import { useIsWrapTokenTransferAtLimit, WrapTokenCaps } from "../hooks/useIsWrapTokenTransferAtLimit";
+import { isApeChain } from "../hooks/useTransfer";
+import { ApeTip } from "./nft/ApeTips";
 
 /* eslint-disable */
 /* eslint-disable camelcase */
@@ -170,8 +176,44 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     display: "flex",
     justifyContent: "center",
   },
+  buttonBg: {
+    width: "100%",
+  },
+  createflowBtn: {
+    marginBottom: "20px !important",
+  },
+  approveBg: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-between",
+  },
+  approveBgMobile: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+
+  approveTransBtn: {
+    width: "49%",
+    margin: "0",
+    height: 56,
+    fontSize: 16,
+    fontWeight: 700,
+    borderRadius: 16,
+    background: theme.primaryBrand,
+    border: 0,
+    "&:focus, &:hover": {
+      background: theme.buttonHover,
+    },
+    "&::before": {
+      backgroundColor: `${theme.primaryBrand} !important`,
+    },
+  },
+
   transBtn: {
-    width: 560,
+    // width: 560,
+    width: "100%",
     margin: "0",
     height: 56,
     fontSize: 16,
@@ -506,7 +548,7 @@ const Transfer: FC = () => {
   } = useContractsContext();
 
   const { provider, signer, chainId, address } = useWeb3Context();
-  const { connected, walletAddress, walletConnectionButtonTitle } = useWalletConnectionContext();
+  const { connected, walletConnectionButtonTitle } = useWalletConnectionContext();
   const dispatch = useAppDispatch();
   const networkState = useNetworkState();
   const { transferInfo, modal, globalInfo } = useAppSelector(state => state);
@@ -523,10 +565,8 @@ const Transfer: FC = () => {
     estimateAmtInfoInState,
     rate,
     refreshHistory,
-    refreshTransferAndLiquidity,
     flowTokenPathConfigs,
   } = transferInfo;
-  const location = useLocation();
   const pegConfig = usePeggedPairConfig();
   const { multiBurnConfig, multiBurnSpenderAddress } = useMultiBurnConfig();
 
@@ -548,6 +588,8 @@ const Transfer: FC = () => {
   const [errorMsg, setErrorMsg] = useState<JSX.Element>(<div />);
   const [hasError, setHasError] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [createFlowBtnLoading, setCreateFlowBtnLoading] = useState(false);
   const [isTokenShow, toggleIsTokenShow] = useToggle(false);
   const [fee, setFee] = useState(0);
   const [minSendValue, setMinSendValue] = useState<BigNumber>();
@@ -560,14 +602,15 @@ const Transfer: FC = () => {
   );
   const { nonEVMBigAmountDelayed, nonEVMDelayTimeInMinute, nonEVMDelayThreshold } =
     useNonEVMBigAmountDelay(receiveAmount);
-  const { maxPeggedTokenAmount, setMaxPeggedTokenAmount } = useMaxPeggedTokenAmount(receiveAmount);
+  const { maxPeggedTokenAmount, setMaxPeggedTokenAmount } = useMaxPeggedTokenAmount();
   const [noTokenOnDst, setNoTokenOnDst] = useState(false);
   const [userBalance, setUserBalance] = useState<string>("0");
   const [denyPeg, setDenyPeg] = useState(false);
   const [spenderAddr, setSpenderAddr] = useState<string>();
   const [allowance, setAllowance] = useState<BigNumber>();
   const [hasGotAllowance, setHasGotAllowance] = useState(false);
-  const transferSupportedTokenList = useTransferSupportedTokenList();
+  const [hasShowGotAllowance, setHasShowGotAllowance] = useState(false);
+  const { supportTokenList } = useTransferSupportedTokenList();
   const { nonEVMMode, flowConnected, terraConnected, nonEVMConnected, nonEVMAddress, setFlowInToChain } =
     useNonEVMContext();
   const [terraUSTNotEnough, setTerraUSTNotEnough] = useState(false);
@@ -580,12 +623,16 @@ const Transfer: FC = () => {
   const [coMinterBurnContractAddress, setCoMinterBurnContractAddress] = useState<string>();
   const [coMinterPegTokenAddress, setCoMinterPegTokenAddress] = useState<string>();
   const [coMinterExceedBurnCap, setCoMinterExceedBurnCap] = useState<BigNumber>();
+  const [tokenBound, setTokenBound] = useState("");
+  const [wrapTokenCap, setWrapTokenCap] = useState<WrapTokenCaps | undefined>();
 
   const getTokenByChainAndTokenSymbol = (chainId, tokenSymbol) => {
     return transferConfig?.chain_token[chainId]?.token.find(tokenInfo => tokenInfo?.token?.symbol === tokenSymbol);
   };
 
   const { coMinterCapCallback } = useCoMinterCaps(coMinterPegTokenAddress, coMinterBurnContractAddress, fromChain?.id);
+
+  const { onWrapTokenLiquidityCallback } = useIsWrapTokenTransferAtLimit(fromChain, toChain, selectedToken);
 
   useMemo(() => {
     if (!coMinterCapCallback || !amount || !coMinterPegTokenAddress) {
@@ -602,7 +649,6 @@ const Transfer: FC = () => {
         const { minterSupply } = caps;
         const amountBig = safeParseUnits(amount, pegToken.token.decimal);
         const isCoMinterExceedBurnCap = amountBig.gt(minterSupply);
-        console.log(`amountBig:${amountBig.toString()}, supply:${minterSupply.toString()}`);
         if (isCoMinterExceedBurnCap) {
           setCoMinterExceedBurnCap(minterSupply);
           return;
@@ -612,6 +658,19 @@ const Transfer: FC = () => {
     };
     getCoMinterCaps();
   }, [coMinterCapCallback, amount, pegConfig]);
+
+  useMemo(() => {
+    if (!onWrapTokenLiquidityCallback) {
+      return;
+    }
+
+    const loadWrapLiquidityThredshold = async () => {
+      const caps = await onWrapTokenLiquidityCallback();
+      setWrapTokenCap(caps);
+    };
+
+    loadWrapLiquidityThredshold();
+  }, [onWrapTokenLiquidityCallback]);
 
   const getAllowance = useCallback(() => {
     let multiBurnConfigConditionFailure = false;
@@ -623,7 +682,6 @@ const Transfer: FC = () => {
           multiBurnConfig.burn_config_as_org.canonical_token_contract_addr !== spenderAddr;
       }
     }
-
     if (
       !tokenContract ||
       !address ||
@@ -639,6 +697,7 @@ const Transfer: FC = () => {
         pegConfig.config.pegged_token.token.address !== spenderAddr) ||
       tokenContract.address !== tokenAddress
     ) {
+      setApproveLoading(false);
       return;
     }
     tokenContract
@@ -646,22 +705,24 @@ const Transfer: FC = () => {
       .then(result => {
         setAllowance(result);
         setHasGotAllowance(true);
+        setApproveLoading(false);
       })
       .catch(e => {
         console.log(e);
         setHasGotAllowance(true);
+        setApproveLoading(false);
       });
   }, [address, tokenContract, spenderAddr, fromChain, chainId, pegConfig, tokenAddress]);
 
   const setTokenMethod = (symbol?: string) => {
-    if (!transferSupportedTokenList) {
+    if (!supportTokenList) {
       return;
     }
 
     const targetToken: TokenInfo =
-      transferSupportedTokenList.find(token => {
+      supportTokenList.find(token => {
         return (token.token.display_symbol ?? getTokenListSymbol(token.token.symbol, fromChain?.id ?? 0)) === symbol;
-      }) || transferSupportedTokenList[0];
+      }) || supportTokenList[0];
 
     dispatch(setSelectedToken(targetToken));
     dispatch(
@@ -681,6 +742,7 @@ const Transfer: FC = () => {
   const resetData = () => {
     setAmount("");
     setMaxValue("");
+    setHasShowGotAllowance(false);
     setReceiveAmount(0);
     setFee(0);
     dispatch(setEstimateAmtInfoInState(null));
@@ -773,6 +835,11 @@ const Transfer: FC = () => {
   useEffect(() => {
     resetData();
   }, [fromChain]);
+
+  useEffect(() => {
+    setReceiveAmount(0);
+    setHasShowGotAllowance(false);
+  }, [toChain]);
 
   // get minSend value
   useEffect(() => {
@@ -898,7 +965,22 @@ const Transfer: FC = () => {
           >
             <WarningFilled style={{ fontSize: 20, marginRight: 5, color: "#ff8f00" }} />
             <span style={{ color: "#17171A", marginTop: 3 }}>
-              You must switch to <span style={{ fontWeight: "bold" }}> {fromChain?.name} </span>
+              You must switch to{" "}
+              {isMobile ? (
+                <span style={{ fontWeight: "bold" }}>{fromChain?.name} </span>
+              ) : (
+                <a
+                  href="#aaa"
+                  style={{ fontWeight: "bold" }}
+                  onClick={() => {
+                    switchChain(fromChain.id, selectedToken, (targetFromChainId: number) => {
+                      console.log(`switched chain to ${targetFromChainId}`);
+                    });
+                  }}
+                >
+                  {fromChain?.name}{" "}
+                </a>
+              )}
               to begin the transfer.
             </span>
           </div>
@@ -921,9 +1003,9 @@ const Transfer: FC = () => {
       return undefined;
     },
     isValueGtMaxAmount(maxPeggedTokenAmount, amount, selectedToken, fromChain, toChain) {
-      const maxAmount = maxPeggedTokenAmount ?? BigNumber.from("0");
+      const maxAmount = maxPeggedTokenAmount;
       const value = safeParseUnits(Number(amount).toString(), selectedToken?.token?.decimal) || BigNumber.from(0);
-      if (maxAmount.gt("0") && value.gt(maxAmount)) {
+      if (maxAmount && value.gt(maxAmount)) {
         return generateErrMsg(
           `At this moment, you can transfer up to ${formatDecimal(maxAmount, selectedToken?.token?.decimal, 2)} 
         ${getTokenSymbol(selectedToken?.token?.symbol, toChain?.id)} from
@@ -1044,6 +1126,52 @@ const Transfer: FC = () => {
       }
       return undefined;
     },
+    isInboundLimit(tokenBound, token, amount) {
+      const tokenBoundBigNumber = BigNumber.from(tokenBound || 0);
+      const inboundLmtBigNumber = BigNumber.from(token?.inbound_lmt || 0)
+        .mul(9)
+        .div(10);
+      const amountBigNumber = parseUnits(amount.toString() || "0", token?.token?.decimal);
+      if (
+        token?.inbound_lmt !== "" &&
+        tokenBoundBigNumber.abs().gt(0) &&
+        tokenBoundBigNumber.add(amountBigNumber).gt(inboundLmtBigNumber)
+      ) {
+        let remainingTransferAmt = inboundLmtBigNumber.sub(tokenBoundBigNumber);
+        remainingTransferAmt = remainingTransferAmt.gt(0) ? remainingTransferAmt : BigNumber.from("0");
+        return generateErrMsg(
+          `You can transfer up to ${formatDecimal(
+            remainingTransferAmt.toString(),
+            token?.token?.decimal,
+            6,
+          )} ${getTokenSymbol(token?.token?.symbol, toChain?.id)} from ${fromChain?.name} to ${
+            toChain?.name
+          } at this moment. You may reduce your transfer amount.
+        `,
+          "CloseCircleFilled",
+        );
+      }
+    },
+    isExcceedWrapTokenLiquidityThredshold(
+      wrapTokenCap: WrapTokenCaps | undefined,
+      fromChain: Chain | undefined,
+      toChain: Chain | undefined,
+    ) {
+      if (wrapTokenCap) {
+        const threshold = BigNumber.from(wrapTokenCap.totalLiquidity) ?? BigNumber.from("0");
+        const value = safeParseUnits(Number(amount).toString(), wrapTokenCap.decimal) || BigNumber.from(0);
+        if (threshold.gt("0") && value.gt(threshold)) {
+          return generateErrMsg(
+            `At this moment, you can transfer up to ${formatDecimal(threshold, wrapTokenCap.decimal, 2)} 
+          ${getTokenSymbol(wrapTokenCap.tokenSymbol, toChain?.id)} from
+          ${fromChain?.name} to ${toChain?.name}. 
+          You may reduce your transfer amount or try again later.`,
+            "CloseCircleFilled",
+          );
+        }
+      }
+      return undefined;
+    },
   };
 
   const warningProcessor = {
@@ -1085,15 +1213,6 @@ const Transfer: FC = () => {
       }
       return undefined;
     },
-    isFlowRateLimited(fromChain) {
-      const fromChainNonEVMMode = getNonEVMMode(fromChain?.id ?? 0);
-      if (fromChainNonEVMMode === NonEVMMode.flowMainnet || fromChainNonEVMMode === NonEVMMode.flowTest) {
-        return generateWaringMsg(
-          "cBridge’s Flow integration is in alpha release, asset bridging from Flow to other chains is rate limited until May 1st.",
-        );
-      }
-      return undefined;
-    },
   };
 
   useEffect(() => {
@@ -1113,10 +1232,11 @@ const Transfer: FC = () => {
         errorProcessor.isFromChainDiffFromWalletChain(fromChain, chainId) ||
         errorProcessor.isAmountInvalid(amount) ||
         errorProcessor.isAmountParseError(amount, selectedToken) ||
-        errorProcessor.isValueGtMaxAmount(maxPeggedTokenAmount, amount, selectedToken, fromChain, toChain) ||
         errorProcessor.isFeeGtAmount(fee, amount) ||
         errorProcessor.isValueGtBalance(amount, selectedToken, isNativeToken, ETHBalance, tokenBalance) ||
+        errorProcessor.isValueGtMaxAmount(maxPeggedTokenAmount, amount, selectedToken, fromChain, toChain) ||
         errorProcessor.isValueLteMinSendValue(amount, selectedToken, minSendValue, estimateAmtInfoInState, fromChain) ||
+        errorProcessor.isExcceedWrapTokenLiquidityThredshold(wrapTokenCap, fromChain, toChain) ||
         errorProcessor.isValueGtSafeguardMaxAmount(
           amount,
           selectedToken,
@@ -1125,6 +1245,7 @@ const Transfer: FC = () => {
           fromChain,
         ) ||
         errorProcessor.isExcceedCoMinterCap(coMinterExceedBurnCap) ||
+        errorProcessor.isInboundLimit(tokenBound, selectedToken, amount) ||
         errorProcessor.isRecipientAddressInputInValid(amount, nonEVMRecipientAddress, nonEVMMode, toChain) ||
         errorProcessor.isTerraUSTNotEnough(terraUSTNotEnough);
       if (errorInfo) {
@@ -1151,8 +1272,7 @@ const Transfer: FC = () => {
             toChain,
             nonEVMDelayTimeInMinute,
             nonEVMDelayThreshold,
-          ) ||
-          warningProcessor.isFlowRateLimited(fromChain);
+          );
         if (warningInfo) {
           handleWarning(warningInfo);
         }
@@ -1186,6 +1306,8 @@ const Transfer: FC = () => {
     nonEVMBigAmountDelayed,
     terraUSTNotEnough,
     coMinterExceedBurnCap,
+    tokenBound,
+    wrapTokenCap,
   ]);
 
   const renderCardSetting = () => {
@@ -1214,7 +1336,7 @@ const Transfer: FC = () => {
     dispatch(setIsChainShow(true));
   };
 
-  // Estimate error processor
+  // Estimate error  processor
   const estimateErrorProcessor = {
     isOffLine(network) {
       if (!network.online) {
@@ -1249,7 +1371,7 @@ const Transfer: FC = () => {
       }
     },
     isNoTokenSupported(selectedToken) {
-      const canToken = transferSupportedTokenList.find(item => {
+      const canToken = supportTokenList.find(item => {
         return item.token.symbol === selectedToken?.token.symbol;
       });
       return canToken === undefined;
@@ -1331,7 +1453,7 @@ const Transfer: FC = () => {
           maxT = await dstPeggedTokenBridge.epochVolumeCaps(multiBurnConfig.burn_config_as_dst.token.token.address);
           maxT = safeParseUnits(
             formatUnits(maxT, multiBurnConfig.burn_config_as_dst.token.token.decimal),
-            multiBurnConfig.burn_config_as_dst.token.token.decimal,
+            multiBurnConfig.burn_config_as_org.token.token.decimal,
           );
           maxT = maxT.mul(98).div(100);
         }
@@ -1373,14 +1495,15 @@ const Transfer: FC = () => {
             pegConfig.config.org_token.token.address,
           );
           maxAmt = BigNumber.from(maxAmtObject);
-        } else if (originalTokenVault) {
+        } else if (originalTokenVault || originalTokenVaultV2) {
+          const vaultV2Contract = originalTokenVaultV2 ?? originalTokenVault;
           let evmTokenAddress = pegConfig.config.org_token.token.address;
 
           if (isNonEVMChain(pegConfig.config.org_chain_id)) {
             evmTokenAddress = pegConfig.config.pegged_token.token.address;
           }
-          minAmt = await originalTokenVault.minDeposit(evmTokenAddress);
-          maxAmt = await originalTokenVault.maxDeposit(evmTokenAddress);
+          minAmt = await vaultV2Contract.minDeposit(evmTokenAddress);
+          maxAmt = await vaultV2Contract.maxDeposit(evmTokenAddress);
         }
 
         //rate limite
@@ -1416,6 +1539,7 @@ const Transfer: FC = () => {
 
         break;
       case PeggedChainMode.Burn:
+      case PeggedChainMode.BurnThenSwap:
         if (fromChainNonEVMMode === NonEVMMode.flowTest || fromChainNonEVMMode === NonEVMMode.flowMainnet) {
           const tokenConfig = await burnConfigFromFlow(
             pegConfig.config.pegged_burn_contract_addr,
@@ -1434,14 +1558,15 @@ const Transfer: FC = () => {
             pegConfig.config.pegged_token.token.address,
           );
           maxAmt = BigNumber.from(maxAmtObject);
-        } else if (peggedTokenBridge) {
+        } else if (peggedTokenBridge || peggedTokenBridgeV2) {
+          let pegBridge = peggedTokenBridgeV2 ?? peggedTokenBridge;
           let evmTokenAddress = pegConfig.config.pegged_token.token.address;
 
           if (isNonEVMChain(pegConfig.config.pegged_chain_id)) {
             evmTokenAddress = pegConfig.config.org_token.token.address;
           }
-          minAmt = await peggedTokenBridge.minBurn(evmTokenAddress);
-          maxAmt = await peggedTokenBridge.maxBurn(evmTokenAddress);
+          minAmt = await pegBridge.minBurn(evmTokenAddress);
+          maxAmt = await pegBridge.maxBurn(evmTokenAddress);
 
           if (fromChain && coMinterChains.includes(fromChain.id)) {
             setCoMinterBurnContractAddress(pegConfig.config.pegged_burn_contract_addr);
@@ -1748,6 +1873,8 @@ const Transfer: FC = () => {
   };
 
   const handleTokenInputChange = (e: ITokenInputChangeEvent) => {
+    setHasShowGotAllowance(false);
+    setReceiveAmount(0);
     setLoading(true);
     setMaxValue("");
     dispatch(setEstimateAmtInfoInState(null));
@@ -1804,7 +1931,7 @@ const Transfer: FC = () => {
       }
     });
 
-    dispatch(setTokenList(transferSupportedTokenList));
+    dispatch(setTokenList(supportTokenList));
     refreshBalance();
   };
 
@@ -1839,6 +1966,7 @@ const Transfer: FC = () => {
   const handleSuccess = () => {
     setAmount("");
     setMaxValue("");
+    setHasShowGotAllowance(false);
     setReceiveAmount(0);
     setFee(0);
     dispatch(setEstimateAmtInfoInState(null));
@@ -1888,14 +2016,19 @@ const Transfer: FC = () => {
       return;
     }
     if (!isNativeToken) {
-      setLoading(true);
+      setHasShowGotAllowance(true);
+      setApproveLoading(true);
       try {
-        const approveTx = await transactor(tokenContract.approve(spenderAddr, MaxUint256));
-        await approveTx.wait();
+        if (fromChain && isApeChain(fromChain.id)) {
+          const approveTx = await transactor(tokenContract.approve(spenderAddr, MaxUint256, { gasPrice: 0 }));
+          await approveTx.wait();
+        } else {
+          const approveTx = await transactor(tokenContract.approve(spenderAddr, MaxUint256));
+          await approveTx.wait();
+        }
         getAllowance();
-        setLoading(false);
       } catch (e) {
-        setLoading(false);
+        setApproveLoading(false);
       }
     }
   };
@@ -1905,7 +2038,7 @@ const Transfer: FC = () => {
       return;
     }
 
-    setLoading(true);
+    setCreateFlowBtnLoading(true);
 
     const flowTokenPath = flowTokenPathConfigs.find(config => {
       return config.Symbol === selectedToken?.token.symbol;
@@ -1914,14 +2047,17 @@ const Transfer: FC = () => {
     if (flowTokenPath) {
       setupTokenVaultForFlowAccount(flowTokenPath, nonEVMAddress).then(initialized => {
         setFlowAccountInitialized(initialized);
-        setLoading(false);
+        setCreateFlowBtnLoading(false);
       });
     } else {
-      setLoading(false);
+      setCreateFlowBtnLoading(false);
     }
   };
 
   const amountInputDisabled = () => {
+    if (!getNonEVMMode(fromChain?.id || 0) && chainId > 0 && fromChain?.id != chainId) {
+      return true;
+    }
     const nonEVMMode = getNonEVMMode(fromChain?.id ?? 0);
     if (nonEVMMode !== NonEVMMode.off) {
       return false;
@@ -1959,6 +2095,20 @@ const Transfer: FC = () => {
     check();
   }, [nonEVMRecipientAddress, selectedToken]);
 
+  useAsync(async () => {
+    if (!fromChain || !selectedToken || !estimateAmtInfoInState) {
+      return;
+    }
+    if (selectedToken?.inbound_lmt !== "") {
+      const getTokenBoundRequest = new GetTokenBoundRequest();
+      getTokenBoundRequest.setChainId(fromChain?.id);
+      getTokenBoundRequest.setTokenAddr(selectedToken?.token?.address);
+      const res = await getTokenBound(getTokenBoundRequest);
+      if (res) {
+        setTokenBound(res.toObject().value);
+      }
+    }
+  }, [selectedToken, estimateAmtInfoInState]);
   useEffect(() => {
     const check = async () => {
       const fromChainMode = getNonEVMMode(fromChain?.id ?? 0);
@@ -1983,6 +2133,46 @@ const Transfer: FC = () => {
       setNonEVMRecipientAddress(nonEVMAddress);
     }
   }, [flowConnected, terraConnected, toChain, nonEVMAddress]);
+
+  const isTransferReady = Number(amount) > 0 && !hasError && receiveAmount && !exceedsSafeguard;
+
+  let tempNeedShowCreateFlowVaultBtn =
+    flowConnected &&
+    !flowAccountInitialized &&
+    isTransferReady &&
+    (nonEVMMode === NonEVMMode.flowMainnet || nonEVMMode === NonEVMMode.flowTest);
+  if (tempNeedShowCreateFlowVaultBtn === 0) {
+    tempNeedShowCreateFlowVaultBtn = false;
+  }
+
+  const renderCreateFlowBtn = () => {
+    return (
+      <Button
+        type="primary"
+        onClick={setupFlowAccountWithLoadingSign}
+        loading={createFlowBtnLoading}
+        className={classNames(isMobile ? classes.transMobileBtn : classes.transBtn, classes.createflowBtn)}
+      >
+        <Tooltip
+          overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
+          title={`In order to receive ${
+            selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)
+          } on Flow, you will need to create a ${
+            selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)
+          }
+          vault in your Flow wallet. This does not consume any gas and only needs to be done once per token.`}
+          placement="bottomLeft"
+          arrowPointAtCenter
+          color="#fff"
+          overlayInnerStyle={{ color: "#000", width: 265 }}
+        >
+          <InfoCircleOutlined style={{ fontSize: 13, marginLeft: 6 }} />
+        </Tooltip>
+        Create {selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)}{" "}
+        vault in your Flow wallet
+      </Button>
+    );
+  };
 
   const renderBtn = () => {
     if (!connected) {
@@ -2024,42 +2214,41 @@ const Transfer: FC = () => {
         </Button>
       );
     }
-    const isTransferReady = Number(amount) > 0 && !hasError && receiveAmount && !exceedsSafeguard;
 
-    if (
-      flowConnected &&
-      !flowAccountInitialized &&
-      isTransferReady &&
-      (nonEVMMode === NonEVMMode.flowMainnet || nonEVMMode === NonEVMMode.flowTest)
-    ) {
-      return (
-        <Button
-          type="primary"
-          onClick={setupFlowAccountWithLoadingSign}
-          loading={loading}
-          className={isMobile ? classes.transMobileBtn : classes.transBtn}
-        >
-          <Tooltip
-            overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
-            title={`In order to receive ${
-              selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)
-            } on Flow, you will need to create a ${
-              selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)
-            }
-            vault in your Flow wallet. This does not consume any gas and only needs to be done once per token.`}
-            placement="bottomLeft"
-            arrowPointAtCenter
-            color="#fff"
-            overlayInnerStyle={{ color: "#000", width: 265 }}
-          >
-            <InfoCircleOutlined style={{ fontSize: 13, marginLeft: 6 }} />
-          </Tooltip>
-          Create{" "}
-          {selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)} vault
-          in your Flow wallet
-        </Button>
-      );
-    }
+    // if (
+    //   flowConnected &&
+    //   flowAccountInitialized &&
+    //   isTransferReady &&
+    //   (nonEVMMode === NonEVMMode.flowMainnet || nonEVMMode === NonEVMMode.flowTest)
+    // ) {
+    //   return (
+    //     <Button
+    //       type="primary"
+    //       onClick={setupFlowAccountWithLoadingSign}
+    //       loading={loading}
+    //       className={isMobile ? classes.transMobileBtn : classes.transBtn}
+    //     >
+    //       <Tooltip
+    //         overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
+    //         title={`In order to receive ${
+    //           selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)
+    //         } on Flow, you will need to create a ${
+    //           selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)
+    //         }
+    //         vault in your Flow wallet. This does not consume any gas and only needs to be done once per token.`}
+    //         placement="bottomLeft"
+    //         arrowPointAtCenter
+    //         color="#fff"
+    //         overlayInnerStyle={{ color: "#000", width: 265 }}
+    //       >
+    //         <InfoCircleOutlined style={{ fontSize: 13, marginLeft: 6 }} />
+    //       </Tooltip>
+    //       Create{" "}
+    //       {selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)} vault
+    //       in your Flow wallet
+    //     </Button>
+    //   );
+    // }
 
     const needApprove = ((_allowance: BigNumber | undefined) => {
       if (isNativeToken) {
@@ -2092,7 +2281,7 @@ const Transfer: FC = () => {
       shouldNotSkipAllowanceCheckForNonEVM = !isNonEVMChain(findPotentialPeggedConfig.org_chain_id);
     }
 
-    if (needApprove && isTransferReady && shouldNotSkipAllowanceCheckForNonEVM) {
+    if ((needApprove && isTransferReady && shouldNotSkipAllowanceCheckForNonEVM) || hasShowGotAllowance) {
       if (!hasGotAllowance) {
         return (
           <Button
@@ -2104,40 +2293,59 @@ const Transfer: FC = () => {
         );
       } else {
         return (
-          <Button
-            type="primary"
-            onClick={approveMethod}
-            loading={loading}
-            className={isMobile ? classes.transMobileBtn : classes.transBtn}
-          >
-            <Tooltip
-              overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
-              title={`You must give cBridge smart contracts permission to use your ${
-                selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)
-              }, which is an on-chain tx that consumes gas. You only have to do this once per token.`}
-              placement="bottomLeft"
-              arrowPointAtCenter
-              color="#fff"
-              overlayInnerStyle={{ color: "#000", width: 265 }}
-            >
-              <InfoCircleOutlined style={{ fontSize: 13, marginLeft: 6 }} />
-            </Tooltip>
-            Approve cBridge to use your{" "}
-            {selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)}
-          </Button>
+          <div className={classes.buttonBg}>
+            {tempNeedShowCreateFlowVaultBtn && renderCreateFlowBtn()}
+            <div className={isMobile ? classes.approveBgMobile : classes.approveBg}>
+              <Button
+                type="primary"
+                onClick={approveMethod}
+                loading={approveLoading}
+                disabled={!(needApprove && !tempNeedShowCreateFlowVaultBtn)}
+                className={classes.approveTransBtn}
+              >
+                <Tooltip
+                  overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
+                  title={`You must give cBridge smart contracts permission to use your ${
+                    selectedToken?.token?.display_symbol ??
+                    getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)
+                  }, which is an on-chain tx that consumes gas. You only have to do this once per token.`}
+                  placement="bottomLeft"
+                  arrowPointAtCenter
+                  color="#fff"
+                  overlayInnerStyle={{ color: "#000", width: 265 }}
+                >
+                  <InfoCircleOutlined style={{ fontSize: 13, marginLeft: 6 }} />
+                </Tooltip>
+                Approve{" "}
+                {selectedToken?.token?.display_symbol ?? getTokenListSymbol(selectedToken?.token.symbol, fromChain?.id)}
+              </Button>
+              <Button
+                type="primary"
+                onClick={onShowTransferModal}
+                loading={loading}
+                className={isMobile ? classes.approveTransBtn : classes.approveTransBtn}
+                disabled={(!isTransferReady && !loading) || needApprove || (tempNeedShowCreateFlowVaultBtn as boolean)}
+              >
+                Transfer
+              </Button>
+            </div>
+          </div>
         );
       }
     } else {
       return (
-        <Button
-          type="primary"
-          onClick={onShowTransferModal}
-          loading={loading}
-          className={isMobile ? classes.transMobileBtn : classes.transBtn}
-          disabled={!isTransferReady && !loading}
-        >
-          Transfer
-        </Button>
+        <div className={classes.buttonBg}>
+          {tempNeedShowCreateFlowVaultBtn && renderCreateFlowBtn()}
+          <Button
+            type="primary"
+            onClick={onShowTransferModal}
+            loading={loading}
+            className={isMobile ? classes.transMobileBtn : classes.transBtn}
+            disabled={(!isTransferReady && !loading) || (tempNeedShowCreateFlowVaultBtn as boolean)}
+          >
+            Transfer
+          </Button>
+        </div>
       );
     }
   };
@@ -2190,6 +2398,8 @@ const Transfer: FC = () => {
     <div className={classes.flexCenter}>
       <Card className={classes.transferCard} bordered={false}>
         <div className={classes.cardContent}>
+          {fromChain && isApeChain(fromChain.id) && isMobile ? <ApeTip /> : <></>}
+
           <div className={classes.trans}>
             <div className={classes.transitem}>
               <div className={classes.transitemTitle}>
@@ -2385,7 +2595,14 @@ const Transfer: FC = () => {
         <div className={classes.err}>
           <div className={classes.errInner}>{errorMsg}</div>
         </div>
-        <div style={{ width: "100%", textAlign: "center", position: "relative", height: 56 }}>
+        <div
+          style={{
+            width: "100%",
+            textAlign: "center",
+            position: "relative",
+            height: tempNeedShowCreateFlowVaultBtn ? 132 : 56,
+          }}
+        >
           <div className={classes.btnare}>
             <div className={classes.btnarein}>{renderBtn()}</div>
           </div>
@@ -2418,7 +2635,16 @@ const Transfer: FC = () => {
           onSuccess={handleSuccess}
         />
       )}
-      <TokenList visible={isTokenShow} onSelectToken={handleSelectToken} onCancel={() => toggleIsTokenShow()} />
+      <TokenList
+        visible={!isNonEVMChain(fromChain?.id ?? 0) && isTokenShow}
+        onSelectToken={handleSelectToken}
+        onCancel={() => toggleIsTokenShow()}
+      />
+      <NonEVMChainTokenList
+        visible={isNonEVMChain(fromChain?.id ?? 0) && isTokenShow}
+        onSelectToken={handleSelectToken}
+        onCancel={() => toggleIsTokenShow()}
+      />
     </div>
   );
 };

@@ -29,8 +29,6 @@ export const ContractsContextProvider = ({ children }: ContractsContextProviderP
   const {
     cBridgeAddresses,
     cBridgeDesAddresses,
-    farmingRewardAddresses,
-    faucetAddresses,
     oTContractAddr,
     oTContractAddrV2,
     pTContractAddr,
@@ -38,26 +36,19 @@ export const ContractsContextProvider = ({ children }: ContractsContextProviderP
     fraxContractAddr,
   } = useAppSelector(state => state.globalInfo);
   useEffect(() => {
-    if (cBridgeAddresses) {
-      setAddresses({
-        bridge: cBridgeAddresses,
-        dstbridge: cBridgeDesAddresses,
-        pool: cBridgeAddresses,
-        farmingRewards: farmingRewardAddresses,
-        incentiveEventsReward: `${process.env.REACT_APP_INCENTIVE_REWARDS_ADDRESS}`,
-        faucet: faucetAddresses[chainId],
-        originalTokenVault: oTContractAddr,
-        originalTokenVaultV2: oTContractAddrV2,
-        peggedTokenBridge: pTContractAddr,
-        peggedTokenBridgeV2: pTContractAddrV2,
-      });
-    }
+    setAddresses({
+      bridge: cBridgeAddresses,
+      dstbridge: cBridgeDesAddresses,
+      pool: cBridgeAddresses,
+      originalTokenVault: oTContractAddr,
+      originalTokenVaultV2: oTContractAddrV2,
+      peggedTokenBridge: pTContractAddr,
+      peggedTokenBridgeV2: pTContractAddrV2,
+    });
   }, [
     cBridgeAddresses,
     cBridgeDesAddresses,
-    farmingRewardAddresses,
     chainId,
-    faucetAddresses,
     oTContractAddr,
     oTContractAddrV2,
     pTContractAddr,

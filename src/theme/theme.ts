@@ -39,6 +39,7 @@ export const darkTheme = {
   celerGreen: "#00B42A",
   blurBg: "#17171AE5",
   sliderTrack: "#00E096",
+  nftTextColor: "#FFF",
 };
 
 export const lightTheme = {
@@ -78,6 +79,7 @@ export const lightTheme = {
   historyNoData: "#2E3A59",
   blurBg: "rgba(96, 96, 96, 0.9)",
   sliderTrack: "#0E1012",
+  nftTextColor: "#2E3A59",
 }
 
 export type Theme = typeof darkTheme;

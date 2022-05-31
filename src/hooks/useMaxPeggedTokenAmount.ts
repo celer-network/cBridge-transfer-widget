@@ -6,7 +6,7 @@ import { useWeb3Context } from "../providers/Web3ContextProvider";
 import { ERC20, ERC20__factory } from "../typechain/typechain";
 import { isNonEVMChain } from "../providers/NonEVMContextProvider";
 
-export const useMaxPeggedTokenAmount = (receiveAmount: number) => {
+export const useMaxPeggedTokenAmount = () => {
   const { provider } = useWeb3Context();
   const pegConfig = usePeggedPairConfig();
   const tokenAddress = isNonEVMChain(pegConfig.config.pegged_chain_id)
@@ -17,10 +17,6 @@ export const useMaxPeggedTokenAmount = (receiveAmount: number) => {
   const [maxPeggedTokenAmount, setMaxPeggedTokenAmount] = useState<BigNumber | undefined>(undefined);
 
   useEffect(() => {
-    if (receiveAmount <= 0) {
-      setMaxPeggedTokenAmount(undefined);
-      return;
-    }
     if (pegConfig.mode === PeggedChainMode.BurnThenSwap) {
       if (!tokenAddress) {
         setMaxPeggedTokenAmount(undefined);
@@ -36,7 +32,7 @@ export const useMaxPeggedTokenAmount = (receiveAmount: number) => {
     } else {
       setMaxPeggedTokenAmount(undefined);
     }
-  }, [pegConfig.mode, receiveAmount, tokenAddress, tokenContract]);
+  }, [pegConfig.mode, tokenAddress, tokenContract]);
 
   return { maxPeggedTokenAmount, setMaxPeggedTokenAmount };
 };

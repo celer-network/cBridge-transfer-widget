@@ -188,7 +188,7 @@ function TransferOverview({
           {getTokenDisplaySymbol(selectedToken?.token, fromChain, toChain, transferConfig.pegged_pair_configs)}
         </span>
       </div>
-      {pegConfig.mode === PeggedChainMode.Off && useMultiBurnConfig === undefined ? (
+      {pegConfig.mode === PeggedChainMode.Off && multiBurnConfig === undefined ? (
         <div className={styles.item}>
           <div>
             <span className={styles.title}>Minimum Received</span>
@@ -250,11 +250,11 @@ export const needToChangeTokenDisplaySymbol = (selectedToken: Token | undefined,
     return false;
   }
   const dstChainIds = [
-    1, // NETWORKS.mainnet.chainId,
-    42161, // NETWORKS.arbitrum.chainId,
-    10, // NETWORKS.Optimism.chainId,
-    5, // NETWORKS.goerli.chainId,
-    288, // NETWORKS.BoBa.chainId,
+    1, // ethereum
+    42161, // arbitrum
+    10, // Optimism
+    5, // goerli
+    288, // BOBA,
   ];
   if (!dstChainIds.find(id => id === toChain?.id ?? "")) {
     return false;

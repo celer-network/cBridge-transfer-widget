@@ -138,12 +138,20 @@ export const useTransferSupportedChainList = (useAsDestinationChain: boolean): C
   return chainList;
 };
 
-export const useTransferSupportedTokenList = (): TokenInfo[] => {
+export interface SupportTokenListResult {
+  fromChainId: number;
+  supportTokenList: TokenInfo[];
+}
+
+export const useTransferSupportedTokenList = (): SupportTokenListResult => {
   const { transferInfo } = useAppSelector(state => state);
   const { fromChain, toChain, transferConfig, multiBurnConfigs } = transferInfo;
   const { chain_token, pegged_pair_configs } = transferConfig;
 
-  const [tokenList, setTokenList] = useState<TokenInfo[]>([]);
+  const [supportTokenListResult, setSupportTokenListResult] = useState<SupportTokenListResult>({
+    fromChainId: 0,
+    supportTokenList: [],
+  });
 
   useEffect(() => {
     if (fromChain && fromChain !== undefined) {
@@ -185,6 +193,10 @@ export const useTransferSupportedTokenList = (): TokenInfo[] => {
 
         const mintBurnTokens: TokenInfo[] = [];
         pegged_pair_configs.forEach(peggedPairConfig => {
+          if (fromChainId === 1 && toChainId === 56 && peggedPairConfig.org_token.token.symbol === "PEOPLE") {
+            return;
+          }
+
           if (
             peggedPairConfig.org_chain_id === fromChainId &&
             peggedPairConfig.pegged_chain_id === toChainId &&
@@ -231,15 +243,15 @@ export const useTransferSupportedTokenList = (): TokenInfo[] => {
           return fromChainTokenSymbolWhiteList.includes(tokenInfo.token.symbol);
         });
 
-        setTokenList(finalTokens);
+        setSupportTokenListResult({ fromChainId: fromChain.id, supportTokenList: finalTokens });
       } else {
         /// If there is no destination chain, token list should be empty
-        setTokenList([]);
+        setSupportTokenListResult({ fromChainId: fromChain.id, supportTokenList: [] });
       }
     }
   }, [fromChain, toChain, chain_token, pegged_pair_configs, transferConfig, multiBurnConfigs]);
 
-  return tokenList;
+  return supportTokenListResult;
 };
 
 const replaceTokenAddressForCanonicalTokenSwapIfNeeded = (

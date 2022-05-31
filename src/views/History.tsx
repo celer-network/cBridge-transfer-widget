@@ -1,18 +1,17 @@
-/* eslint-disable */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable camelcase */
 /* eslint-disable */
 import { FC, useEffect, useState, useContext, useCallback } from "react";
-import { Tooltip, Button, Spin } from "antd";
+import { Menu, Tooltip, Button, Spin } from "antd";
 import { createUseStyles } from "react-jss";
 import _, { debounce } from "lodash";
 import moment from "moment";
 import {
   WarningFilled,
   InfoCircleOutlined,
-  ReloadOutlined,
   ClockCircleOutlined,
   LinkOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 
 import { useWeb3Context } from "../providers/Web3ContextProvider";
@@ -21,14 +20,15 @@ import { Theme } from "../theme";
 import errorMessages from "../constants/errorMessage";
 import { storageConstants } from "../constants/const";
 import { formatDecimal } from "../helpers/format";
-import { transferHistory } from "../redux/gateway";
-import { TransferHistoryStatus, TransferHistory } from "../constants/type";
+import { transferHistory, getNFTBridgeChainList, nftHistory } from "../redux/gateway";
+import { TransferHistoryStatus, TransferHistory, NFTHistory, NFTBridgeStatus, S3NFTConfig } from "../constants/type";
 import { useAppDispatch, useAppSelector } from "../redux/store";
 import { switchChain, addChainToken, setFromChain } from "../redux/transferSlice";
 import { ColorThemeContext } from "../providers/ThemeProvider";
 import HistoryTransferModal from "./HistoryTransferModal";
 import PageFlipper from "../components/PageFlipper";
 import meta from "../images/meta.svg";
+import { LPType } from "../proto/gateway/gateway_pb";
 import { getTokenDisplaySymbol, needToChangeTokenDisplaySymbol } from "./transfer/TransferOverview";
 import { getTokenSymbol } from "../redux/assetSlice";
 import { mergeTransactionHistory, isToBeConfirmRefund } from "../utils/mergeTransferHistory";
@@ -45,6 +45,10 @@ import {
 } from "../providers/NonEVMContextProvider";
 import { filteredLocalTransferHistory } from "../utils/localTransferHistoryList";
 
+import { mergeNFTHistory } from "../utils/mergeNFTHistory";
+import { NFTHistoryItem } from "./NFTHistoryItem";
+import { FeatureSupported, getSupportedFeatures } from "../utils/featureSupported";
+
 export type PageTokenMap = {
   [propName: number]: number;
 };
@@ -56,7 +60,7 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: "10px",
+    position: "relative",
   },
   menu: {
     width: props => (props.isMobile ? "100%" : 416),
@@ -157,7 +161,7 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
   },
   historyBody: {
     width: 786,
-    padding: "35px 8px",
+    padding: "72px 8px",
     background: theme.globalBg,
     borderRadius: 16,
     border: `1px solid ${theme.primaryBorder}`,
@@ -325,18 +329,10 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     justifyContent: "flex-end",
     marginTop: 20,
   },
-  historyTitle: {
+  rebutton: {
     position: "absolute",
-    alignItems: "center",
-    color: theme.surfacePrimary,
-    top: 17,
-    fontSize: 16,
-    zIndex: 10,
-  },
-  reloadButton: {
-    position: "absolute",
-    top: 11,
-    right: 44,
+    top: 7,
+    right: 4,
     zIndex: 10,
     "&.ant-btn": {
       boxShadow: "none",
@@ -422,26 +418,38 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
 }));
 const tooltipShowTime = process.env.REACT_APP_ENV === "TEST" ? 1 : 15;
 
-const History: FC = () => {
+interface IProps {
+  refreshChanged: boolean;
+}
+
+const History = (props: IProps): JSX.Element => {
+  const { refreshChanged } = props;
   const { themeType } = useContext(ColorThemeContext);
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const { transferInfo } = useAppSelector(state => state);
   const { transferConfig, fromChain, toChain } = transferInfo;
   const classes = useStyles({ isMobile });
+  const featureSupported = getSupportedFeatures()
+  const [historykey, setHistorykey] = useState(featureSupported === FeatureSupported.NFT ? "nft_history" : "transfer_history");
   const { address, chainId, provider } = useWeb3Context();
   const { terraAddress, flowAddress } = useNonEVMContext();
   const now = new Date().getTime();
-  const [nexPageToken, setNexPageToken] = useState(0);
-  const [historyList, setHistoryList] = useState<TransferHistory[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [nexPageToken, setNexPageToken] = useState(0);
   const [size, setSize] = useState(defaultPageSize);
   const [pageMap, setPageMap] = useState<PageTokenMap>({ 0: now });
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<TransferHistory>();
   const [hisLoading, setHisLoading] = useState(false);
+  const [nftLoading, setNFTLoading] = useState(false);
+  const [pageChanged, setPageChanged] = useState(false);
   const [historyActionNum, setHistoryActionNum] = useState<number>(0);
   const [historyPendingNum, setHistoryPendingNum] = useState<number>(0);
   const [mergedHistoryList, setMergedHistoryList] = useState<TransferHistory[]>([]);
+  const [nftActionNum, setNftActionNum] = useState<number>(0);
+  const [nftPendingNum, setNftPendingNum] = useState<number>(0);
+  const [mergedNFTHistory, setMergedNFTHistory] = useState<NFTHistory[]>([]);
+  const [nftList, setNftList] = useState<S3NFTConfig[]>([]);
   const dispatch = useAppDispatch();
 
   const getTxStatus = async (provider, link) => {
@@ -452,6 +460,10 @@ const History: FC = () => {
     }
     return "";
   };
+
+  useEffect(() => {
+    reloadHisList();
+  }, [refreshChanged]);
 
   const setPageMapJson = (cPage, stemp) => {
     const oldPageMap = dataClone(pageMap);
@@ -505,7 +517,9 @@ const History: FC = () => {
 
     const res = await transferHistory({ acct_addr: addresses, page_size: defaultPageSize, next_page_token });
     if (res) {
-      setSize(res?.current_size);
+      if (historykey === "transfer_history") {
+        setSize(res?.current_size);
+      }
       const localHistoryList = filteredLocalTransferHistory(localAddresses);
       const allItemTxQueryPromise = getTransactionOnchainQueryPromiseList(provider, chainId, localHistoryList);
       Promise.all(allItemTxQueryPromise).then(onChainResult => {
@@ -533,6 +547,81 @@ const History: FC = () => {
   }, [mergedHistoryList]);
 
   useEffect(() => {
+    if (mergedNFTHistory && mergedNFTHistory.length > 0) {
+      const lastCreateItem = mergedNFTHistory[mergedNFTHistory.length - 1];
+      const renewPageToken = lastCreateItem.createdAt.toString();
+      setPageMapJson(currentPage, renewPageToken);
+    }
+  }, [mergedNFTHistory]);
+
+  const getNFTOnChainQueryPromiseList = (provider, chainId, localNFTHistoryList: NFTHistory[]) => {
+    // eslint-disable-next-line
+    const promiseList: Array<Promise<any>> = [];
+    if (localNFTHistoryList) {
+      const newLocalNFTList: NFTHistory[] = [];
+      localNFTHistoryList?.forEach(localItem => {
+        if (localItem && localItem.toString() !== "null") {
+          newLocalNFTList.push(localItem);
+          if (
+            localItem?.status === NFTBridgeStatus.NFT_BRIDGE_FAILED ||
+            localItem?.txIsFailed ||
+            Number(localItem.srcChid) !== Number(chainId)
+          ) {
+            // Failed transactions filter
+            const nullPromise = new Promise(resolve => {
+              resolve(0);
+            });
+            promiseList.push(nullPromise);
+          } else {
+            const promistx = getTxStatus(provider, localItem.srcTx);
+            promiseList.push(promistx);
+          }
+        }
+      });
+    }
+    return promiseList;
+  };
+
+  const getNFTHistoryList = async (nextPage, isAutoRefresh = false) => {
+    if (featureSupported !== FeatureSupported.BOTH && featureSupported !== FeatureSupported.NFT) {
+      return
+    }
+
+    if (!isAutoRefresh) {
+      setNFTLoading(true);
+    }
+    const configRes = await getNFTBridgeChainList();
+    setNftList(configRes.nfts);
+    const res = await nftHistory(address, { nextPageToken: nextPage, pageSize: defaultPageSize });
+    if (res && res.history) {
+      if (historykey === "nft_history") {
+        setSize(res?.pageSize);
+      }
+      let localNftList;
+      const localNftListStr = localStorage.getItem(storageConstants.KEY_NFT_HISTORY_LIST_JSON);
+      if (localNftListStr) {
+        localNftList = JSON.parse(localNftListStr)[address] as NFTHistory[];
+      }
+      const promiseList = getNFTOnChainQueryPromiseList(provider, chainId, localNftList);
+
+      Promise.all(promiseList).then(onChainResult => {
+        const nftMergerdResult = mergeNFTHistory({
+          pageToken: pageMap[currentPage],
+          historyList: res.history,
+          localHistoryList: localNftList,
+          pageSize: 5,
+          address: address,
+          onChainResult: onChainResult,
+        });
+        setNftActionNum(nftMergerdResult.historyActionNum);
+        setNftPendingNum(nftMergerdResult.historyPendingNum);
+        setMergedNFTHistory(nftMergerdResult.mergedHistoryList);
+      });
+    }
+    setNFTLoading(false);
+  };
+
+  useEffect(() => {
     setNexPageToken(now);
     const newpMap = { 0: now };
     setPageMap(newpMap);
@@ -540,16 +629,154 @@ const History: FC = () => {
     if (!showModal) {
       getHistoryList(now.toString());
     }
-  }, [showModal]);
+
+    getNFTHistoryList(now.toString());
+  }, [historykey, showModal]);
 
   useEffect(() => {
     if (nexPageToken !== 0) {
-      getHistoryList(nexPageToken);
+      if (historykey === "transfer_history") {
+        getHistoryList(nexPageToken);
+      } else if (historykey === "nft_history") {
+        getNFTHistoryList(nexPageToken);
+      }
     }
   }, [nexPageToken]);
 
-  const reloadHistoryList = () => {
-    getHistoryList(currentPage === 0 ? now : pageMap[currentPage]);
+  const reloadHisList = () => {
+    if (historykey === "transfer_history") {
+      getHistoryList(currentPage === 0 ? now : pageMap[currentPage]);
+    } else if (historykey === "nft_history") {
+      getNFTHistoryList(nexPageToken);
+    }
+  };
+
+  const refreshTabMessageCallback = useCallback(
+    (
+      historyActionNum,
+      historyPendingNum,
+      mergedHistoryList,
+      nftActionNum,
+      nftPendingNum,
+      mergeNFTHistory,
+      pageChanged,
+    ) => {
+      if (pageChanged) {
+        return;
+      }
+
+      const hasActionInTranster = historyActionNum > 0;
+      const hasPendingInTransfer = historyPendingNum > 0;
+      const hasHistoryInTranster = mergedHistoryList.length > 0;
+      const hasActionInNFT = nftActionNum > 0;
+      const hasPendngInNFT = nftPendingNum > 0;
+      const hasHistoryInNft = mergeNFTHistory.length > 0;
+
+      // Action Required > No Action Required
+      // Pending > No Pending
+      // History > No History
+      // Transfer > Liquidity
+      const transferDefaultPriority = 2;
+      const liquidityDefaultPriority = 1;
+      const nftDefaultPriority = 0;
+
+      const hasHistoryPriority = 10;
+      const hasPendingPriority = 100;
+      const hasActionPriority = 1000;
+      let transferPriority = 0;
+      let nftPriority = 0;
+
+      transferPriority += transferDefaultPriority;
+      nftPriority += nftDefaultPriority;
+      if (hasHistoryInTranster) {
+        transferPriority += hasHistoryPriority;
+      }
+      if (hasHistoryInNft) {
+        nftPriority += hasHistoryPriority;
+      }
+      if (hasPendingInTransfer) {
+        transferPriority += hasPendingPriority;
+      }
+      if (hasPendngInNFT) {
+        nftPriority += hasPendingPriority;
+      }
+      if (hasActionInTranster) {
+        transferPriority += hasActionPriority;
+      }
+      if (hasActionInNFT) {
+        nftPriority += hasActionPriority;
+      }
+
+      let max = 0;
+      let key = "";
+
+      max = transferPriority;
+      key = "transfer_history";
+
+      if (nftPriority > max) {
+        key = "nft_history";
+      }
+
+      switch (featureSupported) {
+        case FeatureSupported.NFT: {
+          key = "nft_history";
+          break
+        }
+        case FeatureSupported.TRANSFER: {
+          key = "transfer_history";
+          break
+        }
+        default: {
+          break
+        }
+      }
+      
+      setHistorykey(key);
+    },
+    [
+      historyActionNum,
+      historyPendingNum,
+      nftActionNum,
+      nftPendingNum,
+      mergedHistoryList,
+      mergedNFTHistory,
+      pageChanged,
+    ],
+  );
+
+  const debouncedMessageNumberChangeHandler = useCallback(debounce(refreshTabMessageCallback, 300), []);
+
+  useEffect(() => {
+    debouncedMessageNumberChangeHandler(
+      historyActionNum,
+      historyPendingNum,
+      mergedHistoryList,
+      nftActionNum,
+      nftPendingNum,
+      mergedHistoryList,
+      pageChanged,
+    );
+  }, [historyActionNum, historyPendingNum, mergedHistoryList, pageChanged]);
+
+  const clearLpLocalData = item => {
+    const localLpListStr = localStorage.getItem(storageConstants.KEY_LP_LIST);
+    let localList;
+    if (localLpListStr) {
+      const localLpList = JSON.parse(localLpListStr)[address];
+      localList = localLpList ? dataClone(localLpList) : [];
+      localLpList?.map(async (localItem, i) => {
+        if (
+          (Number(item.nonce) === Number(localItem.nonce) && item.type === LPType.LP_TYPE_ADD) ||
+          (Number(item.seq_num) === Number(localItem.seq_num) && item.type === LPType.LP_TYPE_REMOVE)
+        ) {
+          localList.splice(i, 1);
+        }
+        return localItem;
+      });
+    }
+    const newJson = { [address]: localList };
+    localStorage.setItem(storageConstants.KEY_LP_LIST, JSON.stringify(newJson));
+    reloadHisList();
   };
 
   const clearHistoryLocalData = item => {
@@ -567,7 +794,7 @@ const History: FC = () => {
     }
 
     localStorage.setItem(storageConstants.KEY_TRANSFER_LIST_JSON, JSON.stringify(localList));
-    reloadHistoryList();
+    reloadHisList();
   };
 
   const onPageChange = page => {
@@ -580,6 +807,7 @@ const History: FC = () => {
     }
     setCurrentPage(page);
     setPageMap(oldPageMap);
+    setPageChanged(true);
   };
 
   const tipsStatus = (item, peggedMode) => {
@@ -972,286 +1200,333 @@ const History: FC = () => {
     }
   };
 
+  let historyContent = <></>;
+
+  if (historykey === "transfer_history") {
+    historyContent = (
+      <div className={themeType === "dark" ? classes.spinblur : classes.whiteSpinblur} key="1">
+        <Spin spinning={hisLoading}>
+          <div>
+            {mergedHistoryList.length > 0 ? (
+              <div>
+                {mergedHistoryList?.map(item => {
+                  const sendAmountWithDecimal = formatDecimal(
+                    item.src_send_info.amount,
+                    item.src_send_info.token?.decimal,
+                  )
+                    ?.split(",")
+                    .join("");
+                  const receivedAmountWithDecimal = formatDecimal(
+                    item?.dst_received_info.amount,
+                    item?.dst_received_info?.token?.decimal,
+                  )
+                    ?.split(",")
+                    .join("");
+
+                  const showSupport =
+                    item.status !== TransferHistoryStatus.TRANSFER_COMPLETED &&
+                    item.status !== TransferHistoryStatus.TRANSFER_FAILED &&
+                    item.status !== TransferHistoryStatus.TRANSFER_REFUNDED;
+
+                  const peggedMode = GetPeggedMode(
+                    item?.src_send_info?.chain?.id,
+                    item?.dst_received_info?.chain?.id,
+                    item?.dst_received_info?.token?.symbol,
+                    transferInfo.transferConfig.pegged_pair_configs,
+                  );
+
+                  let srcChainSymbol = getTokenSymbol(item?.src_send_info.token.symbol, item?.src_send_info.chain.id);
+
+                  const dstChainSymbol = getTokenDisplaySymbol(
+                    item?.dst_received_info?.token,
+                    item?.src_send_info?.chain,
+                    item?.dst_received_info?.chain,
+                    transferInfo.transferConfig.pegged_pair_configs,
+                  );
+
+                  const isNativeToken = needToChangeTokenDisplaySymbol(
+                    item?.src_send_info.token,
+                    item?.dst_received_info.chain,
+                  );
+
+                  let shouldDisplayMetaMaskIcon = !isNativeToken;
+
+                  if (peggedMode !== PeggedChainMode.Off) {
+                    shouldDisplayMetaMaskIcon = true;
+                  }
+
+                  if (item?.dst_received_info?.chain?.id === 56 && item?.src_send_info?.token.symbol === "BNB") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  if (item?.dst_received_info?.chain?.id === 43114 && item?.src_send_info?.token.symbol === "AVAX") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  if (item?.dst_received_info?.chain?.id === 250 && item?.src_send_info?.token.symbol === "FTM") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  if (item?.dst_received_info.chain.id === 336 && item?.src_send_info?.token.symbol === "SDN") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  if (item?.dst_received_info.chain.id === 137 && item?.src_send_info?.token.symbol === "MATIC") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  if (item?.dst_received_info.chain.id === 57 && item?.src_send_info?.token.symbol === "SYS") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  if (item?.dst_received_info.chain.id === 592 && item?.src_send_info?.token.symbol === "ASTR") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  if (item?.dst_received_info.chain.id === 16350 && item?.src_send_info?.token.symbol === "PEEL") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  // if (item?.dst_received_info.chain.id === 73771 && item?.src_send_info?.token.symbol === "TUS") {
+                  //   shouldDisplayMetaMaskIcon = false;
+                  // }
+
+                  try {
+                    if (!window.ethereum.isMetaMask) {
+                      shouldDisplayMetaMaskIcon = false;
+                    }
+                  } catch (e) {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  if (isNonEVMChain(item?.dst_received_info.chain.id ?? 0)) {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
+                  const srcChainEVMMode = getNonEVMMode(item.src_send_info.chain.id);
+                  let srcBlockTxLink = item.src_block_tx_link;
+                  if (srcChainEVMMode === NonEVMMode.terraMainnet || srcChainEVMMode === NonEVMMode.terraTest) {
+                    srcBlockTxLink = srcBlockTxLink.replace("0x", "");
+                  }
+
+                  const dstChainEVMMode = getNonEVMMode(item.dst_received_info.chain.id);
+                  let dstBlockTxLink = item.dst_block_tx_link;
+                  if (dstChainEVMMode === NonEVMMode.terraMainnet || dstChainEVMMode === NonEVMMode.terraTest) {
+                    dstBlockTxLink = dstBlockTxLink.replace("0x", "");
+                  }
+
+                  return (
+                    <div className={classes.ListItem} key={item.transfer_id}>
+                      <div className={isMobile ? classes.mobileItemContent : classes.itemcont}>
+                        <div className={classes.itemLeft}>
+                          <div className={classes.itemtitle} style={isMobile ? { minWidth: 0 } : { minWidth: 160 }}>
+                            <div>
+                              <img src={item.src_send_info.chain.icon} alt="" className={classes.txIcon} />
+                            </div>
+                            <div className={classes.chaindes}>
+                              <a
+                                className={classes.chainName}
+                                href={srcBlockTxLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {item.src_send_info.chain.name} <LinkOutlined className={classes.linkIcon} />
+                              </a>
+
+                              <div className={classes.reducetxnum}>
+                                - {sendAmountWithDecimal} {srcChainSymbol}
+                              </div>
+                            </div>
+                          </div>
+                          <img
+                            src={themeType === "dark" ? runRightIconDark : runRightIconLight}
+                            alt=""
+                            className={classes.turnRight}
+                          />
+                          <div className={classes.itemtitle}>
+                            <div>
+                              <img src={item?.dst_received_info.chain.icon} alt="" className={classes.txIcon} />
+                            </div>
+                            <div className={classes.chaindes}>
+                              {dstBlockTxLink ? (
+                                <a
+                                  className={classes.linktitle}
+                                  href={dstBlockTxLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {item?.dst_received_info.chain.name} <LinkOutlined className={classes.linkIcon} />
+                                </a>
+                              ) : (
+                                <div className={classes.linktitle}> {item?.dst_received_info.chain.name}</div>
+                              )}
+
+                              {/* dest amount */}
+                              {Number(receivedAmountWithDecimal) > 0 ? (
+                                <div className={classes.receivetxnum}>
+                                  +{" "}
+                                  <span>
+                                    {receivedAmountWithDecimal} {dstChainSymbol}
+                                  </span>
+                                  {!isMobile && (
+                                    <Tooltip
+                                      overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
+                                      title="Add to MetaMask"
+                                      placement="bottom"
+                                      color="#fff"
+                                      overlayInnerStyle={{ color: "#000" }}
+                                    >
+                                      {/* eslint-disable-next-line */}
+                                      <img
+                                        onClick={() => {
+                                          addTokenMethod(
+                                            item?.src_send_info.chain.id,
+                                            item?.dst_received_info.chain.id,
+                                            item?.dst_received_info.token,
+                                            dstChainSymbol,
+                                          );
+                                        }}
+                                        src={meta}
+                                        alt=""
+                                        height={14}
+                                        style={{
+                                          display: shouldDisplayMetaMaskIcon ? "flex" : "none",
+                                          marginLeft: 5,
+                                          cursor: "pointer",
+                                        }}
+                                      />
+                                    </Tooltip>
+                                  )}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={isMobile ? classes.mobileItemRight : classes.itemRight}>
+                          <div className={showSupport ? classes.showSuppord : ""}>
+                            <div>{tipsStatus(item, peggedMode)}</div>
+                            <div className={classes.itemTime}>
+                              {moment(Number(item.ts)).format("YYYY-MM-DD HH:mm:ss")}
+                            </div>
+                            {showSupport && (
+                              <a
+                                href={`https://form.typeform.com/to/Q4LMjUaK#srctx=${item.src_block_tx_link}&transferid=${item.transfer_id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Contact Support
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div>{btnChange(item)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={classes.empty}>
+                {!hisLoading && (
+                  <div>
+                    <div style={{ width: "100%", textAlign: "center", marginBottom: 15 }}>
+                      <ClockCircleOutlined style={{ fontSize: 30 }} />
+                    </div>
+                    <div style={{ fontSize: 15 }}> No history yet!</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </Spin>
+      </div>
+    );
+  } else if (historykey === "nft_history") {
+    historyContent = (
+      <div className={themeType === "dark" ? classes.spinblur : classes.whiteSpinblur} key="3">
+        <Spin spinning={nftLoading}>
+          <div>
+            {mergedNFTHistory.length > 0 ? (
+              <div>
+                {mergedNFTHistory?.map(item => {
+                  return (
+                    <NFTHistoryItem
+                      key={`${item.srcTx}-${item.createdAt}`}
+                      item={item}
+                      nftList={nftList}
+                      onLocalItemRemoved={() => {
+                        reloadHisList();
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={classes.empty}>
+                {!nftLoading && (
+                  <div>
+                    <div style={{ width: "100%", textAlign: "center", marginBottom: 15 }}>
+                      <ClockCircleOutlined style={{ fontSize: 30 }} />
+                    </div>
+                    <div style={{ fontSize: 15 }}> No history yet!</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </Spin>
+      </div>
+    );
+  }
+
+  const prepareMenuItems = (): JSX.Element => {
+    switch (featureSupported) {
+      case FeatureSupported.BOTH: {
+        return (
+          <Menu
+            className={classes.menu}
+            selectedKeys={[historykey]}
+            onClick={e => {
+              setPageChanged(true);
+              setHistorykey(e.key);
+            }}
+            mode="horizontal"
+          >
+            <Menu.Item key="transfer_history">
+              <div className={classes.tabtitle}>
+                Transfer
+                {historyActionNum !== 0 && <div className={classes.numdot}>{historyActionNum}</div>}
+              </div>
+            </Menu.Item>
+            <Menu.Item key="nft_history">
+              <div className={classes.tabtitle}>NFT</div>
+            </Menu.Item>
+          </Menu>
+        )
+      }
+     default: {
+       return ( <div></div> )
+     }
+    }
+  }
+
   return (
     <div className={isMobile ? classes.mobileHistoryBody : classes.historyBody}>
       <div>
         <div className={classes.flexCenter}>
-          <div className={classes.historyTitle}>History</div>
-          {isMobile ? null : (
+          {prepareMenuItems()}
+          {/* {isMobile ? null : (
             <Button
               type="primary"
-              className={classes.reloadButton}
+              className={classes.rebutton}
               onClick={() => {
-                reloadHistoryList();
+                reloadHisList();
               }}
               icon={<ReloadOutlined style={{ fontSize: 20 }} />}
             />
-          )}
+          )} */}
         </div>
-        <div className={classes.historyList}>
-          <div className={themeType === "dark" ? classes.spinblur : classes.whiteSpinblur}>
-            <Spin spinning={hisLoading}>
-              <div>
-                {mergedHistoryList.length > 0 ? (
-                  <div>
-                    {mergedHistoryList?.map(item => {
-                      const sendAmountWithDecimal = formatDecimal(
-                        item.src_send_info.amount,
-                        item.src_send_info.token?.decimal,
-                      )
-                        ?.split(",")
-                        .join("");
-                      const receivedAmountWithDecimal = formatDecimal(
-                        item?.dst_received_info.amount,
-                        item?.dst_received_info?.token?.decimal,
-                      )
-                        ?.split(",")
-                        .join("");
-
-                      const showSupport =
-                        item.status !== TransferHistoryStatus.TRANSFER_COMPLETED &&
-                        item.status !== TransferHistoryStatus.TRANSFER_FAILED &&
-                        item.status !== TransferHistoryStatus.TRANSFER_REFUNDED;
-
-                      const peggedMode = GetPeggedMode(
-                        item?.src_send_info?.chain?.id,
-                        item?.dst_received_info?.chain?.id,
-                        item?.dst_received_info?.token?.symbol,
-                        transferInfo.transferConfig.pegged_pair_configs,
-                      );
-
-                      let srcChainSymbol = getTokenSymbol(
-                        item?.src_send_info.token.symbol,
-                        item?.src_send_info.chain.id,
-                      );
-
-                      const dstChainSymbol = getTokenDisplaySymbol(
-                        item?.dst_received_info?.token,
-                        item?.src_send_info?.chain,
-                        item?.dst_received_info?.chain,
-                        transferInfo.transferConfig.pegged_pair_configs,
-                      );
-
-                      const isNativeToken = needToChangeTokenDisplaySymbol(
-                        item?.src_send_info.token,
-                        item?.dst_received_info.chain,
-                      );
-
-                      let shouldDisplayMetaMaskIcon = !isNativeToken;
-
-                      if (peggedMode !== PeggedChainMode.Off) {
-                        shouldDisplayMetaMaskIcon = true;
-                      }
-
-                      if (item?.dst_received_info?.chain?.id === 56 && item?.src_send_info?.token.symbol === "BNB") {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      if (
-                        item?.dst_received_info?.chain?.id === 43114 &&
-                        item?.src_send_info?.token.symbol === "AVAX"
-                      ) {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      if (item?.dst_received_info?.chain?.id === 250 && item?.src_send_info?.token.symbol === "FTM") {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      if (item?.dst_received_info.chain.id === 336 && item?.src_send_info?.token.symbol === "SDN") {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      if (item?.dst_received_info.chain.id === 137 && item?.src_send_info?.token.symbol === "MATIC") {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      if (item?.dst_received_info.chain.id === 57 && item?.src_send_info?.token.symbol === "SYS") {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      if (item?.dst_received_info.chain.id === 592 && item?.src_send_info?.token.symbol === "ASTR") {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      try {
-                        if (!window.ethereum.isMetaMask) {
-                          shouldDisplayMetaMaskIcon = false;
-                        }
-                      } catch (e) {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      if (isNonEVMChain(item?.dst_received_info.chain.id ?? 0)) {
-                        shouldDisplayMetaMaskIcon = false;
-                      }
-
-                      const srcChainEVMMode = getNonEVMMode(item.src_send_info.chain.id);
-                      let srcBlockTxLink = item.src_block_tx_link;
-                      if (srcChainEVMMode === NonEVMMode.terraMainnet || srcChainEVMMode === NonEVMMode.terraTest) {
-                        srcBlockTxLink = srcBlockTxLink.replace("0x", "");
-                      }
-
-                      const dstChainEVMMode = getNonEVMMode(item.dst_received_info.chain.id);
-                      let dstBlockTxLink = item.dst_block_tx_link;
-                      if (dstChainEVMMode === NonEVMMode.terraMainnet || dstChainEVMMode === NonEVMMode.terraTest) {
-                        dstBlockTxLink = dstBlockTxLink.replace("0x", "");
-                      }
-
-                      return (
-                        <div className={classes.ListItem} key={item.transfer_id}>
-                          <div className={isMobile ? classes.mobileItemContent : classes.itemcont}>
-                            <div className={classes.itemLeft}>
-                              <div className={classes.itemtitle} style={isMobile ? { minWidth: 0 } : { minWidth: 160 }}>
-                                <div>
-                                  <img src={item.src_send_info.chain.icon} alt="" className={classes.txIcon} />
-                                </div>
-                                <div className={classes.chaindes}>
-                                  <a
-                                    className={classes.chainName}
-                                    href={srcBlockTxLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    {item.src_send_info.chain.name} <LinkOutlined className={classes.linkIcon} />
-                                  </a>
-
-                                  <div className={classes.reducetxnum}>
-                                    - {sendAmountWithDecimal} {srcChainSymbol}
-                                  </div>
-                                </div>
-                              </div>
-                              <img
-                                src={themeType === "dark" ? runRightIconDark : runRightIconLight}
-                                alt=""
-                                className={classes.turnRight}
-                              />
-                              <div className={classes.itemtitle}>
-                                <div>
-                                  <img src={item?.dst_received_info.chain.icon} alt="" className={classes.txIcon} />
-                                </div>
-                                <div className={classes.chaindes}>
-                                  {dstBlockTxLink ? (
-                                    <a
-                                      className={classes.linktitle}
-                                      href={dstBlockTxLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {item?.dst_received_info.chain.name} <LinkOutlined className={classes.linkIcon} />
-                                    </a>
-                                  ) : (
-                                    <div className={classes.linktitle}> {item?.dst_received_info.chain.name}</div>
-                                  )}
-
-                                  <div className={classes.reducetxnum}>
-                                    - {sendAmountWithDecimal} {srcChainSymbol}
-                                  </div>
-                                </div>
-                              </div>
-                              <img
-                                src={themeType === "dark" ? runRightIconDark : runRightIconLight}
-                                alt=""
-                                className={classes.turnRight}
-                              />
-                              <div className={classes.itemtitle}>
-                                <div>
-                                  <img src={item?.dst_received_info.chain.icon} alt="" className={classes.txIcon} />
-                                </div>
-                                <div className={classes.chaindes}>
-                                  {item.dst_block_tx_link ? (
-                                    <a
-                                      className={classes.linktitle}
-                                      href={item.dst_block_tx_link}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {item?.dst_received_info.chain.name} <LinkOutlined className={classes.linkIcon} />
-                                    </a>
-                                  ) : (
-                                    <div className={classes.linktitle}> {item?.dst_received_info.chain.name}</div>
-                                  )}
-
-                                  {/* dest amount */}
-                                  {Number(receivedAmountWithDecimal) > 0 ? (
-                                    <div className={classes.receivetxnum}>
-                                      +{" "}
-                                      <span>
-                                        {receivedAmountWithDecimal} {dstChainSymbol}
-                                      </span>
-                                      {!isMobile && (
-                                        <Tooltip
-                                          overlayClassName={isMobile ? classes.mobileTooltipOverlayStyle : undefined}
-                                          title="Add to MetaMask"
-                                          placement="bottom"
-                                          color="#fff"
-                                          overlayInnerStyle={{ color: "#000" }}
-                                        >
-                                          {/* eslint-disable-next-line */}
-                                          <img
-                                            onClick={() => {
-                                              addTokenMethod(
-                                                item?.src_send_info.chain.id,
-                                                item?.dst_received_info.chain.id,
-                                                item?.dst_received_info.token,
-                                                dstChainSymbol,
-                                              );
-                                            }}
-                                            src={meta}
-                                            alt=""
-                                            height={14}
-                                            style={{
-                                              display: shouldDisplayMetaMaskIcon ? "flex" : "none",
-                                              marginLeft: 5,
-                                              cursor: "pointer",
-                                            }}
-                                          />
-                                        </Tooltip>
-                                      )}
-                                    </div>
-                                  ) : null}
-                                </div>
-                              </div>
-                            </div>
-                            <div className={isMobile ? classes.mobileItemRight : classes.itemRight}>
-                              <div className={showSupport ? classes.showSuppord : ""}>
-                                <div>{tipsStatus(item, peggedMode)}</div>
-                                <div className={classes.itemTime}>
-                                  {moment(Number(item.ts)).format("YYYY-MM-DD HH:mm:ss")}
-                                </div>
-                                {showSupport && (
-                                  <a
-                                    href={`https://form.typeform.com/to/Q4LMjUaK#srctx=${item.src_block_tx_link}&transferid=${item.transfer_id}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                  >
-                                    Contact Support
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div>{btnChange(item)}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className={classes.empty}>
-                    {!hisLoading && (
-                      <div>
-                        <div style={{ width: "100%", textAlign: "center", marginBottom: 15 }}>
-                          <ClockCircleOutlined style={{ fontSize: 30 }} />
-                        </div>
-                        <div style={{ fontSize: 15 }}> No history yet!</div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </Spin>
-          </div>
-        </div>
+        <div className={classes.historyList}>{historyContent}</div>
         {currentPage !== undefined ? (
           <div className={classes.pagination}>
             <PageFlipper
@@ -1262,6 +1537,7 @@ const History: FC = () => {
           </div>
         ) : null}
       </div>
+
       {showModal && (
         <HistoryTransferModal visible={showModal} onCancel={() => setShowModal(false)} record={selectedItem} />
       )}
