@@ -11,7 +11,7 @@
 // > Harmony
 // > Optimism 10
 // > Boba 288
-// > OKExChain 66
+// > OKXChain 66
 // > Heco 128
 // > xDai 100
 const sortedChainNames = [
@@ -32,7 +32,7 @@ const sortedChainNames = [
   "Moonriver",
   "Optimism",
   "Boba",
-  "OKExChain",
+  "OKXChain",
   "Heco",
   "Celo",
   "xDai",

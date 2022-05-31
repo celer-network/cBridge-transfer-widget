@@ -10,7 +10,6 @@ import { useAppSelector } from "../../redux/store";
 import { formatDecimal, formatPercentage } from "../../helpers/format";
 import { getTokenListSymbol, getTokenSymbolWithPeggedMode } from "../../redux/assetSlice";
 import { Chain, Token, PeggedPairConfig } from "../../constants/type";
-import { NETWORKS } from "../../constants/network";
 import { useBigAmountDelay } from "../../hooks";
 import { PeggedChainMode, usePeggedPairConfig } from "../../hooks/usePeggedPairConfig";
 import { useNonEVMBigAmountDelay } from "../../hooks/useNonEVMBigAmountDelay";
@@ -400,11 +399,11 @@ export const needToChangeTokenDisplaySymbol = (selectedToken: Token | undefined,
     return false;
   }
   const dstChainIds = [
-    NETWORKS.mainnet.chainId,
-    NETWORKS.arbitrum.chainId,
-    NETWORKS.Optimism.chainId,
-    NETWORKS.BoBa.chainId,
-    NETWORKS.goerli.chainId,
+    1, // ethereum
+    42161, // arbitrum
+    10, // Optimism
+    5, // goerli
+    288, // BOBA
   ];
   if (!dstChainIds.find(id => id === toChain?.id ?? "")) {
     return false;

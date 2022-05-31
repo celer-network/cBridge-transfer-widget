@@ -1,4 +1,5 @@
 // import { TypeOfTag } from "typescript";
+import { basTestNetworks } from "./chains_bas_testnet";
 import { mainnetNetworks } from "./chains_mainnet";
 import { stagingNetworks } from "./chains_staging_mainnet";
 import { testNetworks } from "./chains_testnet";
@@ -14,6 +15,7 @@ export interface NetworkInfo {
   symbol: string;
   blockExplorerUrl: string;
   tokenSymbolList: string[];
+  lqMintTokenSymbolBlackList: string[];
 }
 
 export const INFURA_ID = process.env.REACT_APP_INFURA_ID;
@@ -29,6 +31,9 @@ switch (type) {
     break;
   case "test":
     newNetworks = testNetworks;
+    break;
+  case "basTest":
+    newNetworks = basTestNetworks;
     break;
   default:
     newNetworks = mainnetNetworks;

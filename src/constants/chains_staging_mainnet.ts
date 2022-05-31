@@ -157,6 +157,8 @@ export const stagingNetworks = {
       "muxAVAX",
       "muxFTM",
       "SHI",
+      "PEEL",
+      "SHELL",
     ],
   },
 };

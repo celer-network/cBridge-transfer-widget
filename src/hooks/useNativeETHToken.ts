@@ -19,11 +19,11 @@ export const useNativeETHToken = (srcChain: Chain | undefined, tokenInfo: TokenI
       return;
     }
     const chainIds = [
-      1, // NETWORKS.mainnet.chainId,
-      42161, // NETWORKS.arbitrum.chainId,
-      10, // NETWORKS.Optimism.chainId,
-      5, // NETWORKS.goerli.chainId,
-      288, // NETWORKS.BoBa.chainId,
+      1, // ethereum
+      42161, // arbitrum
+      10, // Optimism
+      5, // goerli
+      288, // BOBA,
     ];
     let nativeETHToken = false;
     if (chainIds.includes(srcChain.id) && tokenInfo.token.display_symbol === "ETH") {
@@ -42,7 +42,26 @@ export const useNativeETHToken = (srcChain: Chain | undefined, tokenInfo: TokenI
       nativeETHToken = true;
     } else if (srcChain.id === 592 && tokenInfo.token.symbol === "ASTR") {
       nativeETHToken = true;
+    } else if (srcChain.id === 14000 && tokenInfo.token.symbol === "BAS") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 117 && tokenInfo.token.symbol === "ARS") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 15001 && tokenInfo.token.symbol === "BAS-MA") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 230 && tokenInfo.token.symbol === "GAL") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 231 && tokenInfo.token.symbol === "RNS") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 232 && tokenInfo.token.symbol === "CUBE") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 97 && tokenInfo.token.symbol === "BNB") {
+      nativeETHToken = true;
+    } else if (srcChain.id === 16350 && tokenInfo.token.symbol === "PEEL") {
+      nativeETHToken = true;
     }
+    // else if (srcChain.id === 73771 && tokenInfo.token.symbol === "TUS") {
+    //   nativeETHToken = true;
+    // }
 
     setIsNativeToken(nativeETHToken);
 

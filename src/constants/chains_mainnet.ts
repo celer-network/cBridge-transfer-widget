@@ -93,7 +93,7 @@ export const mainnetNetworks = {
     name: "BNB Chain",
     color: "#7057ff",
     chainId: 56,
-    rpcUrl: "https://bsc-dataseed1.defibit.io/",
+    rpcUrl: "https://bsc-dataseed.binance.org",
     blockTime: 4000,
     iconUrl: "./bnbchain.png",
     blockDelay: 8,
@@ -142,6 +142,8 @@ export const mainnetNetworks = {
       "HUH",
       "iZi",
       "DTR",
+      "PEEL",
+      "SHELL",
     ],
   },
 };

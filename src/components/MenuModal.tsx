@@ -5,10 +5,7 @@ import { ColorThemeContext } from "../providers/ThemeProvider";
 import { Theme } from "../theme";
 import themeLightIcon from "../images/light.svg";
 import themeDarkIcon from "../images/dark.svg";
-import faucetIcon from "../images/faucet.png";
 import { useWeb3Context } from "../providers/Web3ContextProvider";
-import analytics from "../images/analytics.svg";
-import analyticsLight from "../images/analyticsLight.svg";
 
 const useStyles = createUseStyles((theme: Theme) => ({
   modal: {
@@ -200,33 +197,58 @@ function MenuModal({ visible, onCancel }: MenuModalProps) {
         </Button>
 
         {chainId !== 1 && (process.env.REACT_APP_ENV === "TEST" || process.env.REACT_APP_ENV === "DEV") && (
-          <div
-            className={styles.flexBtn}
-            onClick={() => {
-              // toggleFaucet();
-            }}
+          <Button
+            className={styles.grayText}
+            type="text"
+            // toggleFaucet();
           >
-            <div className={styles.flexBtnContent}>
-              <img src={faucetIcon} className={styles.flexBtnIcon} alt="" />
-              Faucet
-            </div>
-          </div>
+            Faucet
+          </Button>
         )}
-        <div
-          className={styles.flexBtn}
+        <Button
+          className={styles.grayText}
+          type="text"
           onClick={() => window.open("https://cbridge-analytics.celer.network/", "_blank")}
         >
-          <div className={styles.flexBtnContent}>
-            <img src={themeType === "dark" ? analytics : analyticsLight} className={styles.flexBtnIcon} alt="" />
-            Analytics
+          Analytics
+        </Button>
+        <Button
+          className={styles.grayText}
+          type="text"
+          onClick={() => window.open("https://sgn.celer.network", "_blank")}
+        >
+          Staking
+        </Button>
+        <Button
+          className={styles.grayText}
+          type="text"
+          onClick={() => window.open("https://app.chainhop.exchange/#/swap", "_blank")}
+        >
+          Cross-chain Swap
+        </Button>
+
+        {/* <div className={styles.flexBtn} onClick={() => window.open("https://cbridge-campaign.netlify.app/")}>
+          <div className={styles.flexBtnContent} style={{ padding: "10px 8px" }}>
+            <img src={leaderboardIcon} className={styles.flexBtnIcon} alt="" />
+            Leaderboard
           </div>
-        </div>
+        </div> */}
+        {/* {!isMobile&&(
+          <div className={styles.flexBtn} onClick={() => window.open("https://test-sgn.celer.network/")}>
+            <div className={styles.flexBtnContent} style={{ padding: "10px 8px" }}>
+              <img src={sgnIcon} className={styles.flexBtnIcon} alt="" />
+              SGN
+            </div>
+          </div>
+        )} */}
         <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
           <Button className={styles.themeBtn} type="text" size="large" onClick={toggleTheme}>
             <img src={toggleIconUrl} width={27} height={27} alt="protocol icon" />
           </Button>
         </div>
+        {/* {bottomContent()} */}
       </div>
+      {/* {showFaucet && <FaucetModal tokenInfos={tokenInfo} onClose={closeFaucet} />} */}
     </Modal>
   );
 }

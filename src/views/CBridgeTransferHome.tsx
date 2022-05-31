@@ -2,7 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Layout, message } from "antd";
 import { createUseStyles } from "react-jss";
 import { useAsync } from "react-use";
-import { useHistory } from "react-router-dom";
+import { Redirect, Route, Switch, useHistory } from "react-router-dom";
+import { GithubFilled, TwitterCircleFilled } from "@ant-design/icons";
+// import Vconsole from "vconsole";
+import { DiscordCircleFilled, TelegramCircleFilled } from "../icons";
+import docIcon from "../images/doc.svg";
 import { Theme } from "../theme";
 import Transfer from "./Transfer";
 import HistoryModal from "./HistoryModal";
@@ -15,13 +19,8 @@ import ChainList from "../components/ChainList";
 import { useWeb3Context } from "../providers/Web3ContextProvider";
 import { filteredLocalTransferHistory } from "../utils/localTransferHistoryList";
 
-import {
-  setCBridgeAddresses,
-  setCBridgeDesAddresses,
-  setFarmingRewardAddresses,
-  setIsHistoryNotEmpty,
-} from "../redux/globalInfoSlice";
-import { getTransferConfigs, transferHistory, checkTransferHistory } from "../redux/gateway";
+import { setCBridgeAddresses, setCBridgeDesAddresses, setIsHistoryNotEmpty } from "../redux/globalInfoSlice";
+import { getTransferConfigs, transferHistory, checkTransferHistory, nftHistory } from "../redux/gateway";
 import {
   setIsChainShow,
   setTransferConfig,
@@ -38,9 +37,21 @@ import {
   setFlowTokenPathConfigs,
 } from "../redux/transferSlice";
 import { setConfig } from "../redux/configSlice";
-import { Chain, TransferHistoryStatus, TokenInfo, TransferHistory } from "../constants/type";
+import {
+  Chain,
+  TokenInfo,
+  TransferHistoryStatus,
+  TransferHistory,
+  GetTransferConfigsResponse,
+  NFTHistory,
+  NFTBridgeStatus,
+} from "../constants/type";
+import { PRE_UPGRADE_LINK } from "../constants";
 import { CHAIN_LIST, getNetworkById } from "../constants/network";
+import HomeCircleFilled from "../icons/HomeCircleFilled";
+import ViewTab from "../components/ViewTab";
 import { mergeTransactionHistory } from "../utils/mergeTransferHistory";
+import { mergeNFTHistory } from "../utils/mergeNFTHistory";
 import { useTransferSupportedChainList, useTransferSupportedTokenList } from "../hooks/transferSupportedInfoList";
 import { storageConstants } from "../constants/const";
 import {
@@ -52,6 +63,8 @@ import {
 } from "../providers/NonEVMContextProvider";
 import TerraProviderModal from "../components/nonEVM/TerraProviderModal";
 import { getFlowTokenPathConfigs } from "../redux/NonEVMAPIs/flowAPIs";
+import NFTBridgeTab from "./nft/NFTBridgeTab";
+import { FeatureSupported, getSupportedFeatures } from "../utils/featureSupported";
 
 /* eslint-disable */
 /* eslint-disable camelcase */
@@ -162,7 +175,7 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     width: "100%",
   },
   footerContainerEnd: {
-    marginTop: 7,
+    marginTop: 25,
     alignItems: "center",
     textDecoration: "underline",
     color: theme.secondBrand,
@@ -210,10 +223,36 @@ function FooterContent() {
   return (
     <div className={classes.footerContainer}>
       <div className={classes.footerText}>Powered by Celer Network</div>
+      <div className={classes.social}>
+        <HomeCircleFilled onClick={() => window.open("https://www.celer.network", "_blank")} />
+
+        {/* eslint-disable-next-line */}
+        <img
+          alt="cBridgeDocIcon"
+          style={{ cursor: "pointer" }}
+          src={docIcon}
+          onClick={() => window.open("https://cbridge-docs.celer.network", "_blank")}
+        />
+        <DiscordCircleFilled onClick={() => window.open("https://discord.gg/uGx4fjQ", "_blank")} />
+        <TelegramCircleFilled onClick={() => window.open("https://t.me/celernetwork", "_blank")} />
+        <TwitterCircleFilled onClick={() => window.open("https://twitter.com/CelerNetwork", "_blank")} />
+        <GithubFilled onClick={() => window.open("https://github.com/celer-network", "_blank")} />
+      </div>
       <div className={classes.footerContainerEnd}>
         {/* eslint-disable-next-line */}
         <label style={{ cursor: "pointer" }} onClick={() => window.open("https://form.typeform.com/to/Q4LMjUaK")}>
           Contact Support
+        </label>
+        {/* eslint-disable-next-line */}
+        <label
+          style={{ marginLeft: 24, cursor: "pointer" }}
+          onClick={() => window.open("https://get.celer.app/cbridge-v2-doc/tos-cbridge-2.pdf")}
+        >
+          Terms of Service
+        </label>
+        {/* eslint-disable-next-line */}
+        <label style={{ marginLeft: 24, cursor: "pointer" }} onClick={() => window.open(PRE_UPGRADE_LINK)}>
+          Migrate Liquidity from Pre-upgrade Pools
         </label>
       </div>
     </div>
@@ -228,15 +267,21 @@ function CBridgeTransferHome(): JSX.Element {
   const { chainId, address, provider } = useWeb3Context();
   const { flowConnected, nonEVMAddress, nonEVMMode, terraConnected, flowAddress, terraAddress } = useNonEVMContext();
   const { modal, transferInfo } = useAppSelector(state => state);
+
   const { showProviderModal, showHistoryModal, showFlowProviderModal, showTerraProviderModal } = modal;
   const { transferConfig, isChainShow, chainSource, fromChain, toChain, refreshHistory, refreshTransferAndLiquidity } =
     transferInfo;
   const { chains, chain_token } = transferConfig;
   const transferSupportedChainList = useTransferSupportedChainList(true);
-  const transferSupportedTokenList = useTransferSupportedTokenList();
+  const { supportTokenList } = useTransferSupportedTokenList();
   const dispatch = useAppDispatch();
   const [historyActionNum, setHistoryActionNum] = useState<number>(0);
   const [historyPendingNum, setHistoryPendingNum] = useState<number>(0);
+  const [nftActionNum, setNftActionNum] = useState<number>(0);
+  const [nftPendingNum, setNftPendingNum] = useState<number>(0);
+  const [transferConfigsResponse, setTransferConfigsResponse] = useState<GetTransferConfigsResponse>();
+  const [chainList, setChainList] = useState<Chain[]>([]);
+  const featureSupported = getSupportedFeatures()
 
   const handleCloseProviderModal = () => {
     dispatch(closeModal(ModalName.provider));
@@ -350,6 +395,7 @@ function CBridgeTransferHome(): JSX.Element {
   const refreshTransferAndLPHistory = () => {
     if (address) {
       getHistoryList();
+      getNFTHistoryList();
     } else if (nonEVMAddress.length > 0) {
       getHistoryList();
     }
@@ -373,20 +419,20 @@ function CBridgeTransferHome(): JSX.Element {
     const cacheTokenSymbol = localStorage.getItem(storageConstants.KEY_SELECTED_TOKEN_SYMBOL);
 
     if (fromChain && fromChain !== undefined && toChain && toChain !== undefined) {
-      if (transferSupportedTokenList.length > 0) {
-        const potentialTokenList = transferSupportedTokenList.filter(tokenInfo => {
+      if (supportTokenList.length > 0) {
+        const potentialTokenList = supportTokenList.filter(tokenInfo => {
           return (tokenInfo.token.display_symbol ?? tokenInfo.token.symbol) === cacheTokenSymbol;
         });
 
         if (potentialTokenList.length === 0) {
-          dispatch(setSelectedToken(transferSupportedTokenList[0]));
+          dispatch(setSelectedToken(supportTokenList[0]));
         } else {
           dispatch(setSelectedToken(potentialTokenList[0]));
         }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transferSupportedTokenList]);
+  }, [supportTokenList]);
 
   const getHistoryList = async () => {
     const addresses = [address];
@@ -425,16 +471,100 @@ function CBridgeTransferHome(): JSX.Element {
     }
   };
 
+  const getNFTOnChainQueryPromiseList = (provider, chainId, localNFTHistoryList: NFTHistory[]) => {
+    // eslint-disable-next-line
+    const promiseList: Array<Promise<any>> = [];
+    if (localNFTHistoryList) {
+      const newLocalNFTList: NFTHistory[] = [];
+      localNFTHistoryList?.forEach(localItem => {
+        if (localItem && localItem.toString() !== "null") {
+          newLocalNFTList.push(localItem);
+          if (
+            localItem?.status === NFTBridgeStatus.NFT_BRIDGE_FAILED ||
+            localItem?.txIsFailed ||
+            Number(localItem.srcChid) !== Number(chainId)
+          ) {
+            // Failed transactions filter
+            const nullPromise = new Promise(resolve => {
+              resolve(0);
+            });
+            promiseList.push(nullPromise);
+          } else {
+            const promistx = getTxStatus(provider, localItem.srcTx);
+            promiseList.push(promistx);
+          }
+        }
+      });
+    }
+    return promiseList;
+  };
+
+  const getNFTHistoryList = async () => {
+    if (featureSupported !== FeatureSupported.BOTH && featureSupported !== FeatureSupported.NFT) {
+      return 
+    } 
+
+    const res = await nftHistory(address, { nextPageToken: "", pageSize: 50 });
+    if (res && res.history) {
+      let localNftList;
+      const localNftListStr = localStorage.getItem(storageConstants.KEY_NFT_HISTORY_LIST_JSON);
+      if (localNftListStr) {
+        localNftList = JSON.parse(localNftListStr)[address] as NFTHistory[];
+      }
+      const promiseList = getNFTOnChainQueryPromiseList(provider, chainId, localNftList);
+
+      Promise.all(promiseList).then(onChainResult => {
+        const nftMergerdResult = mergeNFTHistory({
+          pageToken: new Date().getTime(),
+          historyList: res.history,
+          localHistoryList: localNftList,
+          pageSize: 50,
+          address: address,
+          onChainResult: onChainResult,
+        });
+        setNftActionNum(nftMergerdResult.historyActionNum);
+        setNftPendingNum(nftMergerdResult.historyPendingNum);
+      });
+    }
+  };
+
   useEffect(() => {
-    dispatch(setTotalActionNum(historyActionNum));
-    dispatch(setTotalPendingNum(historyPendingNum));
+    let totalnum: number = 0
+    let totalpaddingnum: number = 0
+    switch (featureSupported) {
+      case FeatureSupported.BOTH: {
+        totalnum = historyActionNum + nftActionNum;
+        totalpaddingnum = historyPendingNum + nftPendingNum;
+        break
+      }
+      case FeatureSupported.TRANSFER: {
+        totalnum = historyActionNum;
+        totalpaddingnum = historyPendingNum;
+        break
+      }
+      case FeatureSupported.NFT: {
+        totalnum = nftActionNum;
+        totalpaddingnum = nftPendingNum;
+        break
+      }
+      default: {
+        totalnum = historyActionNum + nftActionNum;
+        totalpaddingnum = historyPendingNum + nftPendingNum;
+        break
+      }
+    }
+
+    dispatch(setTotalActionNum(totalnum));
+    dispatch(setTotalPendingNum(totalpaddingnum));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyActionNum, historyPendingNum]);
+  }, [historyActionNum, historyPendingNum, nftActionNum, nftPendingNum]);
 
   useEffect(() => {
     if (chainId) {
-      const chainName = getNetworkById(chainId).name;
-      localStorage.setItem(storageConstants.KEY_CHAIN_NAME, chainName);
+      const chainName = getNetworkById(chainId)?.name;
+      if (chainName) {
+        localStorage.setItem(storageConstants.KEY_CHAIN_NAME, chainName);
+      }
     }
   }, [chainId]);
 
@@ -462,7 +592,7 @@ function CBridgeTransferHome(): JSX.Element {
   };
 
   const setDefaultInfo = useCallback(
-    (chains, chain_token, chainId) => {
+    (chains, chain_token, chainId, urlSearch) => {
       if (chains.length > 1) {
         const cacheFromChainId = localStorage.getItem(storageConstants.KEY_FROM_CHAIN_ID);
         const cacheToChainId = localStorage.getItem(storageConstants.KEY_TO_CHAIN_ID);
@@ -472,8 +602,7 @@ function CBridgeTransferHome(): JSX.Element {
         const cacheToChain = destinChain;
         let defaultFromChain;
         let defaultToChain;
-
-        if (history.location.search) {
+        if (urlSearch) {
           const sourceChainId = Number(getQueryString("sourceChainId"));
           const destinationChainId = Number(getQueryString("destinationChainId"));
           const tokenSymbol = getQueryString("tokenSymbol");
@@ -481,28 +610,8 @@ function CBridgeTransferHome(): JSX.Element {
           localStorage.setItem(storageConstants.KEY_TO_CHAIN_ID, destinationChainId.toString() || "");
           localStorage.setItem(storageConstants.KEY_SELECTED_TOKEN_SYMBOL, tokenSymbol || "");
           localStorage.setItem(storageConstants.KEY_SOURCE_FROM_URL, "1");
-
           history.push("/transfer");
-
-          // Prepare chain info when user enters with specific url
-          if (cacheFromChain) {
-            defaultFromChain = cacheFromChain;
-          } else {
-            defaultFromChain = chains[0];
-          }
-          if (cacheToChain) {
-            defaultToChain = cacheToChain;
-          } else {
-            const nonDefaultFromChains = chains.filter(chainInfo => {
-              return chainInfo.id !== defaultFromChain.id;
-            });
-            if (nonDefaultFromChains.length > 0) {
-              defaultToChain = nonDefaultFromChains[0];
-            } else {
-              defaultToChain = chains[1];
-            }
-          }
-        } else if (!history.location.search && chainId) {
+        } else if (!urlSearch && chainId) {
           const isSourceFromUrl = localStorage.getItem(storageConstants.KEY_SOURCE_FROM_URL);
           const chainInfo = chains.filter(item => Number(item.id) === chainId);
           // Find from chain
@@ -538,7 +647,7 @@ function CBridgeTransferHome(): JSX.Element {
             }
 
             /// Non-EVM chain should not be influenced by web3 chainId change
-            if (getNonEVMMode(sourceChain.id) !== NonEVMMode.off) {
+            if (sourceChain && getNonEVMMode(sourceChain.id) !== NonEVMMode.off) {
               defaultFromChain = sourceChain;
             }
           }
@@ -600,6 +709,18 @@ function CBridgeTransferHome(): JSX.Element {
     },
     [dispatch, chainId],
   );
+
+  // Update cBridge contract address if needed
+  useEffect(() => {
+    if (!fromChain) {
+      return;
+    }
+    if (!isNonEVMChain(fromChain.id) && fromChain.id === chainId) {
+      dispatch(setCBridgeAddresses(fromChain.contract_addr));
+    } else {
+      dispatch(setCBridgeAddresses(""));
+    }
+  }, [dispatch, chainId, fromChain]);
 
   const handleSelectChain = (id: number) => {
     if (chainSource === "from") {
@@ -711,6 +832,7 @@ function CBridgeTransferHome(): JSX.Element {
       const flowTokenPath = values[1];
       if (res) {
         const { chains, chain_token, farming_reward_contract_addr, pegged_pair_configs } = res;
+
         const localChains = CHAIN_LIST;
         const filteredChains = chains.filter(item => {
           const filterLocalChains = localChains.filter(localChainItem => localChainItem.chainId === item.id);
@@ -738,7 +860,6 @@ function CBridgeTransferHome(): JSX.Element {
             pegged_pair_configs,
           }),
         );
-        dispatch(setFarmingRewardAddresses(farming_reward_contract_addr));
         dispatch(setGetConfigsFinish(true));
         // 设置默认信息
 
@@ -750,19 +871,79 @@ function CBridgeTransferHome(): JSX.Element {
             }).length > 0;
           return enableTokens.length > 0 || hasPegToken;
         });
-        setDefaultInfo(displayChains, chain_token, chainId);
+        setChainList(displayChains);
+        setTransferConfigsResponse(res);
       } else {
         message.error("Interface error !");
       }
     });
   }, []);
+
+  const getViewTabs = (): JSX.Element => {
+    switch (featureSupported) {
+      case FeatureSupported.BOTH: {
+        return (
+          <Switch>
+            <Route path="/transfer">
+              <Transfer />
+            </Route>
+            <Route path="/nft">
+              <NFTBridgeTab />
+            </Route>
+            <Redirect from="/" to="/transfer" />
+          </Switch>
+        );
+      }
+      case FeatureSupported.TRANSFER: {
+        return (
+          <Switch>
+            <Route path="/transfer">
+              <Transfer />
+            </Route>
+            <Redirect from="/" to="/transfer" />
+          </Switch>
+        );
+      }
+      case FeatureSupported.NFT: {
+        return (
+          <Switch>
+            <Route path="/nft">
+              <NFTBridgeTab />
+            </Route>
+            <Redirect from="/" to="/nft" />
+          </Switch>
+        );
+      }
+      default: {
+        return (
+          <Switch>
+            <Route path="/transfer">
+              <Transfer />
+            </Route>
+            <Redirect from="/" to="/transfer" />
+          </Switch>
+        );
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (chainList?.length === 0 || !transferConfigsResponse) {
+      return;
+    }
+    const { chain_token } = transferConfigsResponse;
+    setDefaultInfo(chainList, chain_token, chainId, history.location.search);
+  }, [chainList, transferConfigsResponse, chainId, history.location.search]);
   return (
     <div className={classes.app}>
       <Layout className={classes.layout}>
         <Header />
-        <Content className={classes.content}>
-          <Transfer />
-        </Content>
+        <div className="smallTabBodyOut">
+          <div className="smallTabBody">
+            <ViewTab />
+          </div>
+        </div>
+        <Content className={classes.content}>{getViewTabs()}</Content>
         <Footer className={classes.footer}>
           <div className={classes.footerContent}>
             <FooterContent />

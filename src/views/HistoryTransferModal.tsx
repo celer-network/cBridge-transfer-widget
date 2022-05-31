@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal, Button, message } from "antd";
 import { createUseStyles } from "react-jss";
-import { ethers } from "ethers";
 import { LoadingOutlined, WarningFilled } from "@ant-design/icons";
 import { base64, getAddress, hexlify } from "ethers/lib/utils";
 import { BigNumber } from "@ethersproject/bignumber";
@@ -207,23 +206,9 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
       withdrawReqProto.setXferId(record.transfer_id);
       withdrawReqProto.setReqId(timestamp);
       withdrawReqProto.setWithdrawType(WithdrawType.WITHDRAW_TYPE_REFUND_TRANSFER);
-      let sig;
-      try {
-        sig = await signer.signMessage(
-          ethers.utils.arrayify(ethers.utils.keccak256(withdrawReqProto.serializeBinary())),
-        );
-        if (sig) {
-          setTransfState(TransferHistoryStatus?.TRANSFER_REQUESTING_REFUND);
-        }
-      } catch (error) {
-        setLoading(false);
-        return;
-      }
 
-      const bytes = ethers.utils.arrayify(sig);
       const req = new WithdrawLiquidityRequest();
       req.setWithdrawReq(withdrawReqProto.serializeBinary());
-      req.setSig(bytes);
       req.setEstimatedReceivedAmt(estimated);
       req.setMethodType(WithdrawMethodType.WD_METHOD_TYPE_ONE_RM);
       const wres = await withdrawLiquidity(req);
@@ -233,6 +218,9 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
           setTransferStatusInfo(res);
           if (res?.status) {
             const status = res.status;
+            // if (status === TransferHistoryStatus.TRANSFER_REQUESTING_REFUND) {
+            //   setTransfState(status);
+            // } else
             if (status === TransferHistoryStatus.TRANSFER_REFUND_TO_BE_CONFIRMED) {
               setTransfState(status);
               const { wd_onchain, sorted_sigs, signers, powers } = res;
@@ -390,9 +378,11 @@ const HistoryTransferModal = ({ visible, onCancel, record }) => {
         }
       }
 
-      return transactor(bridge.withdraw(wdmsg, sigs, signers, powers));
+      if (peggedMode === PeggedChainMode.Off) {
+        return transactor(bridge.withdraw(wdmsg, sigs, signers, powers));
+      }
     };
-    const res = await executor().catch(_ => {
+    const res = await executor()?.catch(_ => {
       setTransfState(TransferHistoryStatus?.TRANSFER_REFUND_TO_BE_CONFIRMED);
       setLoading(false);
     });

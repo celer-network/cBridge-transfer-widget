@@ -8,6 +8,7 @@ import { formatUnits } from "@ethersproject/units";
 import { formatDecimalPart, safeParseUnits } from "celer-web-utils/lib/format";
 import { useConnectedWallet, TxResult } from "@terra-money/wallet-provider";
 import { MsgExecuteContract } from "@terra-money/terra.js";
+import { getAddress } from "ethers/lib/utils";
 
 import { useContractsContext } from "../../providers/ContractsContextProvider";
 import { useWeb3Context } from "../../providers/Web3ContextProvider";
@@ -44,10 +45,11 @@ import {
   NonEVMMode,
 } from "../../providers/NonEVMContextProvider";
 import { depositFromFlow, burnFromFlow } from "../../redux/NonEVMAPIs/flowAPIs";
-import { storageConstants } from "../../constants/const";
+import { pegV2ThirdPartDeployTokens, storageConstants } from "../../constants/const";
 import { useNonEVMBigAmountDelay } from "../../hooks/useNonEVMBigAmountDelay";
 import { convertCanonicalToTerraAddress, convertTerraToCanonicalAddress } from "../../redux/NonEVMAPIs/terraAPIs";
 import { useMultiBurnConfig } from "../../hooks/useMultiBurnConfig";
+import { isApeChain } from "../../hooks/useTransfer";
 
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
   balanceText: {
@@ -310,7 +312,7 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
     transactor,
   } = useContractsContext();
   const terraWallet = useConnectedWallet();
-  const { provider, address } = useWeb3Context();
+  const { provider, address, chainId } = useWeb3Context();
   const { nonEVMMode, nonEVMAddress } = useNonEVMContext();
   const dispatch = useAppDispatch();
   const { transferInfo, modal } = useAppSelector(state => state);
@@ -318,8 +320,8 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
   const { transferConfig, fromChain, toChain, selectedToken, estimateAmtInfoInState, rate, flowTokenPathConfigs } =
     transferInfo;
 
-  const getTokenByChainAndTokenSymbol = (chainId, tokenSymbol) => {
-    return transferConfig?.chain_token[chainId]?.token?.find(tokenInfo => tokenInfo?.token?.symbol === tokenSymbol);
+  const getTokenByChainAndTokenSymbol = (cId, tokenSymbol) => {
+    return transferConfig?.chain_token[cId]?.token?.find(tokenInfo => tokenInfo?.token?.symbol === tokenSymbol);
   };
 
   const selectedToChain = transferConfig?.chains.find(chain => chain.id === toChain?.id);
@@ -408,11 +410,14 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
     return `Please allow ${time} for the funds to arrive at your wallet on ${toChain?.name}.`;
   };
 
+  const getChainInfo = selectedChainId => {
+    return transferConfig.chains.find(chain => chain.id === selectedChainId);
+  };
+
   const handleAction = async () => {
     if (!fromChain || !toChain || !selectedToken) {
       return;
     }
-    console.log("Selected Token", selectedToken);
 
     const estimateRequest = new EstimateAmtRequest();
     estimateRequest.setSrcChainId(fromChain?.id);
@@ -442,7 +447,7 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
 
     const isToChainNonEVM = isNonEVMChain(toChain.id ?? 0);
 
-    if (!transactor || !bridge || !tokenContract || !selectedToken?.token?.address) {
+    if (!transactor || !bridge || !tokenContract || !selectedToken?.token?.address || fromChain.id !== chainId) {
       return;
     }
 
@@ -456,14 +461,18 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
       return;
     }
 
-    if (pegConfig.mode === PeggedChainMode.Burn && pegConfig.config.bridge_version > 0) {
+    if (
+      (pegConfig.mode === PeggedChainMode.Burn || pegConfig.mode === PeggedChainMode.BurnThenSwap) &&
+      pegConfig.config.bridge_version > 0
+    ) {
       submitTransactionForPeggedBridgeV2(pegConfig.config.pegged_token.token.address);
       return;
     }
 
     if (
       (pegConfig.mode === PeggedChainMode.Deposit && (!originalTokenVault || originalTokenVault === undefined)) ||
-      (pegConfig.mode === PeggedChainMode.Burn && (!peggedTokenBridge || peggedTokenBridge === undefined))
+      ((pegConfig.mode === PeggedChainMode.Burn || pegConfig.mode === PeggedChainMode.BurnThenSwap) &&
+        (!peggedTokenBridge || peggedTokenBridge === undefined))
     ) {
       return;
     }
@@ -544,6 +553,10 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
       console.log("transferId", transferId);
 
       const executor = (wrapToken: string | undefined) => {
+        if (chainId !== fromChain?.id) {
+          throw new Error("from chain id mismatch");
+        }
+
         switch (pegConfig.mode) {
           case PeggedChainMode.Burn:
           case PeggedChainMode.BurnThenSwap:
@@ -587,6 +600,10 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
             );
 
           default:
+            if (getAddress(bridge.address) !== getAddress(getChainInfo(chainId)?.contract_addr ?? "")) {
+              throw new Error("contract addr not matched");
+            }
+
             return transactor(
               isNativeToken
                 ? bridge.sendNative(
@@ -676,6 +693,16 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
 
   const submitTransactionFromNonEVMChain = async (fromChainNonEVMMode: NonEVMMode) => {
     setLoading(true);
+
+    if (multiBurnConfig) {
+      if (fromChainNonEVMMode === NonEVMMode.flowMainnet || fromChainNonEVMMode === NonEVMMode.flowTest) {
+        submitFlowBurn(multiBurnConfig.burn_config_as_org.burn_contract_addr);
+      } else if (fromChainNonEVMMode === NonEVMMode.terraMainnet || fromChainNonEVMMode === NonEVMMode.terraTest) {
+        submitTerraBurn(multiBurnConfig.burn_config_as_org.token.token.address);
+      }
+      return;
+    }
+
     const deposit = transferConfig.pegged_pair_configs.find(config => {
       return (
         config.org_chain_id === fromChain?.id &&
@@ -1070,6 +1097,18 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
 
     const executor = (wrapToken: string | undefined) => {
       if (wrapToken === pegConfig.config.org_token.token.address) {
+        if (isApeChain(fromChain.id)) {
+          return transactor(
+            // eslint-disable-next-line
+            originalTokenVaultV2!.depositNative(
+              value,
+              pegConfig.config.pegged_chain_id,
+              isToChainNonEVM ? receiverEVMCompatibleAddress : address,
+              nonce,
+              { value, gasPrice: 0 },
+            ),
+          );
+        }
         return transactor(
           // eslint-disable-next-line
           originalTokenVaultV2!.depositNative(
@@ -1082,6 +1121,20 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
         );
       }
 
+      // force Ape chain gas price = 0;
+      if (isApeChain(fromChain.id)) {
+        return transactor(
+          // eslint-disable-next-line
+          originalTokenVaultV2!.deposit(
+            pegConfig.config.org_token.token.address,
+            value,
+            pegConfig.config.pegged_chain_id,
+            isToChainNonEVM ? receiverEVMCompatibleAddress : address,
+            nonce,
+            { gasPrice: 0 },
+          ),
+        );
+      }
       return transactor(
         // eslint-disable-next-line
         originalTokenVaultV2!.deposit(
@@ -1196,13 +1249,24 @@ const TransferModal: FC<IProps> = ({ amount, receiveAmount, nonEVMReceiverAddres
       ],
     );
 
-    const burn = peggedTokenBridgeV2.burn(
-      tokenAddress,
-      value,
-      toChain?.id ?? 0,
-      isToChainNonEVM ? receiverEVMCompatibleAddress : address,
-      nonce,
-    );
+    let burn;
+    if (pegV2ThirdPartDeployTokens[fromChain?.id]?.includes(tokenAddress)) {
+      burn = peggedTokenBridgeV2.burnFrom(
+        burnTokenAddress,
+        value,
+        toChain?.id ?? 0,
+        isToChainNonEVM ? receiverEVMCompatibleAddress : address,
+        nonce,
+      );
+    } else {
+      burn = peggedTokenBridgeV2.burn(
+        burnTokenAddress,
+        value,
+        toChain?.id ?? 0,
+        isToChainNonEVM ? receiverEVMCompatibleAddress : address,
+        nonce,
+      );
+    }
 
     try {
       setLoading(true);

@@ -143,6 +143,9 @@ const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: 
     "& .ant-input-affix-wrapper:focus, .ant-input-affix-wrapper-focused": {
       borderColor: "#1890ff",
     },
+    "& .ant-input-clear-icon": {
+      color: "#8F9BB3 !important",
+    },
   },
   searchinput: {
     width: "100%",
@@ -182,9 +185,11 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
   const classes = useStyles({ isMobile });
   const { chainId } = useWeb3Context();
   const { transferInfo } = useAppSelector(state => state);
-  const { chainSource, transferConfig, fromChain, toChain } = transferInfo;
-  const { chains } = transferConfig;
+  const { chainSource, transferConfig, fromChain, toChain, selectedToken } =
+    transferInfo;
+  const { chains, chain_token } = transferConfig;
 
+  /// SingleChain Not Supported
   const transferSupportedChainList = useTransferSupportedChainList(chainSource === "to");
 
   // split normalChain and other chain
@@ -242,6 +247,10 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
       case "wallet":
         title = "Switch Your Connected Chain";
         break;
+      case "SingleChain":
+        title = "Select Source Chain";
+        break;
+
       default:
         break;
     }
@@ -274,6 +283,10 @@ const ChainList: FC<IProps> = ({ visible, onSelectChain, onCancel }) => {
   };
 
   useEffect(() => {
+    /// Not supported for SingleChain Mode
+    if (chainSource === "SingleChain") {
+      return;
+    }
     const localChainIdWhiteList = CHAIN_LIST.map(networkInfo => {
       return networkInfo.chainId;
     });

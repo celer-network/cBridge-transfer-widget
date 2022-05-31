@@ -125,7 +125,7 @@ const transferSlice = createSlice({
             peggedConfigI.org_token.token.symbol === peggedConfigJ.org_token.token.symbol
           ) {
             /// Only upgraded PegBridge can support multi burn to other pegged chain
-            if (peggedConfigI.bridge_version === 2) {
+            if (peggedConfigI.bridge_version === 2 && peggedConfigJ.bridge_version === 2) {
               multiBurnConfigs.push({
                 burn_config_as_org: {
                   chain_id: peggedConfigI.pegged_chain_id,
@@ -142,9 +142,6 @@ const transferSlice = createSlice({
                   burn_contract_version: peggedConfigJ.bridge_version,
                 },
               });
-            }
-
-            if (peggedConfigJ.bridge_version === 2) {
               multiBurnConfigs.push({
                 burn_config_as_org: {
                   chain_id: peggedConfigJ.pegged_chain_id,
@@ -353,7 +350,8 @@ export const switchChain = async (id, atoken, switchChainSuccessCallback: Switch
     // const message = (switchError.message as string) ?? "";
     // const testString = "Unrecognized chain ID";
     // || message.toLowerCase().includes(testString.toLowerCase())
-    if ((switchError as { code: number }).code === 4902) {
+    const errorCode = (switchError as { code: number }).code;
+    if (errorCode === 4902 || errorCode === -32603) {
       try {
         // const chainInfo =
         await window.ethereum.request({

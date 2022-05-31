@@ -265,6 +265,30 @@ export const getTokenListSymbol = (symbol, chId) => {
     if (symbol === "WBTC") {
       name = "ceWBTC";
     }
+
+    if (symbol === "BNB") {
+      name = "ceBNB";
+    }
+
+    if (symbol === "BUSD") {
+      name = "ceBUSD";
+    }
+
+    if (symbol === "AVAX") {
+      name = "ceAVAX";
+    }
+
+    if (symbol === "FTM") {
+      name = "ceFTM";
+    }
+
+    if (symbol === "AURORA") {
+      name = "ceAURORA";
+    }
+
+    if (symbol === "FTM") {
+      name = "ceFTM";
+    }
   }
 
   if (chainId === 12340001) {
@@ -302,6 +326,24 @@ export const getTokenListSymbol = (symbol, chId) => {
 
     if (symbol === "WETH") {
       name = "ceWETH";
+    }
+  }
+
+  if (chainId === 73772) {
+    if (symbol === "TUS") {
+      name = "WTUS";
+    }
+  }
+
+  if (chainId === 12340002 || chainId === 80001) {
+    if (symbol === "FLOWUSDC") {
+      name = "USDC";
+    }
+  }
+
+  if (chainId === 12340001 || chainId === 1) {
+    if (symbol === "cfUSDC") {
+      name = "USDC";
     }
   }
   return name;

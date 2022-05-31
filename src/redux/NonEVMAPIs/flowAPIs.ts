@@ -95,7 +95,6 @@ export const checkTokenReceivabilityForFlowAccount = async (
   if (address.length === 0) {
     return false;
   }
-
   const candence = fcl.script`
       import FungibleToken from ${flowFungibleTokenAddress}
       pub fun main(): Bool {
@@ -345,5 +344,26 @@ export const submitFlowRefundRequest = async (
   } catch (error) {
     console.log("error", error);
     return "";
+  }
+};
+
+export const getFlowTokenLiquidityBalance = async (flowVaultContractAddr: string, receiverPath: string) => {
+  const candenceCode = fcl.script`
+  import FungibleToken from ${flowFungibleTokenAddress}
+
+  pub fun main(): UFix64 {
+      let vaultRef = getAccount(${removeFlowAddressLeading0s(flowVaultContractAddr)})
+          .getCapability(${receiverPath})
+          .borrow<&{FungibleToken.Balance}>()
+          ?? panic("Could not borrow Balance reference to the Vault")
+      return vaultRef.balance
+  }`;
+  try {
+    const response = await fcl.send([candenceCode]);
+    const liquidity = await fcl.decode(response);
+    return liquidity;
+  } catch (error) {
+    console.log("error", error);
+    return 0;
   }
 };
