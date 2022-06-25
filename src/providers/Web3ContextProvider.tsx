@@ -153,9 +153,6 @@ export const Web3ContextProvider = ({ children }: Web3ContextProviderProps): JSX
     }
     setConnecting(false);
     setWeb3Connection(connection);
-    if (connection.isImToken) {
-      connection.request = undefined;
-    }
     const newProvider = new Web3Provider(connection);
     setProvider(newProvider);
     const newSigner = newProvider.getSigner();
