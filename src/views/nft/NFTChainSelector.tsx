@@ -6,7 +6,7 @@ import { useWeb3Context } from "../../providers/Web3ContextProvider";
 import { useAppSelector } from "../../redux/store";
 import { Theme } from "../../theme";
 import ActionTitle from "../../components/common/ActionTitle";
-import { NFTChain } from "../../constants/type";
+import { NFTChain, S3NFTConfig } from "../../constants/type";
 import ringBell from "../../images/ringBell.svg";
 import { NFT_CHAIN_TYPE } from "./NFTBridgeTab";
 
@@ -172,11 +172,13 @@ interface IProps {
   nftChainType: NFT_CHAIN_TYPE;
   nftChains: NFTChain[];
   visible: boolean;
+  sourceChain: NFTChain | undefined;
+  nftList: S3NFTConfig[];
   onSelectChain: (chainInfo: any) => void;
   onCancel: () => void;
 }
 
-const NFTChainSelector: FC<IProps> = ({ nftChainType, nftChains, visible, onSelectChain, onCancel }) => {
+const NFTChainSelector: FC<IProps> = ({ nftChainType, nftChains, visible, sourceChain, nftList, onSelectChain, onCancel }) => {
   const { isMobile } = useAppSelector(state => state.windowWidth);
   const classes = useStyles({ isMobile });
   const { chainId } = useWeb3Context();
@@ -184,6 +186,7 @@ const NFTChainSelector: FC<IProps> = ({ nftChainType, nftChains, visible, onSele
   const { chainSource, fromChain, toChain } = transferInfo;
   const [searchText, setSearchText] = useState("");
   const [filterList, setFilterList] = useState<NFTChain[]>(nftChains);
+
 
   const getTitle = () => {
     let title;
@@ -233,8 +236,38 @@ const NFTChainSelector: FC<IProps> = ({ nftChainType, nftChains, visible, onSele
         chain.chainid.toString().toLowerCase().indexOf(searchText) > -1
       );
     });
+
+    if (nftChainType === "destinationChain" && sourceChain !== undefined) {
+      const targetDestinationChainIds = new Set<number>()
+      targetDestinationChainIds.add(sourceChain.chainid)
+
+      nftList.forEach(nftConfig => {
+        let ids: number[] = []
+
+        if (nftConfig.orig) {
+          ids.push(nftConfig.orig.chainid)
+        } 
+
+        ids = ids.concat(nftConfig.pegs.map(item => {
+          return item.chainid
+        }))
+
+        if (ids.includes(sourceChain.chainid)) {
+          ids.forEach(id => {
+            targetDestinationChainIds.add(id)
+          })
+        }
+      })
+
+      targetDestinationChainIds.delete(sourceChain.chainid)
+      
+      setFilterList(list.filter(item => {
+        return targetDestinationChainIds.has(item.chainid)
+      }));
+      return 
+    }
     setFilterList(list);
-  }, [nftChains, searchText]);
+  }, [nftChains, searchText, nftChainType, nftList, sourceChain]);
 
   const renderChainItem = (chain: NFTChain) => {
     return (
