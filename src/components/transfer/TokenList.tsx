@@ -406,6 +406,10 @@ const TokenList: FC<IProps> = ({ onSelectToken, visible, onCancel }) => {
     //         return true
     // }
 
+    if (targetChainId === 13000 && tokenSymbol === "ECG") {
+      return true;
+    }
+
     return false;
   };
 

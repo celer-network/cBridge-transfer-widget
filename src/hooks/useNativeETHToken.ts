@@ -58,6 +58,8 @@ export const useNativeETHToken = (srcChain: Chain | undefined, tokenInfo: TokenI
       nativeETHToken = true;
     } else if (srcChain.id === 16350 && tokenInfo.token.symbol === "PEEL") {
       nativeETHToken = true;
+    } else if (srcChain.id === 13000 && tokenInfo.token.symbol === "ECG") {
+      nativeETHToken = true;
     }
     // else if (srcChain.id === 73771 && tokenInfo.token.symbol === "TUS") {
     //   nativeETHToken = true;

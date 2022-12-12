@@ -1287,6 +1287,10 @@ const History = (props: IProps): JSX.Element => {
                     shouldDisplayMetaMaskIcon = false;
                   }
 
+                  if (item?.dst_received_info.chain.id === 13000 && item?.src_send_info?.token.symbol === "ECG") {
+                    shouldDisplayMetaMaskIcon = false;
+                  }
+
                   // if (item?.dst_received_info.chain.id === 73771 && item?.src_send_info?.token.symbol === "TUS") {
                   //   shouldDisplayMetaMaskIcon = false;
                   // }
