@@ -30,6 +30,33 @@ bscTest: {
   }
 ```
 
+## Add Bridge Functionality for Chain's Native Token
+
+After you put native token symbol into token symbol whitelist, you will also have to configure it as a native token. 
+To implement this, modify the following files. If you have any questions, you can refer this: 
+https://github.com/celer-network/cBridge-transfer-widget/commit/b47a6e85eee480f8bb4440f13949766a2744369c
+
+### Add below code snippets to .../src/components/transfer/TokenList.tsx
+```
+if (targetChainId === CHAIN_ID && tokenSymbol === CHAIN_NATIVE_TOKEN_SYMBOL) {
+  return true;
+}
+```
+
+### Add below code snippets to .../src/hooks/useNativeETHToken.ts
+```
+if (srcChain.id === CHAIN_ID && tokenInfo.token.symbol === CHAIN_NATIVE_TOKEN_SYMBOL) {
+    nativeETHToken = true;
+}
+```
+
+### Add below code snippets to .../src/views/History.tsx
+```
+if (item?.dst_received_info.chain.id === CHAIN_ID && item?.src_send_info?.token.symbol === CHAIN_NATIVE_TOKEN_SYMBOL) {
+    shouldDisplayMetaMaskIcon = false;
+}
+```
+
 # Tabs
 
 specific support tab view in env configuration file.
