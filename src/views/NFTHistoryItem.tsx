@@ -25,7 +25,7 @@ interface NFTHistoryItemProps {
 const useStyles = createUseStyles<string, { isMobile: boolean }, Theme>((theme: Theme) => ({
   ListItem: {
     width: "100%",
-    background: theme.secondBackground,
+    background: theme.primaryBackground,
     marginTop: 16,
     borderRadius: 16,
     padding: props => (props.isMobile ? "18px 16px 18px 16px" : "24px 16px 10px 16px"),
@@ -288,7 +288,7 @@ export const NFTHistoryItem = (props: NFTHistoryItemProps): JSX.Element => {
                         {" "}
                         If your on-chain tx has failed, this is usually because the gas limit is set too low. You can
                         manually{" "}
-                        <span style={{ color: "#1890ff", cursor: "pointer" }} onClick={clearNFTLocalData}>
+                        <span style={{ color: "#1890ff", cursor: "pointer" }} onClick={() => clearNFTLocalData(item)}>
                           clear this history item
                         </span>{" "}
                         and try again later.

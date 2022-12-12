@@ -4,7 +4,6 @@ import { createUseStyles } from "react-jss";
 import { BigNumber } from "ethers";
 import { LinkOutlined } from "@ant-design/icons";
 import { getAddress } from "ethers/lib/utils";
-import { JsonRpcProvider } from "@ethersproject/providers";
 import { useConfigContext } from "../../providers/ConfigContextProvider";
 import { useWeb3Context } from "../../providers/Web3ContextProvider";
 import { Theme } from "../../theme";
@@ -209,7 +208,7 @@ const NFTSelector: FC<IProps> = ({ visible, onCancel, s3ConfigNFTs, onNFTSelecte
   const [listLoading, setListLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [filterNFTList, setFilterNFTList] = useState<NFTItem[]>([]);
-  const { address, chainId } = useWeb3Context();
+  const { provider, chainId, address } = useWeb3Context();
   const [nftAddresses, setNftAddress] = useState<string[]>();
   const [userAllNftIds, setUserAllNftIds] = useState<Array<{ addr: string; ids: Array<number> } | undefined>>([]);
 
@@ -310,8 +309,6 @@ const NFTSelector: FC<IProps> = ({ visible, onCancel, s3ConfigNFTs, onNFTSelecte
 
     const constructNFT = async (nftName: string, nftSymbol: string, nftAddress, id: number, nativeNft = false) => {
       try {
-        const rpcUrl = getRpcUrlByChainId(chainId);
-        const provider = new JsonRpcProvider(rpcUrl);
         let tokenUri = "";
         let ownerOf;
         if (nativeNft) {
@@ -356,39 +353,50 @@ const NFTSelector: FC<IProps> = ({ visible, onCancel, s3ConfigNFTs, onNFTSelecte
     const nftConstructPromises: Promise<NFTItem | undefined>[] = [];
 
     // native nft which hasn't orig vault
-    const nativeNftOnSrcChain = s3ConfigNFTs.find(item => !item.orig && item.pegs.filter(it => it.chainid === chainId));
-    const nativeToken = nativeNftOnSrcChain?.pegs.find(it => it.chainid === chainId);
-
-    if (nativeNftOnSrcChain && nativeToken) {
-      const nftIds = userAllNftIds.find(idConfigItem => nativeToken.addr === idConfigItem?.addr)?.ids;
-      nftIds?.forEach(id => {
-        nftConstructPromises.push(
-          constructNFT(nativeNftOnSrcChain.name, nativeNftOnSrcChain.symbol, nativeToken.addr, id, true),
-        );
-      });
-    }
-
-    // peg nfts
-    const origNFTConfig = s3ConfigNFTs.find(item => item.orig && item.orig.chainid === chainId);
-
-    if (origNFTConfig) {
-      const nftIds = userAllNftIds.find(idConfigItem => origNFTConfig.orig.addr === idConfigItem?.addr)?.ids;
-      if (nftIds && nftIds.length > 0) {
-        nftIds.forEach(id => {
+    const nativeNftOnSrcChains = s3ConfigNFTs.filter(item => !item.orig && item.pegs.filter(it => it.chainid === chainId));
+    nativeNftOnSrcChains.forEach(nativeNftOnSrcChain => {
+      const nativeToken = nativeNftOnSrcChain?.pegs.find(it => it.chainid === chainId);
+      if (nativeToken) {
+        const nftIds = userAllNftIds.find(idConfigItem => nativeToken.addr === idConfigItem?.addr)?.ids;
+        nftIds?.forEach(id => {
           nftConstructPromises.push(
-            constructNFT(origNFTConfig.name, origNFTConfig.symbol, origNFTConfig.orig.addr, id),
+            constructNFT(nativeNftOnSrcChain.name, nativeNftOnSrcChain.symbol, nativeToken.addr, id, true)
           );
         });
       }
+    })
+
+
+    // peg nfts
+    const origNFTConfigs = s3ConfigNFTs.filter(item => item.orig && item.orig.chainid === chainId);
+    // eslint-disable-next-line no-extra-boolean-cast
+    if(!!origNFTConfigs.length) {
+      origNFTConfigs.forEach(origNFTConfig => {
+          const nftIds = userAllNftIds.find(idConfigItem => origNFTConfig.orig.addr === idConfigItem?.addr)?.ids;
+          if (nftIds && nftIds.length > 0) {
+            nftIds.forEach(id => {
+              nftConstructPromises.push(
+                constructNFT(origNFTConfig.name, origNFTConfig.symbol, origNFTConfig.orig.addr, id),
+              );
+            });
+          }
+      })
     }
-    const pegNFTConfig = s3ConfigNFTs.find(item => item.orig && item.pegs.find(it => it.chainid === chainId));
-    const pegToken = pegNFTConfig?.pegs.find(it => it.chainid === chainId);
-    if (pegNFTConfig && pegToken) {
-      const ids = userAllNftIds.find(idConfigItem => idConfigItem?.addr === pegToken.addr)?.ids;
-      ids?.forEach(nftId => {
-        nftConstructPromises.push(constructNFT(pegNFTConfig.name, pegNFTConfig.symbol, pegToken?.addr, nftId));
-      });
+    
+    
+    const pegNFTConfigs = s3ConfigNFTs.filter(item => item.orig && item.pegs.find(it => it.chainid === chainId));
+    if(pegNFTConfigs.length > 0) {
+      pegNFTConfigs.forEach(pegNFTConfig => {
+        const pegToken = pegNFTConfig?.pegs.find(it => it.chainid === chainId);
+        if (pegNFTConfig && pegToken) {
+          const ids = userAllNftIds.find(idConfigItem => idConfigItem?.addr === pegToken.addr)?.ids;
+          ids?.forEach(nftId => {
+            nftConstructPromises.push(constructNFT(pegNFTConfig.name, pegNFTConfig.symbol, pegToken?.addr, nftId));
+          });
+        }
+      })
     }
+   
 
     setListLoading(true);
     Promise.all(nftConstructPromises)
@@ -405,7 +413,7 @@ const NFTSelector: FC<IProps> = ({ visible, onCancel, s3ConfigNFTs, onNFTSelecte
         console.error(e);
         setListLoading(false);
       });
-  }, [s3ConfigNFTs, chainId, address, getRpcUrlByChainId, userAllNftIds]);
+  }, [s3ConfigNFTs, chainId, address, getRpcUrlByChainId, userAllNftIds, provider]);
 
   const renderNFTItem = (NFT: NFTItem) => {
     let explorerUrl = getNetworkById(chainId).blockExplorerUrl;
